@@ -1,0 +1,2 @@
+rootProject.name='RiskBoardGame'
+include 'android', 'core'

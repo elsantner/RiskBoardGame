@@ -1,0 +1,33 @@
+apply plugin: "java"
+apply plugin: "jacoco"
+
+sourceCompatibility = 1.7
+dependencies {
+    implementation 'junit:junit:4.12'
+}
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+sourceSets.main.java.srcDirs = [ "src/main/java", "src/test/java" ]
+
+eclipse.project.name = appName + "-core"
+
+jacoco {
+    toolVersion = "0.7.1.201405082137"
+}
+
+repositories {
+    mavenCentral()
+}
+
+test {
+    jacoco {
+        append = false
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+    }
+}
