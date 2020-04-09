@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import edu.aau.se2.view.game.asset.AssetName;
 
 /**
  * @author Elias
@@ -31,7 +32,7 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
     }
 
     private void loadAssets() {
-        texRiskBoard = new Texture("riskBoard.jpg");
+        texRiskBoard = new Texture(AssetName.RISK_BOARD);
         imgRiskBoard = new Image(texRiskBoard);
     }
 
@@ -54,19 +55,32 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
     }
 
     /**
-     * Moves the camera position by deltaX and deltaY while staying inside the bounds of the camera viewport and considering zoom factor.
+     * Moves the camera position by deltaX and deltaY while staying inside the bounds of the
+     * camera viewport and considering zoom factor.
      * @param deltaX The change of the x position
      * @param deltaY The change of the x position
      */
     private void moveCameraWithinBoardBounds(float deltaX, float deltaY) {
-        // zoom factor is incorporated to make (absolute) camera movement slower when zoomed in so it's always the same visual velocity
+        // zoom factor is incorporated to make (absolute) camera movement slower when zoomed in
+        // so it's always the same visual velocity
         float newX = cam.position.x - deltaX*getZoomFactor();
         float newY = cam.position.y + deltaY*getZoomFactor();
+        moveCameraToPosWithinBoardBounds(newX, cam.viewportHeight-newY);
+    }
 
+    /**
+     * Moves the camera position as close to x and y as possible while staying inside the bounds of
+     * the camera viewport and considering zoom factor.
+     * @param x The x position
+     * @param y The y position
+     */
+    private void moveCameraToPosWithinBoardBounds(float x, float y) {
         // the camera position is the center coordinate of the displayed area --> cam.viewport.../2
-        cam.position.x = MathUtils.clamp(newX, cam.viewportWidth/2 - (cam.viewportWidth/2)*(1-getZoomFactor()),
+        cam.position.x = MathUtils.clamp(x,
+                cam.viewportWidth/2 - (cam.viewportWidth/2)*(1-getZoomFactor()),
                 cam.viewportWidth/2 + (cam.viewportWidth/2)*(1-getZoomFactor()));
-        cam.position.y = MathUtils.clamp(newY, cam.viewportHeight/2 - (cam.viewportHeight/2)*(1-getZoomFactor()),
+        cam.position.y = MathUtils.clamp(cam.viewportHeight-y,
+                cam.viewportHeight/2 - (cam.viewportHeight/2)*(1-getZoomFactor()),
                 cam.viewportHeight/2 + (cam.viewportHeight/2)*(1-getZoomFactor()));
         cam.update();
     }
@@ -74,7 +88,7 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
     /**
      * Zooms the camera if a double tap happened (2 taps within 1 second).
      */
-    private void zoomOnDoubleTap() {
+    private void zoomOnDoubleTap(float x, float y) {
         if (System.currentTimeMillis() - prevTapTime < 1000) {
             prevTapTime = 0;
             if (getZoomFactor() == MAX_ZOOM_FACTOR) {
@@ -83,7 +97,7 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
             else {
                 setZoomFactor(MAX_ZOOM_FACTOR);
             }
-            moveCameraWithinBoardBounds(0, 0);
+            moveCameraToPosWithinBoardBounds(x, y);
         }
         else {
             prevTapTime = System.currentTimeMillis();
@@ -99,7 +113,8 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
 
     @Override
     public boolean tap(float x, float y, int count, int button) {
-        zoomOnDoubleTap();
+        zoomOnDoubleTap(x, y);
+        System.out.println(x + " " + y);
         return false;
     }
 
