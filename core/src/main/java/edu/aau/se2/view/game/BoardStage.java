@@ -4,12 +4,17 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
+
 import edu.aau.se2.view.game.asset.AssetName;
+import edu.aau.se2.view.game.territories.Territory;
+import edu.aau.se2.view.game.territories.TerritoryID;
 
 /**
  * @author Elias
@@ -24,11 +29,26 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
     private float prevZoomFactor = 1;
     private long prevTapTime = 0;
 
-    public BoardStage() {
-        super(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+    public BoardStage(Viewport vp) {
+        super(vp);
         cam = (OrthographicCamera) this.getCamera();
+        // init territories (relevant for scaling to current resolution)
+        if (!Territory.isInitialized()) {
+            Territory.init(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        }
         loadAssets();
         setupBoardImage();
+        //setupHitbox();
+    }
+
+    private void setupHitbox() {
+        for (Vector2 v: Territory.getByID(TerritoryID.Venezuela).getPolygonHitbox()) {
+            Image img = new Image(new Texture("hitbox.jpg"));
+            img.getColor().r = 0xff;
+            img.setX(v.x);
+            img.setY(v.y);
+            this.addActor(img);
+        }
     }
 
     private void loadAssets() {
@@ -86,10 +106,11 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
     }
 
     /**
-     * Zooms the camera if a double tap happened (2 taps within 1 second).
+     * Zooms the camera if a double tap happened (2 taps within .5 second).
+     * @return True if the zoom was performed, otherwise false
      */
-    private void zoomOnDoubleTap(float x, float y) {
-        if (System.currentTimeMillis() - prevTapTime < 1000) {
+    private boolean zoomOnDoubleTap(float x, float y) {
+        if (System.currentTimeMillis() - prevTapTime < 500) {
             prevTapTime = 0;
             if (getZoomFactor() == MAX_ZOOM_FACTOR) {
                 setZoomFactor(MIN_ZOOM_FACTOR);
@@ -98,9 +119,11 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
                 setZoomFactor(MAX_ZOOM_FACTOR);
             }
             moveCameraToPosWithinBoardBounds(x, y);
+            return true;
         }
         else {
             prevTapTime = System.currentTimeMillis();
+            return false;
         }
     }
 
@@ -114,7 +137,10 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
     @Override
     public boolean tap(float x, float y, int count, int button) {
         zoomOnDoubleTap(x, y);
-        System.out.println(x + " " + y);
+
+        //Vector3 inWorldPos = cam.unproject(new Vector3(x, y, 0));
+        //System.out.println((int)inWorldPos.x + "," + (int)inWorldPos.y + ", ");
+        //System.out.println(Intersector.isPointInPolygon(Territory.getByID(TerritoryID.Argentina).getPolygonHitbox(), new Vector2(inWorldPos.x, inWorldPos.y)));
         return false;
     }
 

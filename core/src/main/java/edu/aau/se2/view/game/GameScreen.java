@@ -5,6 +5,7 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 
 /**
  * @author Elias
@@ -14,7 +15,7 @@ public class GameScreen implements Screen {
     private InputMultiplexer inputMultiplexer;
 
     public GameScreen() {
-        boardStage = new BoardStage();
+        boardStage = new BoardStage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
     }
 
     @Override
