@@ -1,9 +1,11 @@
 apply plugin: "java"
 apply plugin: "jacoco"
 
-sourceCompatibility = 1.7
+sourceCompatibility = 1.8
 dependencies {
     implementation 'junit:junit:4.12'
+    implementation 'com.esotericsoftware:kryonet:2.22.0-RC1'
+    implementation project(path: ':server')
 }
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
@@ -14,6 +16,7 @@ eclipse.project.name = appName + "-core"
 jacoco {
     toolVersion = "0.7.1.201405082137"
 }
+
 
 repositories {
     mavenCentral()
@@ -31,3 +34,4 @@ jacocoTestReport {
         csv.enabled false
     }
 }
+
