@@ -12,7 +12,7 @@ public abstract class TerritoryID {
     public static int Greenland = 9;
     public static int NorthwestTerritory = 10;
     public static int CentralCanada = 11;
-    public static int asternCanada = 12;
+    public static int EasternCanada = 12;
     public static int WesternUS = 13;
     public static int CentralAfrica = 14;
     public static int EastAfrica = 15;
