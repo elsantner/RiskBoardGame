@@ -12,21 +12,25 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
  */
 public class GameScreen implements Screen {
     private BoardStage boardStage;
-    private InputMultiplexer inputMultiplexer;
 
     public GameScreen() {
         boardStage = new BoardStage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
     }
 
+    public void setListener(OnBoardInteractionListener l) {
+        boardStage.setListener(l);
+    }
+
     @Override
     public void show() {
-        inputMultiplexer = new InputMultiplexer();
+        InputMultiplexer inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new GestureDetector(boardStage));
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
     @Override
     public void render(float delta) {
+        // render "unused" area in red
         Gdx.gl.glClearColor(1, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 

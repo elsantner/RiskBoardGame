@@ -1,4 +1,4 @@
-package edu.aau.se2.view.game.territories;
+package edu.aau.se2.model;
 
 public abstract class TerritoryID {
     public static int Argentina = 1;

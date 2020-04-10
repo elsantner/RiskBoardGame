@@ -1,6 +1,7 @@
 package edu.aau.se2.view.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.input.GestureDetector;
@@ -10,34 +11,34 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.viewport.Viewport;
-
 import edu.aau.se2.view.asset.AssetName;
-import edu.aau.se2.view.game.territories.Territory;
-import edu.aau.se2.view.game.territories.TerritoryID;
 
 /**
  * @author Elias
  */
-public class BoardStage extends Stage implements GestureDetector.GestureListener {
+public class BoardStage extends Stage implements IGameBoard, GestureDetector.GestureListener {
     private static float MAX_ZOOM_FACTOR = 1, MIN_ZOOM_FACTOR = 0.25f;
+    private float prevZoomFactor = 1;
 
-    private Texture texRiskBoard;
     private Image imgRiskBoard;
     private OrthographicCamera cam;
-
-    private float prevZoomFactor = 1;
-    private long prevTapTime = 0;
+    private OnBoardInteractionListener boardListener;
+    private boolean interactable = true, armiesPlacable = false, attackAllowed = false;
 
     public BoardStage(Viewport vp) {
         super(vp);
         cam = (OrthographicCamera) this.getCamera();
         // init territories (relevant for scaling to current resolution)
-        if (!Territory.isInitialized()) {
+        if (Territory.isNotInitialized()) {
             Territory.init(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
         loadAssets();
         setupBoardImage();
         setupTerritories();
+    }
+
+    public void setListener(OnBoardInteractionListener l) {
+        this.boardListener = l;
     }
 
     private void setupTerritories() {
@@ -47,8 +48,7 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
     }
 
     private void loadAssets() {
-        texRiskBoard = new Texture(AssetName.RISK_BOARD);
-        imgRiskBoard = new Image(texRiskBoard);
+        imgRiskBoard = new Image(new Texture(AssetName.RISK_BOARD));
     }
 
     private void setupBoardImage() {
@@ -63,8 +63,8 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
     }
 
     public void setZoomFactor(float zoomFactor) {
-        if (zoomFactor > 1 || zoomFactor < 0) {
-            throw new IllegalArgumentException("zoomFactor must be between 0 and 1");
+        if (zoomFactor > MAX_ZOOM_FACTOR || zoomFactor < MIN_ZOOM_FACTOR) {
+            throw new IllegalArgumentException("zoomFactor must be between " + MIN_ZOOM_FACTOR + " and " + MAX_ZOOM_FACTOR);
         }
         cam.zoom = zoomFactor;
     }
@@ -101,25 +101,17 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
     }
 
     /**
-     * Zooms the camera if a double tap happened (2 taps within .5 second).
-     * @return True if the zoom was performed, otherwise false
+     * Sets the camera zoom to its maximum (centered around (x,y)) if the current zoom factor is not at a minimum.
+     * Otherwise set the camera zoom to its minimum.
      */
-    private boolean zoomOnDoubleTap(float x, float y) {
-        if (System.currentTimeMillis() - prevTapTime < 500) {
-            prevTapTime = 0;
-            if (getZoomFactor() == MAX_ZOOM_FACTOR) {
-                setZoomFactor(MIN_ZOOM_FACTOR);
-            }
-            else {
-                setZoomFactor(MAX_ZOOM_FACTOR);
-            }
-            moveCameraToPosWithinBoardBounds(x, y);
-            return true;
+    private void toggleZoom(float x, float y) {
+        if (getZoomFactor() == MAX_ZOOM_FACTOR) {
+            setZoomFactor(MIN_ZOOM_FACTOR);
         }
         else {
-            prevTapTime = System.currentTimeMillis();
-            return false;
+            setZoomFactor(MAX_ZOOM_FACTOR);
         }
+        moveCameraToPosWithinBoardBounds(x, y);
     }
 
     @Override
@@ -131,14 +123,17 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
 
     @Override
     public boolean tap(float x, float y, int count, int button) {
-        zoomOnDoubleTap(x, y);
-
-        Vector3 inWorldPos = cam.unproject(new Vector3(x, y, 0));
-        System.out.println((int)inWorldPos.x + "," + (int)inWorldPos.y + ",");
-        Territory t = Territory.getByPosition(inWorldPos.x, inWorldPos.y);
-        if (t != null) {
-            t.setArmyCount(t.getArmyCount()+1);
+        // place 1 army if
+        if (interactable) {
+            Vector3 inWorldPos = cam.unproject(new Vector3(x, y, 0));
+            Territory t = Territory.getByPosition(inWorldPos.x, inWorldPos.y);
+            if (t != null && armiesPlacable && boardListener != null) {
+                boardListener.armyPlaced(t.getID(), 1);
+            } else if (count == 2) {
+                toggleZoom(x, y);
+            }
         }
+
         return false;
     }
 
@@ -165,11 +160,13 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
 
     @Override
     public boolean zoom(float initialDistance, float distance) {
-        float newZoomFactor = prevZoomFactor * initialDistance/distance;
-        if (newZoomFactor <= MAX_ZOOM_FACTOR && newZoomFactor >= MIN_ZOOM_FACTOR) {
-            // set zoom, but consider the zoom factor where the last gesture ended
-            setZoomFactor(newZoomFactor);
-            moveCameraWithinBoardBounds(0, 0);
+        if (interactable) {
+            float newZoomFactor = prevZoomFactor * initialDistance / distance;
+            if (newZoomFactor <= MAX_ZOOM_FACTOR && newZoomFactor >= MIN_ZOOM_FACTOR) {
+                // set zoom, but consider the zoom factor where the last gesture ended
+                setZoomFactor(newZoomFactor);
+                moveCameraWithinBoardBounds(0, 0);
+            }
         }
         return false;
     }
@@ -182,5 +179,51 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
     @Override
     public void pinchStop() {
 
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        imgRiskBoard = null;
+    }
+
+    @Override
+    public void setInteractable(boolean interactable) {
+        this.interactable = interactable;
+    }
+
+    @Override
+    public boolean isInteractable() {
+        return interactable;
+    }
+
+    @Override
+    public void setArmiesPlacable(boolean armiesPlacable) {
+        this.armiesPlacable = armiesPlacable;
+    }
+
+    @Override
+    public boolean isArmiesPlacable() {
+        return armiesPlacable;
+    }
+
+    @Override
+    public void setAttackAllowed(boolean attackAllowed) {
+        this.attackAllowed = attackAllowed;
+    }
+
+    @Override
+    public boolean isAttackAllowed() {
+        return attackAllowed;
+    }
+
+    @Override
+    public void setArmyCount(int territoryID, int count) {
+        Territory.getByID(territoryID).setArmyCount(count);
+    }
+
+    @Override
+    public void setArmyColor(int territoryID, Color color) {
+        Territory.getByID(territoryID).setArmyColor(color);
     }
 }
