@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -12,7 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import edu.aau.se2.view.game.asset.AssetName;
+import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.game.territories.Territory;
 import edu.aau.se2.view.game.territories.TerritoryID;
 
@@ -38,11 +37,13 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
         }
         loadAssets();
         setupBoardImage();
+        addActor(Territory.getByID(TerritoryID.Brazil));
+        addActor(Territory.getByID(TerritoryID.Venezuela));
         //setupHitbox();
     }
 
     private void setupHitbox() {
-        for (Vector2 v: Territory.getByID(TerritoryID.Venezuela).getPolygonHitbox()) {
+        for (Vector2 v: Territory.getByID(TerritoryID.Alaska).getPolygonHitbox()) {
             Image img = new Image(new Texture("hitbox.jpg"));
             img.getColor().r = 0xff;
             img.setX(v.x);
@@ -138,9 +139,12 @@ public class BoardStage extends Stage implements GestureDetector.GestureListener
     public boolean tap(float x, float y, int count, int button) {
         zoomOnDoubleTap(x, y);
 
-        //Vector3 inWorldPos = cam.unproject(new Vector3(x, y, 0));
-        //System.out.println((int)inWorldPos.x + "," + (int)inWorldPos.y + ", ");
-        //System.out.println(Intersector.isPointInPolygon(Territory.getByID(TerritoryID.Argentina).getPolygonHitbox(), new Vector2(inWorldPos.x, inWorldPos.y)));
+        /*Vector3 inWorldPos = cam.unproject(new Vector3(x, y, 0));
+        System.out.println((int)inWorldPos.x + "," + (int)inWorldPos.y + ", ");
+        Territory t = Territory.getByPosition(inWorldPos.x, inWorldPos.y);
+        if (t != null) {
+            System.out.println(t.getTerritoryName());
+        }*/
         return false;
     }
 
