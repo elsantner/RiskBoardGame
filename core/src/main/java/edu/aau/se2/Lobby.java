@@ -18,6 +18,7 @@ public class Lobby {
 
     public Lobby() {
         this.networkClientKryo = new NetworkClientKryo();
+        this.users = new ArrayList<>();
     }
 
     public void startLobby(){

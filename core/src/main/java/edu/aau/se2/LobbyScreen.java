@@ -10,19 +10,29 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import org.junit.Test;
+
 import java.util.ArrayList;
 
 public class LobbyScreen implements Screen {
 
     private Texture background;
     private Texture lobbyText;
+    private Texture lobbyOverlay;
+    private Texture line;
     private SpriteBatch batch;
     private BitmapFont font;
     private Lobby lobby;
     private ArrayList<String> userNames;
 
+    public LobbyScreen() {
+        assets();
+
+    }
+
     public LobbyScreen(Lobby lobby) {
         this.lobby = lobby;
+        assets();
     }
 
     @Override
@@ -35,29 +45,27 @@ public class LobbyScreen implements Screen {
 
         Gdx.gl.glClearColor(1, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        background = new Texture(Gdx.files.internal("lobbyScreen.png"));
-        lobbyText = new Texture(Gdx.files.internal("lobby2.png"));
+
         batch = new SpriteBatch();
         batch.begin();
-        batch.draw(background, 0 , 0);
-        batch.draw(lobbyText, 75,825);
+        batch.draw(background, 0, 0);
+        batch.draw(lobbyOverlay,0,0);
+        batch.draw(lobbyText, 75, 800);
+        batch.draw(line, 50,785);
+
         batch.end();
         renderUsers();
     }
 
-    public void renderUsers(){
+    public void renderUsers() {
 
-        this.userNames =  lobby.getUserNames();
+        this.userNames = lobby.getUserNames();
         int xCord = 85;
-        int yCord = 800;
-
-        font = new BitmapFont();
-        font.setColor(Color.RED);
-        font.getData().scale(8);
+        int yCord = 775;
 
         batch.begin();
-        for (String s: userNames
-             ) {
+        for (String s : userNames
+        ) {
             font.draw(batch, s, xCord, yCord);
             yCord -= 150;
         }
@@ -87,5 +95,15 @@ public class LobbyScreen implements Screen {
 
     @Override
     public void dispose() {
+    }
+
+    private void assets() {
+        font = new BitmapFont(Gdx.files.internal("font/lobbyFontv2.fnt"));
+        font.getData().scale(0.05f);
+        font.setColor(new Color(0.6f, 0,0,1));
+        background = new Texture(Gdx.files.internal("lobby/lobbyScreen.png"));
+        lobbyText = new Texture(Gdx.files.internal("lobby/lobby2.png"));
+        lobbyOverlay = new Texture(Gdx.files.internal("lobby/lobbyMenuOverlay.png"));
+        line = new Texture(Gdx.files.internal("lobby/line.png"));
     }
 }
