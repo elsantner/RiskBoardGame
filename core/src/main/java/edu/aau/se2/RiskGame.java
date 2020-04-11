@@ -1,7 +1,6 @@
 package edu.aau.se2;
 
 import com.badlogic.gdx.Game;
-
 import edu.aau.se2.view.game.GameScreen;
 
 public class RiskGame extends Game {
@@ -16,5 +15,6 @@ public class RiskGame extends Game {
 	@Override
 	public void dispose () {
 		super.dispose();
+		gameScreen.dispose();
 	}
 }

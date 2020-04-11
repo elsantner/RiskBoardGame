@@ -16,9 +16,16 @@ public class GameScreen implements Screen {
     public GameScreen() {
         boardStage = new BoardStage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
     }
+    public GameScreen(int width, int height) {
+        boardStage = new BoardStage(new FitViewport(width, height));
+    }
 
     public void setListener(OnBoardInteractionListener l) {
         boardStage.setListener(l);
+    }
+
+    public IGameBoard getGameBoard() {
+        return this.boardStage;
     }
 
     @Override

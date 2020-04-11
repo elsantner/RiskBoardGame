@@ -17,8 +17,7 @@ package edu.aau.se2.view;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.assets.loaders.AssetLoader;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.backends.headless.HeadlessApplication;
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration;
 import com.badlogic.gdx.graphics.GL20;
@@ -31,17 +30,32 @@ import org.junit.runners.model.InitializationError;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.aau.se2.view.game.BoardTest;
+
 import static org.mockito.Mockito.mock;
 
 public class GdxTestRunner extends BlockJUnit4ClassRunner implements ApplicationListener {
 
-    private Map<FrameworkMethod, RunNotifier> invokeInRender = new HashMap<FrameworkMethod, RunNotifier>();
+    private final Map<FrameworkMethod, RunNotifier> invokeInRender = new HashMap<FrameworkMethod, RunNotifier>();
+    private static GdxTestRunner instance = null;
 
     public GdxTestRunner(Class<?> klass) throws InitializationError {
         super(klass);
+        instance = this;
         HeadlessApplicationConfiguration conf = new HeadlessApplicationConfiguration();
         new HeadlessApplication(this, conf);
         Gdx.gl = mock(GL20.class);
+    }
+
+    public static GdxTestRunner getInstance() {
+        return instance;
+    }
+
+    public void setScreen (Screen screen) {
+        if (screen != null) screen.hide();
+        if (screen != null) {
+            screen.show();
+        }
     }
 
     @Override

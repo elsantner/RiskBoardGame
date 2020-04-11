@@ -1,6 +1,5 @@
 package edu.aau.se2.view.game;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -11,6 +10,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.viewport.Viewport;
+
 import edu.aau.se2.view.asset.AssetName;
 
 /**
@@ -30,10 +30,10 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
         cam = (OrthographicCamera) this.getCamera();
         // init territories (relevant for scaling to current resolution)
         if (Territory.isNotInitialized()) {
-            Territory.init(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            Territory.init(vp.getScreenWidth(), vp.getScreenHeight());
         }
         loadAssets();
-        setupBoardImage();
+        setupBoardImage(vp.getScreenWidth(), vp.getScreenHeight());
         setupTerritories();
     }
 
@@ -51,10 +51,9 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
         imgRiskBoard = new Image(new Texture(AssetName.RISK_BOARD));
     }
 
-    private void setupBoardImage() {
-        imgRiskBoard.setWidth(Gdx.graphics.getWidth());
-        imgRiskBoard.setHeight(Gdx.graphics.getHeight());
-
+    private void setupBoardImage(int screenWidth, int screenHeight) {
+        imgRiskBoard.setWidth(screenWidth);
+        imgRiskBoard.setHeight(screenHeight);
         this.addActor(imgRiskBoard);
     }
 
