@@ -164,8 +164,8 @@ public class Territory extends Actor {
         this.adjacent = adjacentTerritories;
         this.name = name;
         this.armyPosition = armyPosition;
-        this.armyColor = Color.RED;
-        this.armyCount = 1;
+        this.armyColor = null;
+        this.armyCount = 0;
         this.font = new BitmapFont();
         this.armyCirlce = new Texture(AssetName.ARMY_DISPLAY_CIRCLE);
     }
