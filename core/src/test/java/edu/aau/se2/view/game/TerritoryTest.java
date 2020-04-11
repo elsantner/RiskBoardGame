@@ -28,7 +28,7 @@ public class TerritoryTest {
 	public void testGetTerritory() {
 		assertEquals(12, Territory.getByID(12).getID());
 		assertNull(Territory.getByPosition(0, 0));
-		assertEquals(TerritoryHelper.ID.EastAfrica, Territory.getByPosition(1385,615).getID());
+		assertEquals(TerritoryHelper.ID.EAST_AFRICA, Territory.getByPosition(1385,615).getID());
 	}
 
 	@Test(expected = IllegalArgumentException.class)

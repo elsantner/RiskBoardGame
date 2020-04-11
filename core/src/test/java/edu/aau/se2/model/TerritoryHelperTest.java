@@ -10,15 +10,15 @@ import static org.junit.Assert.assertTrue;
 public class TerritoryHelperTest {
     @Test
     public void testNeighboringTerritories() {
-        Integer[] neighboursActual = TerritoryHelper.getNeighbouringTerritories(ID.China);
-        Integer[] neighboursExpected = {ID.SoutheastAsia, ID.India, ID.Afghanistan, ID.Ural, ID.Siberia, ID.Mongolia};
+        Integer[] neighboursActual = TerritoryHelper.getNeighbouringTerritories(ID.CHINA);
+        Integer[] neighboursExpected = {ID.SOUTHEAST_ASIA, ID.INDIA, ID.AFGHANISTAN, ID.URAL, ID.SIBERIA, ID.MONGOLIA};
         assertEquals(neighboursExpected.length, neighboursActual.length);
         assertTrue(Arrays.asList(neighboursExpected).containsAll(Arrays.asList(neighboursActual)));
         assertTrue(Arrays.asList(neighboursActual).containsAll(Arrays.asList(neighboursExpected)));
 
         for (Integer tid: neighboursExpected) {
-            assertTrue(TerritoryHelper.areNeighbouring(tid, ID.China));
+            assertTrue(TerritoryHelper.areNeighbouring(tid, ID.CHINA));
         }
-        assertFalse(TerritoryHelper.areNeighbouring(ID.Brazil, ID.Afghanistan));
+        assertFalse(TerritoryHelper.areNeighbouring(ID.BRAZIL, ID.AFGHANISTAN));
     }
 }

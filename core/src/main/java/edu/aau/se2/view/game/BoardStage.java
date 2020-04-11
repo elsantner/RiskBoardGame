@@ -17,13 +17,16 @@ import edu.aau.se2.view.asset.AssetName;
  * @author Elias
  */
 public class BoardStage extends Stage implements IGameBoard, GestureDetector.GestureListener {
-    private static float MAX_ZOOM_FACTOR = 1, MIN_ZOOM_FACTOR = 0.25f;
+    private static final float MAX_ZOOM_FACTOR = 1;
+    private static final float MIN_ZOOM_FACTOR = 0.25f;
     private float prevZoomFactor = 1;
 
     private Image imgRiskBoard;
     private OrthographicCamera cam;
     private OnBoardInteractionListener boardListener;
-    private boolean interactable = true, armiesPlacable = false, attackAllowed = false;
+    private boolean interactable = true;
+    private boolean armiesPlacable = false;
+    private boolean attackAllowed = false;
 
     public BoardStage(Viewport vp) {
         super(vp);
@@ -177,7 +180,7 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
 
     @Override
     public void pinchStop() {
-
+        // currently unused but needed because of interface implementation
     }
 
     @Override

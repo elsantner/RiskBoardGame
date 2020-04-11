@@ -4,93 +4,97 @@ import java.util.Arrays;
 
 public abstract class TerritoryHelper {
     public abstract static class ID {
-        public final static int Argentina = 1;
-        public final static int Brazil = 2;
-        public final static int Peru = 3;
-        public final static int Venezuela = 4;
-        public final static int Alaska = 5;
-        public final static int WesternCanada = 6;
-        public final static int CentralAmerica = 7;
-        public final static int EasternUS = 8;
-        public final static int Greenland = 9;
-        public final static int NorthwestTerritory = 10;
-        public final static int CentralCanada = 11;
-        public final static int EasternCanada = 12;
-        public final static int WesternUS = 13;
-        public final static int CentralAfrica = 14;
-        public final static int EastAfrica = 15;
-        public final static int Egypt = 16;
-        public final static int Madagascar = 17;
-        public final static int NorthAfrica = 18;
-        public final static int SouthAfrica = 19;
-        public final static int GreatBritain = 20;
-        public final static int Iceland = 21;
-        public final static int NorthernEurope = 22;
-        public final static int Scandinavia = 23;
-        public final static int SouthernEurope = 24;
-        public final static int Ukraine = 25;
-        public final static int WesternEurope = 26;
-        public final static int EasternAustralia = 27;
-        public final static int Indonesia = 28;
-        public final static int NewGuinea = 29;
-        public final static int WesternAustralia = 30;
-        public final static int Afghanistan = 31;
-        public final static int China = 32;
-        public final static int India = 33;
-        public final static int Irkutsk = 34;
-        public final static int Japan = 35;
-        public final static int Kamchatka = 36;
-        public final static int MiddleEast = 37;
-        public final static int Mongolia = 38;
-        public final static int SoutheastAsia = 39;
-        public final static int Siberia = 40;
-        public final static int Ural = 41;
-        public final static int Yakutsk = 42;
+        private ID() {
+            // defeat instantiation
+        }
+
+        public static final int ARGENTINA = 1;
+        public static final int BRAZIL = 2;
+        public static final int PERU = 3;
+        public static final int VENEZUELA = 4;
+        public static final int ALASKA = 5;
+        public static final int WESTERN_CANADA = 6;
+        public static final int CENTRAL_AMERICA = 7;
+        public static final int EASTERN_US = 8;
+        public static final int GREENLAND = 9;
+        public static final int NORTHWEST_TERRITORY = 10;
+        public static final int CENTRAL_CANADA = 11;
+        public static final int EASTERN_CANADA = 12;
+        public static final int WESTERN_US = 13;
+        public static final int CENTRAL_AFRICA = 14;
+        public static final int EAST_AFRICA = 15;
+        public static final int EGYPT = 16;
+        public static final int MADAGASCAR = 17;
+        public static final int NORTH_AFRICA = 18;
+        public static final int SOUTH_AFRICA = 19;
+        public static final int GREAT_BRITAIN = 20;
+        public static final int ICELAND = 21;
+        public static final int NORTHERN_EUROPE = 22;
+        public static final int SCANDINAVIA = 23;
+        public static final int SOUTHERN_EUROPE = 24;
+        public static final int UKRAINE = 25;
+        public static final int WESTERN_EUROPE = 26;
+        public static final int EASTERN_AUSTRALIA = 27;
+        public static final int INDONESIA = 28;
+        public static final int NEW_GUINEA = 29;
+        public static final int WESTERN_AUSTRALIA = 30;
+        public static final int AFGHANISTAN = 31;
+        public static final int CHINA = 32;
+        public static final int INDIA = 33;
+        public static final int IRKUTSK = 34;
+        public static final int JAPAN = 35;
+        public static final int KAMCHATKA = 36;
+        public static final int MIDDLE_EAST = 37;
+        public static final int MONGOLIA = 38;
+        public static final int SOUTHEAST_ASIA = 39;
+        public static final int SIBERIA = 40;
+        public static final int URAL = 41;
+        public static final int YAKUTSK = 42;
     }
 
-    private final static Integer[][] neighbouringTerritories = new Integer[][] {
-            {ID.Brazil, ID.Peru},   // Argentina
-            {ID.Peru, ID.Argentina, ID.Venezuela, ID.NorthAfrica},  // Brazil
-            {ID.Brazil, ID.Argentina, ID.Venezuela},    // Peru
-            {ID.Peru, ID.Brazil},   //Venezuela
-            {ID.WesternCanada, ID.NorthwestTerritory, ID.Kamchatka},  // Alaska
-            {ID.Alaska, ID.NorthwestTerritory, ID.CentralCanada, ID.WesternUS}, // WesternCanada
-            {ID.WesternUS, ID.EasternUS, ID.Venezuela}, // CentralAmerica
-            {ID.WesternUS, ID.CentralAmerica, ID.CentralCanada, ID.EasternCanada}, // EasternUS
-            {ID.NorthwestTerritory, ID.CentralCanada, ID.EasternCanada, ID.Iceland}, // Greenland
-            {ID.Greenland, ID.Alaska, ID.WesternCanada, ID.CentralCanada}, // NorthwestTerritory
-            {ID.Greenland, ID.NorthwestTerritory, ID.WesternCanada, ID.EasternCanada, ID.WesternUS, ID.EasternUS}, // CentralCanada
-            {ID.Greenland, ID.CentralCanada, ID.EasternUS}, // EasternCanada
-            {ID.EasternUS, ID.WesternCanada, ID.CentralCanada, ID.CentralAmerica}, // WesternUS
-            {ID.NorthAfrica, ID.EastAfrica, ID.SouthAfrica}, // CentralAfrica
-            {ID.NorthAfrica, ID.SouthAfrica, ID.CentralAfrica, ID.Egypt, ID.Madagascar, ID.MiddleEast}, // EastAfrica
-            {ID.NorthAfrica, ID.EastAfrica, ID.MiddleEast, ID.SouthernEurope}, // Egypt
-            {ID.EastAfrica, ID.SouthAfrica}, // Madagascar
-            {ID.EastAfrica, ID.CentralAfrica, ID.Egypt, ID.SouthernEurope, ID.WesternEurope, ID.Brazil}, // NorthAfrica
-            {ID.EastAfrica, ID.CentralAfrica, ID.Madagascar}, // SouthAfrica
-            {ID.WesternEurope, ID.NorthernEurope, ID.Scandinavia, ID.Iceland}, // GreatBritain
-            {ID.Greenland, ID.GreatBritain, ID.Scandinavia}, // Iceland
-            {ID.WesternEurope, ID.SouthernEurope, ID.Ukraine, ID.Scandinavia, ID.GreatBritain}, // NorthernEurope
-            {ID.NorthernEurope, ID.Ukraine, ID.GreatBritain, ID.Iceland}, // Scandinavia
-            {ID.WesternEurope, ID.NorthernEurope, ID.Ukraine, ID.MiddleEast, ID.Egypt, ID.NorthAfrica}, // SouthernEurope
-            {ID.Scandinavia, ID.NorthernEurope, ID.SouthernEurope, ID.MiddleEast, ID.Afghanistan, ID.Ural}, // Ukraine
-            {ID.NorthAfrica, ID.GreatBritain, ID.NorthernEurope, ID.SouthernEurope}, // WesternEurope
-            {ID.WesternAustralia, ID.NewGuinea}, // EasternAustralia
-            {ID.WesternAustralia, ID.NewGuinea, ID.SoutheastAsia}, // Indonesia
-            {ID.WesternAustralia, ID.EasternAustralia, ID.Indonesia}, // NewGuinea
-            {ID.NewGuinea, ID.EasternAustralia, ID.Indonesia}, // WesternAustralia
-            {ID.Ukraine, ID.Ural, ID.MiddleEast, ID.India, ID.China}, // Afghanistan
-            {ID.SoutheastAsia, ID.India, ID.Afghanistan, ID.Ural, ID.Siberia, ID.Mongolia}, // China
-            {ID.MiddleEast, ID.Afghanistan, ID.China, ID.India}, // India
-            {ID.Mongolia, ID.Siberia, ID.Yakutsk, ID.Kamchatka}, // Irkutsk
-            {ID.Alaska, ID.Japan, ID.Mongolia, ID.Irkutsk, ID.Yakutsk}, // Kamchatka
-            {ID.Kamchatka, ID.Mongolia}, // Japan
-            {ID.EastAfrica, ID.Egypt, ID.SouthernEurope, ID.Ukraine, ID.Afghanistan, ID.India}, // MiddleEast
-            {ID.China, ID.Siberia, ID.Irkutsk, ID.Kamchatka, ID.Japan}, // Mongolia
-            {ID.Indonesia, ID.India, ID.China}, // SoutheastAsia
-            {ID.Ural, ID.China, ID.Mongolia, ID.Irkutsk, ID.Yakutsk}, // Siberia
-            {ID.Ukraine, ID.Afghanistan, ID.China, ID.Siberia}, // Ural
-            {ID.Siberia, ID.Irkutsk, ID.Kamchatka}, // Yakutsk
+    private static final Integer[][] neighbouringTerritories = new Integer[][] {
+            {ID.BRAZIL, ID.PERU},   // Argentina
+            {ID.PERU, ID.ARGENTINA, ID.VENEZUELA, ID.NORTH_AFRICA},  // Brazil
+            {ID.BRAZIL, ID.ARGENTINA, ID.VENEZUELA},    // Peru
+            {ID.PERU, ID.BRAZIL},   //Venezuela
+            {ID.WESTERN_CANADA, ID.NORTHWEST_TERRITORY, ID.KAMCHATKA},  // Alaska
+            {ID.ALASKA, ID.NORTHWEST_TERRITORY, ID.CENTRAL_CANADA, ID.WESTERN_US}, // WesternCanada
+            {ID.WESTERN_US, ID.EASTERN_US, ID.VENEZUELA}, // CentralAmerica
+            {ID.WESTERN_US, ID.CENTRAL_AMERICA, ID.CENTRAL_CANADA, ID.EASTERN_CANADA}, // EasternUS
+            {ID.NORTHWEST_TERRITORY, ID.CENTRAL_CANADA, ID.EASTERN_CANADA, ID.ICELAND}, // Greenland
+            {ID.GREENLAND, ID.ALASKA, ID.WESTERN_CANADA, ID.CENTRAL_CANADA}, // NorthwestTerritory
+            {ID.GREENLAND, ID.NORTHWEST_TERRITORY, ID.WESTERN_CANADA, ID.EASTERN_CANADA, ID.WESTERN_US, ID.EASTERN_US}, // CentralCanada
+            {ID.GREENLAND, ID.CENTRAL_CANADA, ID.EASTERN_US}, // EasternCanada
+            {ID.EASTERN_US, ID.WESTERN_CANADA, ID.CENTRAL_CANADA, ID.CENTRAL_AMERICA}, // WesternUS
+            {ID.NORTH_AFRICA, ID.EAST_AFRICA, ID.SOUTH_AFRICA}, // CentralAfrica
+            {ID.NORTH_AFRICA, ID.SOUTH_AFRICA, ID.CENTRAL_AFRICA, ID.EGYPT, ID.MADAGASCAR, ID.MIDDLE_EAST}, // EastAfrica
+            {ID.NORTH_AFRICA, ID.EAST_AFRICA, ID.MIDDLE_EAST, ID.SOUTHERN_EUROPE}, // Egypt
+            {ID.EAST_AFRICA, ID.SOUTH_AFRICA}, // Madagascar
+            {ID.EAST_AFRICA, ID.CENTRAL_AFRICA, ID.EGYPT, ID.SOUTHERN_EUROPE, ID.WESTERN_EUROPE, ID.BRAZIL}, // NorthAfrica
+            {ID.EAST_AFRICA, ID.CENTRAL_AFRICA, ID.MADAGASCAR}, // SouthAfrica
+            {ID.WESTERN_EUROPE, ID.NORTHERN_EUROPE, ID.SCANDINAVIA, ID.ICELAND}, // GreatBritain
+            {ID.GREENLAND, ID.GREAT_BRITAIN, ID.SCANDINAVIA}, // Iceland
+            {ID.WESTERN_EUROPE, ID.SOUTHERN_EUROPE, ID.UKRAINE, ID.SCANDINAVIA, ID.GREAT_BRITAIN}, // NorthernEurope
+            {ID.NORTHERN_EUROPE, ID.UKRAINE, ID.GREAT_BRITAIN, ID.ICELAND}, // Scandinavia
+            {ID.WESTERN_EUROPE, ID.NORTHERN_EUROPE, ID.UKRAINE, ID.MIDDLE_EAST, ID.EGYPT, ID.NORTH_AFRICA}, // SouthernEurope
+            {ID.SCANDINAVIA, ID.NORTHERN_EUROPE, ID.SOUTHERN_EUROPE, ID.MIDDLE_EAST, ID.AFGHANISTAN, ID.URAL}, // Ukraine
+            {ID.NORTH_AFRICA, ID.GREAT_BRITAIN, ID.NORTHERN_EUROPE, ID.SOUTHERN_EUROPE}, // WesternEurope
+            {ID.WESTERN_AUSTRALIA, ID.NEW_GUINEA}, // EasternAustralia
+            {ID.WESTERN_AUSTRALIA, ID.NEW_GUINEA, ID.SOUTHEAST_ASIA}, // Indonesia
+            {ID.WESTERN_AUSTRALIA, ID.EASTERN_AUSTRALIA, ID.INDONESIA}, // NewGuinea
+            {ID.NEW_GUINEA, ID.EASTERN_AUSTRALIA, ID.INDONESIA}, // WesternAustralia
+            {ID.UKRAINE, ID.URAL, ID.MIDDLE_EAST, ID.INDIA, ID.CHINA}, // Afghanistan
+            {ID.SOUTHEAST_ASIA, ID.INDIA, ID.AFGHANISTAN, ID.URAL, ID.SIBERIA, ID.MONGOLIA}, // China
+            {ID.MIDDLE_EAST, ID.AFGHANISTAN, ID.CHINA, ID.INDIA}, // India
+            {ID.MONGOLIA, ID.SIBERIA, ID.YAKUTSK, ID.KAMCHATKA}, // Irkutsk
+            {ID.ALASKA, ID.JAPAN, ID.MONGOLIA, ID.IRKUTSK, ID.YAKUTSK}, // Kamchatka
+            {ID.KAMCHATKA, ID.MONGOLIA}, // Japan
+            {ID.EAST_AFRICA, ID.EGYPT, ID.SOUTHERN_EUROPE, ID.UKRAINE, ID.AFGHANISTAN, ID.INDIA}, // MiddleEast
+            {ID.CHINA, ID.SIBERIA, ID.IRKUTSK, ID.KAMCHATKA, ID.JAPAN}, // Mongolia
+            {ID.INDONESIA, ID.INDIA, ID.CHINA}, // SoutheastAsia
+            {ID.URAL, ID.CHINA, ID.MONGOLIA, ID.IRKUTSK, ID.YAKUTSK}, // Siberia
+            {ID.UKRAINE, ID.AFGHANISTAN, ID.CHINA, ID.SIBERIA}, // Ural
+            {ID.SIBERIA, ID.IRKUTSK, ID.KAMCHATKA}, // Yakutsk
     };
 
     public static Integer[] getNeighbouringTerritories(int territoryID) {
@@ -104,5 +108,9 @@ public abstract class TerritoryHelper {
 
     public static boolean areNeighbouring(int territoryID1, int territoryID2) {
         return Arrays.asList(getNeighbouringTerritories(territoryID1)).contains(territoryID2);
+    }
+
+    private TerritoryHelper() {
+        // defeat instantiation
     }
 }

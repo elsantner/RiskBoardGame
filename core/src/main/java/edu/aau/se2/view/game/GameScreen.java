@@ -46,22 +46,22 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-
+        // currently unused but needed because of interface implementation
     }
 
     @Override
     public void pause() {
-
+        // currently unused but needed because of interface implementation
     }
 
     @Override
     public void resume() {
-
+        // currently unused but needed because of interface implementation
     }
 
     @Override
     public void hide() {
-
+        // currently unused but needed because of interface implementation
     }
 
     @Override
