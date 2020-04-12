@@ -14,6 +14,12 @@ public class User {
         this.isHost = false;
     }
 
+    public User(String name, boolean ready) {
+        this.name = name;
+        this.ready = ready;
+        this.isHost = false;
+    }
+
     public String getName() {
         return name;
     }

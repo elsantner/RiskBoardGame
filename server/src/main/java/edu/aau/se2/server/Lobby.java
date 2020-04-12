@@ -11,16 +11,8 @@ public class Lobby {
         users.get(0).setHost(true);
     }
 
-    public void addUser(String user) {
-        users.add(new User(user));
-    }
-
-    public ArrayList<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(ArrayList<User> users) {
-        this.users = users;
+    public void addUser(User user) {
+        users.add(user);
     }
 
     public User getUser(int id) {
@@ -29,6 +21,14 @@ public class Lobby {
 
     public void setUser(int id, User us) {
         this.users.set(id, us);
+    }
+
+    public ArrayList<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(ArrayList<User> users) {
+        this.users = users;
     }
 
 }
