@@ -11,6 +11,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.ArrayList;
 
+import edu.aau.se2.server.User;
+
 public class LobbyScreen implements Screen {
 
     private final String LOG = "LobbyScreen";
@@ -21,11 +23,10 @@ public class LobbyScreen implements Screen {
     private SpriteBatch batch;
     private BitmapFont font;
     private Lobby lobby;
-    private ArrayList<String> userNames;
+    private ArrayList<User> users;
 
     public LobbyScreen() {
         assets();
-
     }
 
     public LobbyScreen(Lobby lobby) {
@@ -58,15 +59,28 @@ public class LobbyScreen implements Screen {
 
     public void renderUsers() {
 
+        if (lobby.isUsersChanged()) {
+            this.users = lobby.getUsers();
+            lobby.setUsersChanged(false);
+        }
 
-        this.userNames = lobby.getUserNames();
         int xCord = 85;
         int yCord = 775;
 
         batch.begin();
-        for (String s : userNames
+        for (User us : users
         ) {
-            font.draw(batch, s, xCord, yCord);
+            String name = us.getName();
+            boolean ready = us.isReady();
+            font.setColor(new Color(0.6f, 0, 0, 1));
+            font.draw(batch, name, xCord, yCord);
+            if (ready) {
+                font.setColor(new Color(0,0.8f,0,1));
+                font.draw(batch, "ready", (xCord + 1100), yCord);
+            } else {
+                font.setColor(new Color(0.8f, 0, 0, 1));
+                font.draw(batch, "!ready", (xCord + 1100), yCord);
+            }
             yCord -= 150;
         }
         batch.end();

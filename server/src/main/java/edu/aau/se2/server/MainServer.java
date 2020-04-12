@@ -30,9 +30,14 @@ public class MainServer {
 
                         if (((TextMessage) arg).text.equals("host")) {
 
-                            lobbys.add(new Lobby("User: " + lobbyNumber++));
-                            lobbys.get(lobbyNumber-1).addUser("User2");
-                            lobbys.get(lobbyNumber-1).addUser("User3");
+                            lobbys.add(new Lobby("Host: " + lobbyNumber++));
+
+                            //only for testing
+                            lobbys.get(lobbyNumber-1).addUser("User 2");
+                            lobbys.get(lobbyNumber-1).addUser("User 3");
+                            lobbys.get(lobbyNumber-1).getUser(1).setReady(true);
+
+
                             server.broadcastMessage(new TextMessage("Lobby " + lobbyNumber + " erstellt!"));
 
                             server.broadcastMessage(new UserList(lobbys.get(lobbyNumber-1).getUsers()));

@@ -2,7 +2,7 @@ package edu.aau.se2.server;
 
 import java.util.ArrayList;
 
-public class Lobby  {
+public class Lobby {
     private ArrayList<User> users;
 
     public Lobby(String hostName) {
@@ -21,6 +21,14 @@ public class Lobby  {
 
     public void setUsers(ArrayList<User> users) {
         this.users = users;
+    }
+
+    public User getUser(int id) {
+        return users.get(id);
+    }
+
+    public void setUser(int id, User us) {
+        this.users.set(id, us);
     }
 
 }

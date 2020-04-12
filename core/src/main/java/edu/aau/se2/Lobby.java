@@ -18,9 +18,10 @@ public class Lobby {
 
     private NetworkClientKryo networkClientKryo;
     private ArrayList<User> users;
+    private boolean usersChanged = false;
     private final String LOG = "Lobby";
-    private final String HOST = "10.0.2.2";    // -> localhost
-    private String adress = HOST + ":" + NetworkConstants.TCP_PORT;
+    private final String HOST = "10.0.0.14";    // -> localhost | in cmd ipconfig eingeben -> IPv4 address
+    private String address = HOST + ":" + NetworkConstants.TCP_PORT;
 
     public Lobby() {
         this.networkClientKryo = new NetworkClientKryo();
@@ -29,13 +30,13 @@ public class Lobby {
 
     public void startLobby() {
 
-        Gdx.app.log(LOG, "Trying to connect to Server at " + adress);
+        Gdx.app.log(LOG, "Trying to connect to Server at " + address);
 
         networkClientKryo = new NetworkClientKryo();
         try {
 
             networkClientKryo.connect(HOST);
-            Gdx.app.log(LOG, "Connected to " + adress);
+            Gdx.app.log(LOG, "Connected to " + address);
         } catch (IOException e) {
             e.printStackTrace();
             Gdx.app.error(LOG, e.getMessage());
@@ -60,18 +61,26 @@ public class Lobby {
 
                 if (arg instanceof UserList) {
                     users = ((UserList) arg).getUsers();
+                    usersChanged = true;
                     Gdx.app.log(LOG, "Received userlist from Server");
                 }
             }
         });
     }
 
-    public ArrayList<String> getUserNames() {
-        ArrayList<String> arr = new ArrayList<>();
-        for (User us : users
-        ) {
-            arr.add(us.getName());
-        }
-        return arr;
+    public ArrayList<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(ArrayList<User> users) {
+        this.users = users;
+    }
+
+    public boolean isUsersChanged() {
+        return usersChanged;
+    }
+
+    public void setUsersChanged(boolean usersChanged) {
+        this.usersChanged = usersChanged;
     }
 }
