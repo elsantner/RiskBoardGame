@@ -1,24 +1,25 @@
 package edu.aau.se2.server.networking.dto;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import edu.aau.se2.server.User;
 
-public class UserList extends BaseMessage {
+public class UserList implements BaseMessage {
     private ArrayList<User> users;
 
     public UserList(){
     }
 
-    public UserList(ArrayList<User> users) {
-        this.users = users;
+    public UserList(List<User> users) {
+        this.users = (ArrayList<User>) users;
     }
 
-    public ArrayList<User> getUsers() {
+    public List<User> getUsers() {
         return users;
     }
 
-    public void setUsers(ArrayList<User> users) {
-        this.users = users;
+    public void setUsers(List<User> users) {
+        this.users = (ArrayList<User>) users;
     }
 }

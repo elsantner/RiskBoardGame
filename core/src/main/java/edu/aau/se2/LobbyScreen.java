@@ -15,7 +15,7 @@ import edu.aau.se2.server.User;
 
 public class LobbyScreen implements Screen {
 
-    private final String LOG = "LobbyScreen";
+    private static final String TAG = "LobbyScreen";
     private Texture background;
     private Texture lobbyText;
     private Texture lobbyOverlay;
@@ -27,16 +27,18 @@ public class LobbyScreen implements Screen {
 
     public LobbyScreen() {
         assets();
+        users = new ArrayList<>();
     }
 
     public LobbyScreen(Lobby lobby) {
         this.lobby = lobby;
+        users = new ArrayList<>();
         assets();
     }
 
     @Override
     public void show() {
-
+        // show
     }
 
     @Override
@@ -60,7 +62,7 @@ public class LobbyScreen implements Screen {
     public void renderUsers() {
 
         if (lobby.isUsersChanged()) {
-            this.users = lobby.getUsers();
+            this.users = (ArrayList<User>) lobby.getUsers();
             lobby.setUsersChanged(false);
         }
 
@@ -75,7 +77,7 @@ public class LobbyScreen implements Screen {
             font.setColor(new Color(0.6f, 0, 0, 1));
             font.draw(batch, name, xCord, yCord);
             if (ready) {
-                font.setColor(new Color(0,0.8f,0,1));
+                font.setColor(new Color(0, 0.8f, 0, 1));
                 font.draw(batch, "ready", (xCord + 1100), yCord);
             } else {
                 font.setColor(new Color(0.8f, 0, 0, 1));
@@ -89,22 +91,22 @@ public class LobbyScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-
+        //resize
     }
 
     @Override
     public void pause() {
-
+        //pause
     }
 
     @Override
     public void resume() {
-
+        //resume
     }
 
     @Override
     public void hide() {
-
+        //hide
     }
 
     @Override
@@ -117,7 +119,7 @@ public class LobbyScreen implements Screen {
     }
 
     private void assets() {
-        Gdx.app.log(LOG, "Loading assets");
+        Gdx.app.log(TAG, "Loading assets");
         font = new BitmapFont(Gdx.files.internal("font/lobbyFontv2.fnt"));
         font.getData().scale(0.05f);
         font.setColor(new Color(0.6f, 0, 0, 1));

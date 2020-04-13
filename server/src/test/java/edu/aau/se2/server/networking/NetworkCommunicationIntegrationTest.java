@@ -59,7 +59,7 @@ public class NetworkCommunicationIntegrationTest {
                         Assert.assertFalse(argument instanceof TextMessageSubClass);
                         Assert.assertTrue(argument instanceof TextMessage);
 
-                        Assert.assertEquals(REQUEST_TEST, ((TextMessage) argument).text);
+                        Assert.assertEquals(REQUEST_TEST, ((TextMessage) argument).getText());
                         request2Handled.set(true);
 
                         server.broadcastMessage(new TextMessage(RESPONSE_TEST));
@@ -76,7 +76,7 @@ public class NetworkCommunicationIntegrationTest {
         client.registerCallback(argument ->
                 {
                     Assert.assertTrue(argument instanceof TextMessage);
-                    Assert.assertEquals(RESPONSE_TEST, ((TextMessage) argument).text);
+                    Assert.assertEquals(RESPONSE_TEST, ((TextMessage) argument).getText());
                     responseHandled.set(true);
                 }
         );

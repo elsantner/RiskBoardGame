@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 
 import edu.aau.se2.server.User;
@@ -19,8 +20,8 @@ public class Lobby {
     private NetworkClientKryo networkClientKryo;
     private ArrayList<User> users;
     private boolean usersChanged = false;
-    private final String LOG = "Lobby";
-    private final String HOST = "10.0.0.14";    // -> localhost | in cmd ipconfig eingeben -> IPv4 address
+    private static final String TAG = "Lobby";
+    private static final String HOST = "10.0.0.14";    // -> localhost | in cmd ipconfig eingeben -> IPv4 address
     private String address = HOST + ":" + NetworkConstants.TCP_PORT;
 
     public Lobby() {
@@ -28,18 +29,17 @@ public class Lobby {
         this.users = new ArrayList<>();
     }
 
-    public void startLobby() {
+    public void createLobby() {
 
-        Gdx.app.log(LOG, "Trying to connect to Server at " + address);
+        Gdx.app.log(TAG, "Trying to connect to Server at " + address);
 
         networkClientKryo = new NetworkClientKryo();
         try {
 
             networkClientKryo.connect(HOST);
-            Gdx.app.log(LOG, "Connected to " + address);
+            Gdx.app.log(TAG, "Connected to " + address);
         } catch (IOException e) {
-            e.printStackTrace();
-            Gdx.app.error(LOG, e.getMessage());
+            Gdx.app.error(TAG, e.getMessage());
         }
 
 
@@ -49,31 +49,31 @@ public class Lobby {
         networkClientKryo.registerClass(User.class);
         networkClientKryo.registerClass(UserList.class);
 
-        Gdx.app.log(LOG, "Sending \"host\" to Server");
+        Gdx.app.log(TAG, "Sending \"host\" to Server");
         networkClientKryo.sendMessage(new TextMessage("host"));
 
         networkClientKryo.registerCallback(new Callback<BaseMessage>() {
             @Override
             public void callback(BaseMessage arg) {
                 if (arg instanceof TextMessage) {
-                    Gdx.app.log(LOG, "Received message from Server: " + ((TextMessage) arg).text);
+                    Gdx.app.log(TAG, "Received message from Server: " + ((TextMessage) arg).getText());
                 }
 
                 if (arg instanceof UserList) {
-                    users = ((UserList) arg).getUsers();
+                    users = (ArrayList<User>) ((UserList) arg).getUsers();
                     usersChanged = true;
-                    Gdx.app.log(LOG, "Received userlist from Server");
+                    Gdx.app.log(TAG, "Received userlist from Server");
                 }
             }
         });
     }
 
-    public ArrayList<User> getUsers() {
+    public List<User> getUsers() {
         return users;
     }
 
-    public void setUsers(ArrayList<User> users) {
-        this.users = users;
+    public void setUsers(List<User> users) {
+        this.users = (ArrayList<User>) users;
     }
 
     public boolean isUsersChanged() {

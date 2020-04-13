@@ -2,6 +2,7 @@ package edu.aau.se2.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import edu.aau.se2.server.networking.Callback;
 import edu.aau.se2.server.networking.dto.BaseMessage;
@@ -15,6 +16,8 @@ public class MainServer {
     private static NetworkServerKryo server;
     private static int lobbyNumber = 0;
     private static ArrayList<Lobby> lobbys;
+    private final static Logger LOGGER = Logger.getLogger(MainServer.class.getName());
+
 
     public static void main(String[] args) {
         lobbys = new ArrayList<>();
@@ -28,8 +31,8 @@ public class MainServer {
                 @Override
                 public void callback(BaseMessage arg) {
                     if (arg instanceof TextMessage) {
-                        server.broadcastMessage(new TextMessage("Received: " + ((TextMessage) arg).text));
-                        if (((TextMessage) arg).text.equals("host")) {
+                        server.broadcastMessage(new TextMessage("Received: " + ((TextMessage) arg).getText()));
+                        if (((TextMessage) arg).getText().equals("host")) {
                             hostLobby();
                         }
                     }
@@ -37,7 +40,8 @@ public class MainServer {
             });
             server.start();
         } catch (IOException e) {
-            e.printStackTrace();
+          LOGGER.severe("Connection error: " +  e.getMessage());
+
         }
     }
 
@@ -52,19 +56,19 @@ public class MainServer {
 
         server.broadcastMessage(new TextMessage("Lobby " + lobbyNumber + " erstellt!"));
 
-        server.broadcastMessage(new UserList(lobbys.get(lobbyNumber - 1).getUsers()));
+        server.broadcastMessage(new UserList((ArrayList<User>) lobbys.get(lobbyNumber - 1).getUsers()));
 
         try{
             sleep(6000);
         }catch(Exception e){
-            System.out.println(e.getMessage());
+            LOGGER.severe(e.getMessage());
         }
 
         lobbys.get(lobbyNumber - 1).setUser(1, new User("User 4"));
         lobbys.get(lobbyNumber - 1).addUser(new User("User 5", true));
         lobbys.get(lobbyNumber - 1).getUser(2).setReady(true);
 
-        server.broadcastMessage(new UserList(lobbys.get(lobbyNumber -1 ).getUsers()));
+        server.broadcastMessage(new UserList((ArrayList<User>) lobbys.get(lobbyNumber -1 ).getUsers()));
 
     }
 }

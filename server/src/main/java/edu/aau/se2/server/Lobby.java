@@ -1,6 +1,7 @@
 package edu.aau.se2.server;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Lobby {
     private ArrayList<User> users;
@@ -23,12 +24,12 @@ public class Lobby {
         this.users.set(id, us);
     }
 
-    public ArrayList<User> getUsers() {
+    public List<User> getUsers() {
         return users;
     }
 
-    public void setUsers(ArrayList<User> users) {
-        this.users = users;
+    public void setUsers(List<User> users) {
+        this.users = (ArrayList<User>) users;
     }
 
 }
