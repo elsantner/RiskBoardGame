@@ -14,6 +14,7 @@ import edu.aau.se2.server.networking.dto.TextMessage;
 import edu.aau.se2.server.networking.dto.UserList;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkConstants;
+import edu.aau.se2.server.networking.kryonet.RegisterClasses;
 
 public class Lobby {
 
@@ -44,10 +45,7 @@ public class Lobby {
 
 
         // Register classes used by server and client
-        networkClientKryo.registerClass(TextMessage.class);
-        networkClientKryo.registerClass(ArrayList.class);
-        networkClientKryo.registerClass(User.class);
-        networkClientKryo.registerClass(UserList.class);
+        RegisterClasses.registerClasses(networkClientKryo);
 
         Gdx.app.log(TAG, "Sending \"host\" to Server");
         networkClientKryo.sendMessage(new TextMessage("host"));
