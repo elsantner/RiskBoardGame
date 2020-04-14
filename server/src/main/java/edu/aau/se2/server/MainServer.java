@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import edu.aau.se2.server.networking.Callback;
 import edu.aau.se2.server.networking.dto.BaseMessage;
+import edu.aau.se2.server.networking.dto.CreateLobby;
 import edu.aau.se2.server.networking.dto.TextMessage;
 import edu.aau.se2.server.networking.dto.UserList;
 import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
@@ -17,7 +18,7 @@ public class MainServer {
     private static NetworkServerKryo server;
     private static int lobbyNumber = 0;
     private static ArrayList<Lobby> lobbys;
-    private final static Logger LOGGER = Logger.getLogger(MainServer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MainServer.class.getName());
 
 
     public static void main(String[] args) {
@@ -32,9 +33,8 @@ public class MainServer {
                 public void callback(BaseMessage arg) {
                     if (arg instanceof TextMessage) {
                         server.broadcastMessage(new TextMessage("Received: " + ((TextMessage) arg).getText()));
-                        if (((TextMessage) arg).getText().equals("host")) {
-                            hostLobby();
-                        }
+                    }else if(arg instanceof CreateLobby){
+                        hostLobby(((CreateLobby) arg).getUserName());
                     }
                 }
             });
@@ -46,8 +46,9 @@ public class MainServer {
     }
 
 
-    private static void hostLobby() {
-        lobbys.add(new Lobby("Us 1(host" + ++lobbyNumber + ")"));
+    private static void hostLobby(String userName) {
+        lobbys.add(new Lobby(userName));
+        lobbyNumber++;
 
         // only for testing
         lobbys.get(lobbyNumber - 1).addUser(new User("User 2"));

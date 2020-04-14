@@ -10,6 +10,7 @@ import java.util.List;
 import edu.aau.se2.server.User;
 import edu.aau.se2.server.networking.Callback;
 import edu.aau.se2.server.networking.dto.BaseMessage;
+import edu.aau.se2.server.networking.dto.CreateLobby;
 import edu.aau.se2.server.networking.dto.TextMessage;
 import edu.aau.se2.server.networking.dto.UserList;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
@@ -23,7 +24,7 @@ public class Lobby {
     private boolean usersChanged = false;
     private static final String TAG = "Lobby";
     private static final String HOST = "10.0.0.14";    // -> localhost | in cmd ipconfig eingeben -> IPv4 address
-    private String address = HOST + ":" + NetworkConstants.TCP_PORT;
+    private static final String address = HOST + ":" + NetworkConstants.TCP_PORT;
 
     public Lobby() {
         this.networkClientKryo = new NetworkClientKryo();
@@ -47,8 +48,8 @@ public class Lobby {
         // Register classes used by server and client
         RegisterClasses.registerClasses(networkClientKryo);
 
-        Gdx.app.log(TAG, "Sending \"host\" to Server");
-        networkClientKryo.sendMessage(new TextMessage("host"));
+        Gdx.app.log(TAG, "Send Message to create new Lobby");
+        networkClientKryo.sendMessage(new CreateLobby("host"));
 
         networkClientKryo.registerCallback(new Callback<BaseMessage>() {
             @Override
