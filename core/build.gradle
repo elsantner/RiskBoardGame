@@ -4,6 +4,7 @@ apply plugin: "jacoco"
 sourceCompatibility = 1.8
 dependencies {
     implementation 'junit:junit:4.12'
+    implementation project(path: ':server')
 }
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
