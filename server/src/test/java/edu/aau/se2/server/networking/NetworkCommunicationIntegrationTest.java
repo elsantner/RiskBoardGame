@@ -1,5 +1,6 @@
 package edu.aau.se2.server.networking;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +20,7 @@ public class NetworkCommunicationIntegrationTest {
     private AtomicBoolean request1Handled;
     private AtomicBoolean request2Handled;
     private AtomicBoolean responseHandled;
+    private NetworkServer server;
 
     @Before
     public void setup() {
@@ -43,7 +45,7 @@ public class NetworkCommunicationIntegrationTest {
     private void startServer() throws IOException {
         AtomicBoolean first = new AtomicBoolean(true);
 
-        NetworkServer server = new NetworkServerKryo();
+        server = new NetworkServerKryo();
         registerClassesForComponent((NetworkServerKryo)server);
 
         server.start();
@@ -69,8 +71,8 @@ public class NetworkCommunicationIntegrationTest {
     }
 
     private void startClient() throws IOException {
-        NetworkClient client = new NetworkClientKryo();
-        registerClassesForComponent((NetworkClientKryo)client);
+        NetworkClientKryo client = new NetworkClientKryo();
+        registerClassesForComponent(client);
 
         client.connect("localhost");
         client.registerCallback(argument ->
@@ -88,5 +90,10 @@ public class NetworkCommunicationIntegrationTest {
     private void registerClassesForComponent(KryoNetComponent component){
         component.registerClass(TextMessageSubClass.class);
         component.registerClass(TextMessage.class);
+    }
+
+    @After
+    public void teardown() {
+        server.stop();
     }
 }
