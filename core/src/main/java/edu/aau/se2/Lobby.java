@@ -24,7 +24,7 @@ public class Lobby {
     private boolean usersChanged = false;
     private static final String TAG = "Lobby";
     private static final String HOST = "10.0.0.14";    // -> localhost | in cmd ipconfig eingeben -> IPv4 address
-    private static final String address = HOST + ":" + NetworkConstants.TCP_PORT;
+    private static final String ADDRESS = HOST + ":" + NetworkConstants.TCP_PORT;
 
     public Lobby() {
         this.networkClientKryo = new NetworkClientKryo();
@@ -33,13 +33,11 @@ public class Lobby {
 
     public void createLobby() {
 
-        Gdx.app.log(TAG, "Trying to connect to Server at " + address);
+        Gdx.app.log(TAG, "Trying to connect to Server at " + ADDRESS);
 
-        networkClientKryo = new NetworkClientKryo();
         try {
-
             networkClientKryo.connect(HOST);
-            Gdx.app.log(TAG, "Connected to " + address);
+            Gdx.app.log(TAG, "Connected to " + ADDRESS);
         } catch (IOException e) {
             Gdx.app.error(TAG, e.getMessage());
         }
@@ -81,5 +79,25 @@ public class Lobby {
 
     public void setUsersChanged(boolean usersChanged) {
         this.usersChanged = usersChanged;
+    }
+
+    public NetworkClientKryo getNetworkClientKryo() {
+        return networkClientKryo;
+    }
+
+    public void setNetworkClientKryo(NetworkClientKryo networkClientKryo) {
+        this.networkClientKryo = networkClientKryo;
+    }
+
+    public static String getTAG() {
+        return TAG;
+    }
+
+    public static String getHOST() {
+        return HOST;
+    }
+
+    public static String getADDRESS() {
+        return ADDRESS;
     }
 }
