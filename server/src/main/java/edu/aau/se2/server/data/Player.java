@@ -58,6 +58,10 @@ public class Player {
         this.armyReserveCount = armyReserveCount;
     }
 
+    public void addToArmyReserveCount(int armyReserveCountSummand) {
+        this.armyReserveCount += armyReserveCountSummand;
+    }
+
     public boolean isReady() {
         return isReady;
     }

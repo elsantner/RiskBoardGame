@@ -11,12 +11,18 @@ import edu.aau.se2.server.logic.ArmyCountHelper;
 public class Lobby {
     private int lobbyID;
     private TreeMap<Integer, Player> players;
+    private ArrayList<Integer> turnOrder;
+    private int currentTurnIndex;
+    private Territory[] territories;
     private boolean isStarted;
+    private boolean areInitialArmiesPlaced;
 
     public Lobby(int lobbyID) {
         this.lobbyID = lobbyID;
         this.players = new TreeMap<>();
         this.isStarted = false;
+        this.areInitialArmiesPlaced = false;
+        initTerritories();
     }
 
     public ArrayList<Player> getPlayers() {
@@ -72,5 +78,56 @@ public class Lobby {
 
     public void setStarted(boolean started) {
         isStarted = started;
+    }
+
+    public boolean areInitialArmiesPlaced() {
+        return areInitialArmiesPlaced;
+    }
+
+    public void setInitialArmiesPlaced(boolean areInitialArmiesPlaced) {
+        this.areInitialArmiesPlaced = areInitialArmiesPlaced;
+    }
+
+    public ArrayList<Integer> getTurnOrder() {
+        return turnOrder;
+    }
+
+    public void setTurnOrder(ArrayList<Integer> turnOrder) {
+        this.turnOrder = turnOrder;
+        this.currentTurnIndex = 0;
+    }
+
+    public Player getCurrentPlayer() {
+        return players.get(players.keySet().toArray(new Integer[0])[turnOrder.get(currentTurnIndex)]);
+    }
+
+    public void nextPlayerTurn() {
+        this.currentTurnIndex++;
+        this.currentTurnIndex %= getPlayers().size();
+    }
+
+    private void initTerritories() {
+        this.territories = new Territory[42];
+        for (int i=0; i<42; i++) {
+            this.territories[i] = new Territory(i+1);
+        }
+    }
+
+    public synchronized Territory getTerritoryByID(int territoryID) {
+        try {
+            return territories[territoryID - 1];
+        }
+        catch (ArrayIndexOutOfBoundsException ex) {
+            throw new IllegalArgumentException("no territory with id " + territoryID + " exists");
+        }
+    }
+
+    public boolean allTerritoriesOccupied() {
+        for (Territory t: territories) {
+            if (t.isNotOccupied()) {
+                return false;
+            }
+        }
+        return true;
     }
 }
