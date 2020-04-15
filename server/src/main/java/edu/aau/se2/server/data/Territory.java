@@ -3,10 +3,12 @@ package edu.aau.se2.server.data;
 public class Territory {
     private int id;
     private int armyCount;
-    private int occupierPlayerID = -1;
+    private int occupierPlayerID;
 
     public Territory(int id) {
         this.id = id;
+        this.armyCount = 0;
+        this.occupierPlayerID = -1;
     }
 
     public int getId() {

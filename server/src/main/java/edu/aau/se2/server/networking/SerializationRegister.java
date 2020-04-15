@@ -2,6 +2,8 @@ package edu.aau.se2.server.networking;
 
 import java.util.ArrayList;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.server.networking.dto.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.ReadyMessage;
 import edu.aau.se2.server.networking.dto.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.KryoNetComponent;
@@ -17,5 +19,7 @@ public abstract class SerializationRegister {
         component.registerClass(ArrayList.class);
         component.registerClass(ReadyMessage.class);
         component.registerClass(StartGameMessage.class);
+        component.registerClass(InitialArmyPlacingMessage.class);
+        component.registerClass(ArmyPlacedMessage.class);
     }
 }

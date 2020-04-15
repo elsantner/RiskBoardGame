@@ -83,7 +83,7 @@ public class MainServer {
             t.setOccupierPlayerID(msg.getFromPlayerID());
             t.addToArmyCount(msg.getArmyCountPlaced());
             Player curPlayer = lobby.getCurrentPlayer();
-            curPlayer.addToArmyReserveCount(msg.getArmyCountPlaced());
+            curPlayer.addToArmyReserveCount(msg.getArmyCountPlaced()*-1);
             msg.setArmyCountRemaining(curPlayer.getArmyReserveCount());
             lobby.nextPlayerTurn();
             server.broadcastMessage(msg);
