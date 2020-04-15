@@ -5,10 +5,12 @@ import edu.aau.se2.view.game.GameScreen;
 
 public class RiskGame extends Game {
 	private GameScreen gameScreen;
+  	private LobbyScreen lobbyScreen;
 	
 	@Override
 	public void create () {
 		gameScreen = new GameScreen();
+    		lobbyScreen = new LobbyScreen(createLobby());
 		setScreen(gameScreen);
 	}
 
@@ -16,5 +18,12 @@ public class RiskGame extends Game {
 	public void dispose () {
 		super.dispose();
 		gameScreen.dispose();
+		lobbyScreen.dispose();
 	}
+  
+  	public Lobby createLobby() {
+        	Lobby lobby = new Lobby();
+        	lobby.createLobby();
+        	return lobby;
+    }
 }

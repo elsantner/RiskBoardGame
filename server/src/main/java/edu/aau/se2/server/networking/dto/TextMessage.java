@@ -1,6 +1,6 @@
 package edu.aau.se2.server.networking.dto;
 
-public class TextMessage extends BaseMessage {
+public class TextMessage implements BaseMessage {
 
     public TextMessage() {
     }
@@ -9,10 +9,16 @@ public class TextMessage extends BaseMessage {
         this.text = text;
     }
 
-    public String text;
+
+    private String text;
 
     @Override
     public String toString() {
         return String.format("TextMessage: %s", text);
     }
+
+    public String getText() {
+        return text;
+    }
+
 }
