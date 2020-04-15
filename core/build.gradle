@@ -16,6 +16,7 @@ dependencies {
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 sourceSets.main.java.srcDirs = [ "src/main/java", "src/test/java" ]
+sourceSets.main.resources.srcDirs = [ "../android/src/main/assets/" ]
 
 eclipse.project.name = appName + "-core"
 
