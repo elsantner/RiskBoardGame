@@ -18,15 +18,16 @@ public class RiskGame extends Game {
 	
 	@Override
 	public void create () {
-		gameScreen = new GameScreen();
-		setScreen(gameScreen);
 		db = Database.getInstance();
 		db.setOnGameStartListener(new OnGameStartListener() {
 			@Override
 			public void onGameStarted(ArrayList<Player> players, int initialArmyCount) {
 				System.out.println("Starting game with " + initialArmyCount + " armies and " + players.toString());
+				gameScreen = new GameScreen();
+				setScreen(gameScreen);
 			}
 		});
+		db.setPlayerReady(true);
 	}
 
 	@Override

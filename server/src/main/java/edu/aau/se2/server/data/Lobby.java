@@ -11,10 +11,12 @@ import edu.aau.se2.server.logic.ArmyCountHelper;
 public class Lobby {
     private int lobbyID;
     private TreeMap<Integer, Player> players;
+    private boolean isStarted;
 
     public Lobby(int lobbyID) {
         this.lobbyID = lobbyID;
         this.players = new TreeMap<>();
+        this.isStarted = false;
     }
 
     public ArrayList<Player> getPlayers() {
@@ -33,10 +35,16 @@ public class Lobby {
         return lobbyID;
     }
 
-    // TODO: only return true if all players are ready
     public boolean canStartGame() {
-        // Just for Testing
-        return players.size() > 1;
+        if (players.size() < 2) {
+            return false;
+        }
+        for (Player p: players.values()) {
+            if (!p.isReady()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -48,5 +56,21 @@ public class Lobby {
             p.setColorID(curColorID++);
             p.setArmyReserveCount(ArmyCountHelper.getStartCount(players.size()));
         }
+    }
+
+    public void setPlayerReady(int playerID, boolean ready) {
+        Player p = players.get(playerID);
+        if (p == null) {
+            throw new IllegalArgumentException("player with id " + playerID + " doesn't exist");
+        }
+        p.setReady(ready);
+    }
+
+    public boolean isStarted() {
+        return isStarted;
+    }
+
+    public void setStarted(boolean started) {
+        isStarted = started;
     }
 }

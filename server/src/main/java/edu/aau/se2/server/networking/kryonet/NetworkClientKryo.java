@@ -17,10 +17,12 @@ public class NetworkClientKryo implements NetworkClient, KryoNetComponent {
         client = new Client();
     }
 
+    @Override
     public void registerClass(Class c) {
         client.getKryo().register(c);
     }
 
+    @Override
     public void connect(String host) throws IOException {
         client.start();
         client.connect(5000, host, NetworkConstants.TCP_PORT);
@@ -33,10 +35,17 @@ public class NetworkClientKryo implements NetworkClient, KryoNetComponent {
         });
     }
 
+    @Override
+    public void disconnect() {
+        client.stop();
+    }
+
+    @Override
     public void registerCallback(Callback<BaseMessage> callback) {
         this.callback = callback;
     }
 
+    @Override
     public void sendMessage(BaseMessage message) {
         client.sendTCP(message);
     }

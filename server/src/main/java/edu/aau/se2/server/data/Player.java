@@ -5,6 +5,7 @@ public class Player {
     private String nickname;
     private int colorID;
     private transient int armyReserveCount;
+    private transient boolean isReady;
 
     public Player() {
     }
@@ -12,6 +13,9 @@ public class Player {
     public Player(int uid, String nickname) {
         this.uid = uid;
         this.nickname = nickname;
+        this.armyReserveCount = 0;
+        this.isReady = false;
+        this.colorID = -1;
     }
 
     public int getUid() {
@@ -52,5 +56,13 @@ public class Player {
 
     public void setArmyReserveCount(int armyReserveCount) {
         this.armyReserveCount = armyReserveCount;
+    }
+
+    public boolean isReady() {
+        return isReady;
+    }
+
+    public void setReady(boolean ready) {
+        isReady = ready;
     }
 }

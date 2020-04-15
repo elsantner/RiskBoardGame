@@ -7,48 +7,62 @@ import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.logic.ArmyCountHelper;
 import edu.aau.se2.server.networking.Callback;
+import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.BaseMessage;
+import edu.aau.se2.server.networking.dto.ReadyMessage;
 import edu.aau.se2.server.networking.dto.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
 
 public class MainServer {
-    private static NetworkServerKryo server;
-    private static DataStore ds;
 
     public static void main(String[] args) {
         try {
-            // TODO: Remove after testing
-            ds = DataStore.getInstance();
-            ds.createLobby();
-
-            server = new NetworkServerKryo();
-            registerClasses(server);
-            server.registerCallback(new Callback<BaseMessage>() {
-                @Override
-                public void callback(BaseMessage arg) {
-                    //TODO: when all players are ready, trigger this StartGameMessage
-                    //handleReadyMessage(0);
-                }
-            });
-            server.start();
+            new MainServer().start();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static void handleReadyMessage(int lobbyID) {
-        Lobby lobby = ds.getLobbyByID(lobbyID);
-        if (lobby != null && lobby.canStartGame()) {
+    private NetworkServerKryo server;
+    private DataStore ds;
+
+    public MainServer() {
+        // TODO: Remove after lobbies are truly implemented
+        ds = DataStore.getInstance();
+        ds.createLobby();
+
+        server = new NetworkServerKryo();
+        SerializationRegister.registerClassesForComponent(server);
+        server.registerCallback(new Callback<BaseMessage>() {
+            @Override
+            public void callback(BaseMessage arg) {
+                if (arg instanceof ReadyMessage) {
+                    handleReadyMessage((ReadyMessage) arg);
+                }
+            }
+        });
+    }
+
+    public void start() throws IOException {
+        server.start();
+    }
+    public void stop() {
+        server.stop();
+    }
+
+    private synchronized void handleReadyMessage(ReadyMessage msg) {
+        Lobby lobby = ds.getLobbyByID(msg.getLobbyID());
+        // TODO: remove once joinLobby is implemented
+        lobby.addPlayer(new Player(msg.getFromPlayerID(), "Player" + msg.getFromPlayerID()));
+
+        lobby.setPlayerReady(msg.getFromPlayerID(), msg.isReady());
+
+        if (!lobby.isStarted() && lobby.canStartGame()) {
             lobby.setupForGameStart();
-            StartGameMessage sgm = new StartGameMessage(lobbyID, 0, lobby.getPlayers(),
+            lobby.setStarted(true);
+            StartGameMessage sgm = new StartGameMessage(msg.getLobbyID(), 0, lobby.getPlayers(),
                     ArmyCountHelper.getStartCount(lobby.getPlayers().size()));
             server.broadcastMessage(sgm);
         }
-    }
-
-    private static void registerClasses(NetworkServerKryo server) {
-        server.registerClass(Player.class);
-        server.registerClass(ArrayList.class);
-        server.registerClass(StartGameMessage.class);
     }
 }
