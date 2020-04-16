@@ -1,6 +1,11 @@
 package edu.aau.se2.server;
 
 import java.io.IOException;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import edu.aau.se2.server.data.DataStore;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
@@ -17,9 +22,10 @@ import edu.aau.se2.server.networking.dto.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
 
 public class MainServer {
+    private static final String TAG = "Server";
 
-    public static final int TEMP_LOBBY_ID = 0;
-    public static final int SERVER_PLAYER_ID = 0;
+    private static final int TEMP_LOBBY_ID = 0;
+    private static final int SERVER_PLAYER_ID = 0;
 
     public static void main(String[] args) {
         try {
@@ -31,11 +37,13 @@ public class MainServer {
 
     private NetworkServerKryo server;
     private DataStore ds;
+    private Logger log;
 
     public MainServer() {
         // TODO: Remove after lobbies are truly implemented
         ds = DataStore.getInstance();
         ds.createLobby();
+        setupLogger();
 
         server = new NetworkServerKryo();
         SerializationRegister.registerClassesForComponent(server);
@@ -43,13 +51,25 @@ public class MainServer {
             @Override
             public void callback(BaseMessage arg) {
                 if (arg instanceof ReadyMessage) {
+                    log.log(Level.ALL, "Received ReadyMessage");
                     handleReadyMessage((ReadyMessage) arg);
                 }
                 else if (arg instanceof ArmyPlacedMessage) {
+                    log.log(Level.ALL, "Received ArmyPlacedMessage");
                     handleArmyPlaced((ArmyPlacedMessage) arg);
                 }
             }
         });
+    }
+
+    private void setupLogger() {
+        log = Logger.getLogger(TAG);
+        Handler handlerObj = new ConsoleHandler();
+        handlerObj.setLevel(Level.ALL);
+        log.addHandler(handlerObj);
+        log.setLevel(Level.ALL);
+        log.setUseParentHandlers(false);
+
     }
 
     public void start() throws IOException {
@@ -86,6 +106,7 @@ public class MainServer {
             curPlayer.addToArmyReserveCount(msg.getArmyCountPlaced()*-1);
             msg.setArmyCountRemaining(curPlayer.getArmyReserveCount());
             lobby.nextPlayerTurn();
+            log.log(Level.ALL, "Broadcasting ArmyPlacedMessage");
             server.broadcastMessage(msg);
         }
     }
@@ -100,14 +121,18 @@ public class MainServer {
         if (!lobby.isStarted() && lobby.canStartGame()) {
             lobby.setupForGameStart();
             lobby.setStarted(true);
+            // start game
             StartGameMessage sgm = new StartGameMessage(msg.getLobbyID(), SERVER_PLAYER_ID, lobby.getPlayers(),
                     ArmyCountHelper.getStartCount(lobby.getPlayers().size()));
+            log.log(Level.ALL, "Broadcasting StartGameMessage");
             server.broadcastMessage(sgm);
 
             // TODO: replace once "dice to decide starter" is implemented
+            // send turn order and initiate initial army placing
             try {
                 Thread.sleep(1000);
-                lobby.setTurnOrder(DiceHelper.getRandomTurnOrder(lobby.getPlayers().size()));
+                lobby.setTurnOrder(DiceHelper.getRandomTurnOrder(lobby.getPlayers()));
+                log.log(Level.ALL, "Broadcasting InitialArmyPlacingMessage");
                 server.broadcastMessage(new InitialArmyPlacingMessage(TEMP_LOBBY_ID, SERVER_PLAYER_ID,
                         lobby.getTurnOrder()));
             } catch (InterruptedException e) {

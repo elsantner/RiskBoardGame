@@ -98,7 +98,7 @@ public class Lobby {
     }
 
     public Player getCurrentPlayer() {
-        return players.get(players.keySet().toArray(new Integer[0])[turnOrder.get(currentTurnIndex)]);
+        return players.get(turnOrder.get(currentTurnIndex));
     }
 
     public void nextPlayerTurn() {
