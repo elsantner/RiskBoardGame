@@ -5,7 +5,7 @@ sourceCompatibility = 1.8
 dependencies {
     implementation 'junit:junit:4.12'
     implementation 'com.esotericsoftware:kryonet:2.22.0-RC1'
-    implementation project(path: ':server')
+    implementation project(path: ':server', configuration: 'default')
 }
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
