@@ -5,11 +5,13 @@ import java.util.List;
 
 public class Lobby {
     private ArrayList<User> users;
+    private int lobbyID;
 
-    public Lobby(String hostName) {
-        users = new ArrayList<>();
-        users.add(new User(hostName));
-        users.get(0).setHost(true);
+    public Lobby(String hostName, int id) {
+        this.lobbyID = id;
+        this.users = new ArrayList<>();
+        this.users.add(new User(hostName));
+        this.users.get(0).setHost(true);
     }
 
     public void addUser(User user) {
@@ -32,4 +34,7 @@ public class Lobby {
         this.users = (ArrayList<User>) users;
     }
 
+    public int getLobbyID() {
+        return lobbyID;
+    }
 }

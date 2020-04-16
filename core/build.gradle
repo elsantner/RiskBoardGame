@@ -6,6 +6,12 @@ dependencies {
     implementation 'junit:junit:4.12'
     implementation 'com.esotericsoftware:kryonet:2.22.0-RC1'
     implementation project(path: ':server', configuration: 'default')
+    implementation 'org.mockito:mockito-core:3.3.3'
+    implementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
 }
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
