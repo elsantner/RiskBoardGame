@@ -39,7 +39,7 @@ public class NetworkCommunicationIntegrationTest {
         startClient();
 
         // wait for server and client to handle messages
-        Thread.sleep(1500);
+        Thread.sleep(3000);
 
         Assert.assertTrue(request1Handled.get());
         Assert.assertTrue(request2Handled.get());
