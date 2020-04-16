@@ -1,7 +1,7 @@
 package edu.aau.se2.model;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.TreeMap;
 
@@ -17,15 +17,24 @@ import edu.aau.se2.server.networking.dto.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.ReadyMessage;
 import edu.aau.se2.server.networking.dto.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
+import edu.aau.se2.server.networking.kryonet.NetworkConstants;
 import edu.aau.se2.view.game.OnBoardInteractionListener;
 
 public class Database implements OnBoardInteractionListener {
     private static Database instance = null;
-    private static String serverAddress = "10.0.2.2";
+    private static String serverAddress = NetworkConstants.SERVER_IP;
 
+    /**
+     * Gets the singleton instance of Database.
+     * @return Database instance, or null if connection error occurred.
+     */
     public static synchronized Database getInstance() {
         if (instance == null) {
-            instance = new Database();
+            try {
+                instance = new Database();
+            } catch (IOException e) {
+                instance = null;
+            }
         }
         return instance;
     }
@@ -35,7 +44,7 @@ public class Database implements OnBoardInteractionListener {
      * Note: This method is designed to be used for testing purposes only!
      * @param serverAddress New server address
      */
-    public static void setServerAddress(String serverAddress) throws IllegalStateException {
+    public static void setServerAddress(String serverAddress) {
         if (instance != null) {
             throw new IllegalStateException("can only set server address before ever calling getInstance()");
         }
@@ -50,7 +59,7 @@ public class Database implements OnBoardInteractionListener {
 
     private Player thisPlayer;
     private TreeMap<Integer, Player> currentPlayers;
-    private ArrayList<Integer> turnOrder;
+    private List<Integer> turnOrder;
     private int currentTurnIndex;
     private int currentLobbyID;
     private Territory[] territoryData;
@@ -58,7 +67,7 @@ public class Database implements OnBoardInteractionListener {
 
     private int currentArmyReserve = 0;
 
-    protected Database() {
+    protected Database() throws IOException {
         Random rand = new Random();
         thisPlayer = new Player(rand.nextInt(), "Player " + rand.nextInt());
         resetLobby();
@@ -66,11 +75,7 @@ public class Database implements OnBoardInteractionListener {
         this.client = new NetworkClientKryo();
         SerializationRegister.registerClassesForComponent(client);
         registerClientCallback();
-        try {
-            this.client.connect(serverAddress);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.client.connect(serverAddress);
     }
 
     /**
@@ -108,7 +113,6 @@ public class Database implements OnBoardInteractionListener {
     private void registerClientCallback() {
         this.client.registerCallback(msg -> {
             if (msg instanceof StartGameMessage) {
-                System.out.println("Received StartGameMessage");
                 handleStartGameMessage((StartGameMessage) msg);
             }
             else if (msg instanceof ReadyMessage) {
@@ -207,11 +211,11 @@ public class Database implements OnBoardInteractionListener {
 
     @Override
     public void armyMoved(int fromTerritoryID, int toTerritoryID, int count) {
-
+        // currently unused as feature is not yet implemented
     }
 
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID) {
-
+        // currently unused as feature is not yet implemented
     }
 }

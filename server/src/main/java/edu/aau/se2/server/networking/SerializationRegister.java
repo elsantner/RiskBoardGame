@@ -14,6 +14,11 @@ import edu.aau.se2.server.networking.kryonet.KryoNetComponent;
  * This is important because the sequence of registration is vital for (de-)serialization to work.
  */
 public abstract class SerializationRegister {
+
+    private SerializationRegister() {
+        // defeat instantiation
+    }
+
     public static void registerClassesForComponent(KryoNetComponent component) {
         component.registerClass(Player.class);
         component.registerClass(ArrayList.class);

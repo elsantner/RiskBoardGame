@@ -89,11 +89,6 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
 
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
-        if (isThisPlayer) {
-            boardStage.setArmiesPlacable(true);
-        }
-        else {
-            boardStage.setArmiesPlacable(false);
-        }
+        boardStage.setArmiesPlacable(isThisPlayer);
     }
 }

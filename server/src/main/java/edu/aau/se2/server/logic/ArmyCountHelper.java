@@ -2,6 +2,10 @@ package edu.aau.se2.server.logic;
 
 public abstract class ArmyCountHelper {
 
+    private ArmyCountHelper() {
+        // defeat instantiation
+    }
+
     public static int getStartCount(int playerCount) {
         switch (playerCount) {
             case 2:

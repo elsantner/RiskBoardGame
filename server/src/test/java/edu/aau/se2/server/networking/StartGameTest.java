@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,7 +28,7 @@ public class StartGameTest {
     private ArrayList<AtomicBoolean> clientsInitialArmyPlacingMsgReceived;
     private AtomicInteger armiesPlaced;
     private MainServer server;
-    private ArrayList<Integer> turnOrder;
+    private List<Integer> turnOrder;
     private int currentTurnIndex;
     private ArrayList<Integer> clientArmyCount;
 

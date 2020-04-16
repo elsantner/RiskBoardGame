@@ -1,6 +1,8 @@
 package edu.aau.se2.server.data;
 
-public class Player {
+import java.io.Serializable;
+
+public class Player implements Serializable {
     private int uid;
     private String nickname;
     private int colorID;
@@ -40,10 +42,9 @@ public class Player {
 
     /**
      * Sets the player color.
-     * @param colorID ID of the color to set. Must be between 0 and 5
-     * @throws IllegalArgumentException If colorID is not between 0 and 5
+     * @param colorID ID of the color to set. Must be between 0 and 5.
      */
-    public void setColorID(int colorID) throws IllegalArgumentException {
+    public void setColorID(int colorID) {
         if (colorID < 0 || colorID > 5) {
             throw new IllegalArgumentException("colorID must be between 0 and 5");
         }

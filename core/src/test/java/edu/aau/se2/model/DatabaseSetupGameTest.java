@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,7 +69,7 @@ public class DatabaseSetupGameTest {
         server.start();
     }
 
-    private void startClients() {
+    private void startClients() throws IOException {
         DatabaseTestSubclass.setServerAddress("localhost");
         for (int i=0; i<NUM_CLIENTS; i++) {
             Database db = new DatabaseTestSubclass();
@@ -76,7 +77,7 @@ public class DatabaseSetupGameTest {
             int finalI = i;
             db.setOnGameStartListener(new OnGameStartListener() {
                 @Override
-                public void onGameStarted(ArrayList<Player> players, int initialArmyCount) {
+                public void onGameStarted(List<Player> players, int initialArmyCount) {
                     clientsReceivedGameStarted.get(finalI).set(true);
                 }
             });

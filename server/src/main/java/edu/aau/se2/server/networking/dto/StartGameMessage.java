@@ -1,27 +1,28 @@
 package edu.aau.se2.server.networking.dto;
 
-import java.util.ArrayList;
+import java.util.List;
+
 import edu.aau.se2.server.data.Player;
 
 public class StartGameMessage extends InLobbyMessage {
-    private ArrayList<Player> players;
+    private List<Player> players;
     private int startArmyCount;
 
     public StartGameMessage() {
         super();
     }
 
-    public StartGameMessage(int lobbyID, int fromPlayerID, ArrayList<Player> players, int startArmyCount) {
+    public StartGameMessage(int lobbyID, int fromPlayerID, List<Player> players, int startArmyCount) {
         super(lobbyID, fromPlayerID);
         this.players = players;
         this.startArmyCount = startArmyCount;
     }
 
-    public ArrayList<Player> getPlayers() {
+    public List<Player> getPlayers() {
         return players;
     }
 
-    public void setPlayers(ArrayList<Player> players) {
+    public void setPlayers(List<Player> players) {
         this.players = players;
     }
 

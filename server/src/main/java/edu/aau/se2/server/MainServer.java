@@ -31,7 +31,7 @@ public class MainServer {
         try {
             new MainServer().start();
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.getLogger(TAG).log(Level.SEVERE, "Error starting server", e);
         }
     }
 
@@ -47,17 +47,14 @@ public class MainServer {
 
         server = new NetworkServerKryo();
         SerializationRegister.registerClassesForComponent(server);
-        server.registerCallback(new Callback<BaseMessage>() {
-            @Override
-            public void callback(BaseMessage arg) {
-                if (arg instanceof ReadyMessage) {
-                    log.log(Level.ALL, "Received ReadyMessage");
-                    handleReadyMessage((ReadyMessage) arg);
-                }
-                else if (arg instanceof ArmyPlacedMessage) {
-                    log.log(Level.ALL, "Received ArmyPlacedMessage");
-                    handleArmyPlaced((ArmyPlacedMessage) arg);
-                }
+        server.registerCallback(arg -> {
+            if (arg instanceof ReadyMessage) {
+                log.log(Level.INFO, "Received ReadyMessage");
+                handleReadyMessage((ReadyMessage) arg);
+            }
+            else if (arg instanceof ArmyPlacedMessage) {
+                log.log(Level.INFO, "Received ArmyPlacedMessage");
+                handleArmyPlaced((ArmyPlacedMessage) arg);
             }
         });
     }
@@ -65,9 +62,9 @@ public class MainServer {
     private void setupLogger() {
         log = Logger.getLogger(TAG);
         Handler handlerObj = new ConsoleHandler();
-        handlerObj.setLevel(Level.ALL);
+        handlerObj.setLevel(Level.INFO);
         log.addHandler(handlerObj);
-        log.setLevel(Level.ALL);
+        log.setLevel(Level.INFO);
         log.setUseParentHandlers(false);
 
     }
@@ -81,13 +78,15 @@ public class MainServer {
 
     private synchronized void handleArmyPlaced(ArmyPlacedMessage msg) {
         Lobby lobby = ds.getLobbyByID(TEMP_LOBBY_ID);
-        if (lobby.isStarted()) {
-            // only player to act can place armies & only if he has enough armies to place remaining
-            if (msg.getFromPlayerID() == lobby.getCurrentPlayer().getUid() &&
-                    lobby.getCurrentPlayer().getArmyReserveCount() >= msg.getArmyCountPlaced()) {
-                if (!lobby.areInitialArmiesPlaced()) {
-                    handleInitialArmyPlaced(msg);
-                }
+        // only player to act can place armies & only if he has enough armies to place remaining
+        if (lobby.isStarted() &&
+                msg.getFromPlayerID() == lobby.getCurrentPlayer().getUid() &&
+                lobby.getCurrentPlayer().getArmyReserveCount() >= msg.getArmyCountPlaced()) {
+            if (!lobby.areInitialArmiesPlaced()) {
+                handleInitialArmyPlaced(msg);
+            }
+            else {
+                // TODO: Handle normal army placed
             }
         }
     }
@@ -130,14 +129,20 @@ public class MainServer {
             // TODO: replace once "dice to decide starter" is implemented
             // send turn order and initiate initial army placing
             try {
-                Thread.sleep(1000);
-                lobby.setTurnOrder(DiceHelper.getRandomTurnOrder(lobby.getPlayers()));
-                log.log(Level.ALL, "Broadcasting InitialArmyPlacingMessage");
-                server.broadcastMessage(new InitialArmyPlacingMessage(TEMP_LOBBY_ID, SERVER_PLAYER_ID,
-                        lobby.getTurnOrder()));
+                synchronized(lobby) {
+                    lobby.wait(1000);
+                }
+                broadcastInitialArmyPlacingMessage(lobby);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                broadcastInitialArmyPlacingMessage(lobby);
             }
         }
+    }
+
+    private synchronized void broadcastInitialArmyPlacingMessage(Lobby lobby) {
+        lobby.setTurnOrder(DiceHelper.getRandomTurnOrder(lobby.getPlayers()));
+        log.log(Level.ALL, "Broadcasting InitialArmyPlacingMessage");
+        server.broadcastMessage(new InitialArmyPlacingMessage(TEMP_LOBBY_ID, SERVER_PLAYER_ID,
+                lobby.getTurnOrder()));
     }
 }

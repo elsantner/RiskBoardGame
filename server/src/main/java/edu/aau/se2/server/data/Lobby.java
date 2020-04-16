@@ -1,6 +1,7 @@
 package edu.aau.se2.server.data;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 import edu.aau.se2.server.logic.ArmyCountHelper;
@@ -11,7 +12,7 @@ import edu.aau.se2.server.logic.ArmyCountHelper;
 public class Lobby {
     private int lobbyID;
     private TreeMap<Integer, Player> players;
-    private ArrayList<Integer> turnOrder;
+    private List<Integer> turnOrder;
     private int currentTurnIndex;
     private Territory[] territories;
     private boolean isStarted;
@@ -25,7 +26,7 @@ public class Lobby {
         initTerritories();
     }
 
-    public ArrayList<Player> getPlayers() {
+    public List<Player> getPlayers() {
         return new ArrayList<>(players.values());
     }
 
@@ -88,11 +89,11 @@ public class Lobby {
         this.areInitialArmiesPlaced = areInitialArmiesPlaced;
     }
 
-    public ArrayList<Integer> getTurnOrder() {
+    public List<Integer> getTurnOrder() {
         return turnOrder;
     }
 
-    public void setTurnOrder(ArrayList<Integer> turnOrder) {
+    public void setTurnOrder(List<Integer> turnOrder) {
         this.turnOrder = turnOrder;
         this.currentTurnIndex = 0;
     }
