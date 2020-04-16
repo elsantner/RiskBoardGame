@@ -13,7 +13,6 @@ public class RiskGame extends Game {
 	public void create () {
         Database db = Database.getInstance();
 		db.setOnGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
-            // System.out.println("Starting game with " + initialArmyCount + " armies and " + players.toString());
             gameScreen = new GameScreen();
             setScreen(gameScreen);
         }));

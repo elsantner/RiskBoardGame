@@ -6,18 +6,14 @@ import java.util.List;
 
 import edu.aau.se2.server.data.Player;
 
-public abstract class DiceHelper {
-
-    private DiceHelper() {
-        // defeat instantiation
-    }
+public interface DiceHelper {
 
     /**
      * Generates a random permutation of all Player ids in players list.
      * @param players Players to create permutation for.
      * @return List of random permutation of all Player ids.
      */
-    public static List<Integer> getRandomTurnOrder(List<Player> players) {
+    static List<Integer> getRandomTurnOrder(List<Player> players) {
         ArrayList<Integer> startingOrder = new ArrayList<>();
         for (Player p: players) {
             startingOrder.add(p.getUid());

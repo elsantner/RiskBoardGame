@@ -13,13 +13,9 @@ import edu.aau.se2.server.networking.kryonet.KryoNetComponent;
  * This class helps to ensure that the class registration for all KryoNetComponents is identical.
  * This is important because the sequence of registration is vital for (de-)serialization to work.
  */
-public abstract class SerializationRegister {
+public interface SerializationRegister {
 
-    private SerializationRegister() {
-        // defeat instantiation
-    }
-
-    public static void registerClassesForComponent(KryoNetComponent component) {
+    static void registerClassesForComponent(KryoNetComponent component) {
         component.registerClass(Player.class);
         component.registerClass(ArrayList.class);
         component.registerClass(ReadyMessage.class);
