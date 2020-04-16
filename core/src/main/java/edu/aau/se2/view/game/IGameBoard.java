@@ -1,7 +1,5 @@
 package edu.aau.se2.view.game;
 
-import com.badlogic.gdx.graphics.Color;
-
 public interface IGameBoard {
     void setInteractable(boolean interactable);
     boolean isInteractable();
@@ -10,5 +8,5 @@ public interface IGameBoard {
     void setAttackAllowed(boolean attackAllowed);
     boolean isAttackAllowed();
     void setArmyCount(int territoryID, int count);
-    void setArmyColor(int territoryID, Color color);
+    void setArmyColor(int territoryID, int colorID);
 }

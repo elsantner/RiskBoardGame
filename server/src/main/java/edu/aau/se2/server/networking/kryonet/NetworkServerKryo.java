@@ -25,14 +25,15 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
         connections = new ArrayList<>();
     }
 
+    @Override
     public void registerClass(Class c) {
         server.getKryo().register(c);
     }
 
+    @Override
     public void start() throws IOException {
         server.start();
         server.bind(NetworkConstants.TCP_PORT);
-
         server.addListener(new Listener() {
             public void received(Connection connection, Object object) {
                 if (object instanceof CreateLobby) {
@@ -46,10 +47,17 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
         });
     }
 
+    @Override
+    public void stop() {
+        server.stop();
+    }
+
+    @Override
     public void registerCallback(Callback<BaseMessage> callback) {
         this.messageCallback = callback;
     }
 
+    @Override
     public void broadcastMessage(BaseMessage message) {
         for (Connection connection : server.getConnections())
             connection.sendTCP(message);
