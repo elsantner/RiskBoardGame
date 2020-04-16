@@ -50,4 +50,21 @@ public class NetworkClientKryo implements NetworkClient, KryoNetComponent {
     public void sendMessage(BaseMessage message) {
         client.sendTCP(message);
     }
+
+    @Override
+    public void registerConnectionListener(OnConnectionChangedListener listener) {
+        client.addListener(new Listener() {
+            @Override
+            public void connected(Connection connection) {
+                super.connected(connection);
+                listener.connected();
+            }
+
+            @Override
+            public void disconnected(Connection connection) {
+                super.disconnected(connection);
+                listener.disconnected();
+            }
+        });
+    }
 }

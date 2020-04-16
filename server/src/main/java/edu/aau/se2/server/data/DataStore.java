@@ -13,22 +13,63 @@ public class DataStore {
     }
 
     private TreeMap<Integer, Lobby> lobbies;
+    private TreeMap<Integer, Player> playersOnline;
+    private int nextLobbyID;
+    private int nextPlayerID;
 
-    private DataStore() {
+    protected DataStore() {
         lobbies = new TreeMap<>();
+        playersOnline = new TreeMap<>();
+        nextLobbyID = 0;
+        nextPlayerID = 1;
     }
 
-    public synchronized Lobby createLobby() {
-        Lobby l = new Lobby(getNewLobbyID());
+    public synchronized boolean isPlayerHostingLobby(int playerID) {
+        for (Lobby l: lobbies.values()) {
+            if (l.getHost() != null && l.getHost().getUid() == playerID) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public synchronized Lobby createLobby(Player host) {
+        Lobby l = new Lobby(getNextLobbyID());
+        l.setHost(host);
         lobbies.put(l.getLobbyID(), l);
         return l;
     }
 
-    private int getNewLobbyID() {
-        if (lobbies.isEmpty()) {
-            return 0;
+    public synchronized Lobby createLobby() {
+        Lobby l = new Lobby(getNextLobbyID());
+        lobbies.put(l.getLobbyID(), l);
+        return l;
+    }
+
+    public synchronized void updateLobby(Lobby l) {
+        if (!lobbies.containsKey(l.getLobbyID())) {
+            throw new IllegalArgumentException("lobby cannot be updated because it does not exist");
         }
-        return lobbies.lastKey();
+        lobbies.put(l.getLobbyID(), l);
+    }
+
+    private synchronized int getNextLobbyID() {
+        return nextLobbyID++;
+    }
+
+    public synchronized Player newPlayer() {
+        int playerID = getNextPlayerID();
+        Player p = new Player(playerID, "Player" + playerID);
+        playersOnline.put(p.getUid(), p);
+        return p;
+    }
+
+    public synchronized Player getPlayerByID(int playerID) {
+        return playersOnline.get(playerID);
+    }
+
+    private synchronized int getNextPlayerID() {
+        return nextPlayerID++;
     }
 
     /**

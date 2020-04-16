@@ -19,4 +19,13 @@ public class ReadyMessage extends InLobbyMessage {
     public void setReady(boolean ready) {
         this.ready = ready;
     }
+
+    @Override
+    public String toString() {
+        return "ReadyMessage{" +
+                "ready=" + ready +
+                ", lobbyID=" + lobbyID +
+                ", fromPlayerID=" + fromPlayerID +
+                '}';
+    }
 }

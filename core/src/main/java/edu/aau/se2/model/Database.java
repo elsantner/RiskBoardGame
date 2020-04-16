@@ -1,26 +1,33 @@
 package edu.aau.se2.model;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.TreeMap;
 
 import edu.aau.se2.model.listener.OnGameStartListener;
+import edu.aau.se2.model.listener.OnJoinedLobbyListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
-import edu.aau.se2.model.listener.OnPlayerReadyListener;
+import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
+import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.ReadyMessage;
 import edu.aau.se2.server.networking.dto.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkConstants;
 import edu.aau.se2.view.game.OnBoardInteractionListener;
 
-public class Database implements OnBoardInteractionListener {
+public class Database implements OnBoardInteractionListener, NetworkClient.OnConnectionChangedListener {
     private static Database instance = null;
     private static String serverAddress = NetworkConstants.SERVER_IP;
 
@@ -52,10 +59,12 @@ public class Database implements OnBoardInteractionListener {
     }
 
     private NetworkClientKryo client;
+    private boolean isConnected;
     private OnGameStartListener gameStartListener;
-    private OnPlayerReadyListener playerReadyListener;
+    private OnPlayersChangedListener playersChangedListener;
     private OnTerritoryUpdateListener territoryUpdateListener;
     private OnNextTurnListener nextTurnListener;
+    private OnJoinedLobbyListener joinedLobbyListener;
 
     private Player thisPlayer;
     private TreeMap<Integer, Player> currentPlayers;
@@ -63,16 +72,16 @@ public class Database implements OnBoardInteractionListener {
     private int currentTurnIndex;
     private int currentLobbyID;
     private Territory[] territoryData;
-    private boolean initalArmyPlacementFinished;
+    private boolean initialArmyPlacementFinished;
 
     private int currentArmyReserve = 0;
 
     protected Database() throws IOException {
-        Random rand = new Random();
-        thisPlayer = new Player(rand.nextInt(), "Player " + rand.nextInt());
         resetLobby();
+        isConnected = false;
 
         this.client = new NetworkClientKryo();
+        client.registerConnectionListener(this);
         SerializationRegister.registerClassesForComponent(client);
         registerClientCallback();
         this.client.connect(serverAddress);
@@ -85,7 +94,7 @@ public class Database implements OnBoardInteractionListener {
         currentPlayers = new TreeMap<>();
         turnOrder = null;
         currentTurnIndex = 0;
-        initalArmyPlacementFinished = false;
+        initialArmyPlacementFinished = false;
         currentLobbyID = -1;
         initTerritoryData();
     }
@@ -97,26 +106,30 @@ public class Database implements OnBoardInteractionListener {
         }
     }
 
-    public void setOnGameStartListener(OnGameStartListener l) {
+    public void setGameStartListener(OnGameStartListener l) {
         this.gameStartListener = l;
     }
-    public void setOnPlayerReadyListener(OnPlayerReadyListener l) {
-        this.playerReadyListener = l;
+    public void setPlayersChangedListener(OnPlayersChangedListener l) {
+        this.playersChangedListener = l;
     }
-    public void setOnTerritoryUpdateListener(OnTerritoryUpdateListener l) {
+    public void setTerritoryUpdateListener(OnTerritoryUpdateListener l) {
         this.territoryUpdateListener = l;
     }
-    public void setOnNextTurnListener(OnNextTurnListener l) {
+    public void setNextTurnListener(OnNextTurnListener l) {
         this.nextTurnListener = l;
+    }
+
+    public void setJoinedLobbyListener(OnJoinedLobbyListener l) {
+        this.joinedLobbyListener = l;
     }
 
     private void registerClientCallback() {
         this.client.registerCallback(msg -> {
-            if (msg instanceof StartGameMessage) {
-                handleStartGameMessage((StartGameMessage) msg);
+            if (msg instanceof ConnectedMessage) {
+                handleConnectedMessage((ConnectedMessage) msg);
             }
-            else if (msg instanceof ReadyMessage) {
-                handleReadyMessage((ReadyMessage) msg);
+            else if (msg instanceof StartGameMessage) {
+                handleStartGameMessage((StartGameMessage) msg);
             }
             else if (msg instanceof InitialArmyPlacingMessage) {
                 handleInitialArmyPlacingMessage((InitialArmyPlacingMessage) msg);
@@ -124,17 +137,49 @@ public class Database implements OnBoardInteractionListener {
             else if (msg instanceof ArmyPlacedMessage) {
                 handleArmyPlacedMessage((ArmyPlacedMessage) msg);
             }
+            else if (msg instanceof PlayersChangedMessage) {
+                handlePlayersChangedMessage((PlayersChangedMessage) msg);
+            }
+            else if (msg instanceof JoinedLobbyMessage) {
+                handleJoinedLobby((JoinedLobbyMessage) msg);
+            }
         });
     }
 
-    private void handleInitialArmyPlacingMessage(InitialArmyPlacingMessage msg) {
+    private void handleJoinedLobby(JoinedLobbyMessage msg) {
+        this.currentLobbyID = msg.getLobbyID();
+        setCurrentPlayers(msg.getPlayers());
+        if (joinedLobbyListener != null) {
+            joinedLobbyListener.joinedLobby(msg.getLobbyID(), msg.getHost(), msg.getPlayers());
+        }
+    }
+
+    private void handleConnectedMessage(ConnectedMessage msg) {
+        thisPlayer = msg.getPlayer();
+    }
+
+    private synchronized void setCurrentPlayers(List<Player> players) {
+        currentPlayers.clear();
+        for (Player p: players) {
+            currentPlayers.put(p.getUid(), p);
+        }
+    }
+
+    private synchronized void handlePlayersChangedMessage(PlayersChangedMessage msg) {
+        setCurrentPlayers(msg.getPlayers());
+        if (playersChangedListener != null) {
+            playersChangedListener.playersChanged(new ArrayList<>(currentPlayers.values()));
+        }
+    }
+
+    private synchronized void handleInitialArmyPlacingMessage(InitialArmyPlacingMessage msg) {
         turnOrder = msg.getPlayerOrder();
         if (nextTurnListener != null) {
             nextTurnListener.isPlayersTurnNow(turnOrder.get(0), thisPlayer.getUid() == turnOrder.get(0));
         }
     }
 
-    private void handleArmyPlacedMessage(ArmyPlacedMessage msg) {
+    private synchronized void handleArmyPlacedMessage(ArmyPlacedMessage msg) {
         if (territoryUpdateListener != null) {
             // adjust remaining army count if this player placed armies
             if (msg.getFromPlayerID() == thisPlayer.getUid()) {
@@ -149,7 +194,7 @@ public class Database implements OnBoardInteractionListener {
                     currentPlayers.get(msg.getFromPlayerID()).getColorID());
 
             // if this message is part of initial army placement, initiate next turn
-            if (!initalArmyPlacementFinished) {
+            if (!initialArmyPlacementFinished) {
                 nextPlayersTurn();
                 if (nextTurnListener != null) {
                     nextTurnListener.isPlayersTurnNow(turnOrder.get(currentTurnIndex),
@@ -159,13 +204,7 @@ public class Database implements OnBoardInteractionListener {
         }
     }
 
-    private void handleReadyMessage(ReadyMessage msg) {
-        if (playerReadyListener != null) {
-            playerReadyListener.playerReady(msg.getFromPlayerID(), msg.isReady());
-        }
-    }
-
-    private void handleStartGameMessage(StartGameMessage msg) {
+    private synchronized void handleStartGameMessage(StartGameMessage msg) {
         currentArmyReserve = msg.getStartArmyCount();
         if (gameStartListener != null) {
             currentArmyReserve = msg.getStartArmyCount();
@@ -217,5 +256,23 @@ public class Database implements OnBoardInteractionListener {
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID) {
         // currently unused as feature is not yet implemented
+    }
+
+    public void hostLobby() {
+        client.sendMessage(new CreateLobbyMessage(thisPlayer.getUid()));
+    }
+
+    @Override
+    public void connected() {
+        isConnected = true;
+    }
+
+    @Override
+    public void disconnected() {
+        isConnected = false;
+    }
+
+    public boolean isConnected() {
+        return isConnected;
     }
 }

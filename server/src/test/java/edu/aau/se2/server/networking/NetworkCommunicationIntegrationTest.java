@@ -8,6 +8,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import edu.aau.se2.server.data.Player;
+import edu.aau.se2.server.networking.dto.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.TextMessage;
 import edu.aau.se2.server.networking.kryonet.KryoNetComponent;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
@@ -17,6 +19,7 @@ public class NetworkCommunicationIntegrationTest {
     private static final String REQUEST_TEST = "request test";
     private static final String RESPONSE_TEST = "response test";
 
+    private AtomicBoolean connectionMessageReceived;
     private AtomicBoolean request1Handled;
     private AtomicBoolean request2Handled;
     private AtomicBoolean responseHandled;
@@ -27,6 +30,7 @@ public class NetworkCommunicationIntegrationTest {
         request1Handled = new AtomicBoolean(false);
         request2Handled = new AtomicBoolean(false);
         responseHandled = new AtomicBoolean(false);
+        connectionMessageReceived = new AtomicBoolean(false);
     }
 
     @Test
@@ -77,9 +81,16 @@ public class NetworkCommunicationIntegrationTest {
         client.connect("localhost");
         client.registerCallback(argument ->
                 {
-                    Assert.assertTrue(argument instanceof TextMessage);
-                    Assert.assertEquals(RESPONSE_TEST, ((TextMessage) argument).getText());
-                    responseHandled.set(true);
+                    if (!connectionMessageReceived.get()) {
+                        Assert.assertTrue(argument instanceof ConnectedMessage);
+                        Assert.assertNotNull(((ConnectedMessage)argument).getPlayer());
+                        connectionMessageReceived.set(true);
+                    }
+                    else {
+                        Assert.assertTrue(argument instanceof TextMessage);
+                        Assert.assertEquals(RESPONSE_TEST, ((TextMessage) argument).getText());
+                        responseHandled.set(true);
+                    }
                 }
         );
 
@@ -90,6 +101,8 @@ public class NetworkCommunicationIntegrationTest {
     private void registerClassesForComponent(KryoNetComponent component){
         component.registerClass(TextMessageSubClass.class);
         component.registerClass(TextMessage.class);
+        component.registerClass(Player.class);
+        component.registerClass(ConnectedMessage.class);
     }
 
     @After

@@ -25,8 +25,8 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         boardStage = new BoardStage(new FitViewport(width, height));
         db = Database.getInstance();
         boardStage.setListener(db);
-        db.setOnTerritoryUpdateListener(this);
-        db.setOnNextTurnListener(this);
+        db.setTerritoryUpdateListener(this);
+        db.setNextTurnListener(this);
         // trigger player turn update because listener might not have been registered when
         // server message was received
         isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());

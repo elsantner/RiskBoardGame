@@ -1,18 +1,11 @@
 package edu.aau.se2.server;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.logging.Logger;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import edu.aau.se2.server.networking.Callback;
-import edu.aau.se2.server.networking.dto.BaseMessage;
-import edu.aau.se2.server.networking.dto.CreateLobby;
-import edu.aau.se2.server.networking.dto.TextMessage;
-import edu.aau.se2.server.networking.dto.UserList;
 import edu.aau.se2.server.data.DataStore;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
@@ -21,27 +14,22 @@ import edu.aau.se2.server.logic.ArmyCountHelper;
 import edu.aau.se2.server.logic.DiceHelper;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.JoinedLobbyMessage;
 import edu.aau.se2.server.networking.dto.ReadyMessage;
 import edu.aau.se2.server.networking.dto.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
-import edu.aau.se2.server.networking.kryonet.RegisterClasses;
-
-import static java.lang.Thread.sleep;
 
 public class MainServer {
-    private static NetworkServerKryo server;
-    private static int lobbyNumber = 0;
-    private static ArrayList<Lobby> lobbys;
     private static final String TAG = "Server";
 
     private static final int TEMP_LOBBY_ID = 0;
     private static final int SERVER_PLAYER_ID = 0;
 
     public static void main(String[] args) {
-        lobbys = new ArrayList<>();
         try {
-            new MainServer().start();
+            new MainServer(true).start();
         } catch (IOException e) {
             Logger.getLogger(TAG).log(Level.SEVERE, "Error starting server", e);
         }
@@ -51,10 +39,16 @@ public class MainServer {
     private DataStore ds;
     private Logger log;
 
-    public MainServer() {
+    // TODO: Remove debug_lobbiesEnabled once join lobbies in implemented
+    private boolean debug_lobbiesEnabled;
+
+    public MainServer(boolean debug_lobbiesEnabled) {
+        this.debug_lobbiesEnabled = debug_lobbiesEnabled;
+
         // TODO: Remove after lobbies are truly implemented
         ds = DataStore.getInstance();
         ds.createLobby();
+
         setupLogger();
 
         server = new NetworkServerKryo();
@@ -68,8 +62,9 @@ public class MainServer {
                 log.log(Level.INFO, "Received ArmyPlacedMessage");
                 handleArmyPlaced((ArmyPlacedMessage) arg);
             }
-            else if (arg instanceof CreateLobby) {
-                hostLobby(((CreateLobby) arg).getUserName());
+            else if (arg instanceof CreateLobbyMessage) {
+                log.log(Level.INFO, "Received CreateLobbyMessage");
+                handleCreateLobby((CreateLobbyMessage) arg);
             }
         });
     }
@@ -91,39 +86,22 @@ public class MainServer {
         server.stop();
     }
 
-    private void hostLobby(String userName) {
-        lobbys.add(new edu.aau.se2.server.Lobby(userName + " lobby: " + lobbyNumber, lobbyNumber));
+    private synchronized void handleCreateLobby(CreateLobbyMessage msg) {
+        Player player = ds.getPlayerByID(msg.getPlayerID());
+        if (player != null && !ds.isPlayerHostingLobby(msg.getPlayerID())) {
+            Lobby newLobby = ds.createLobby(player);
 
-        // only for testing
-        lobbys.get(lobbyNumber).addUser(new User("User 2: lobby:" + lobbyNumber));
-        lobbys.get(lobbyNumber).addUser(new User("User 3: lobby:" + lobbyNumber));
-        lobbys.get(lobbyNumber).getUser(1).setReady(true);
-
-        server.broadcastLobbyMessage((lobbyNumber), new TextMessage("Lobby " + lobbyNumber + " erstellt!"));
-        server.broadcastLobbyMessage((lobbyNumber), new UserList((ArrayList<User>) lobbys.get(lobbyNumber).getUsers()));
-
-
-        // to long sleep, makes other devices disconnect (they need "keepalive" signal)
-        try {
-            sleep(2000);
-        } catch (Exception e) {
-            log.severe(e.getMessage());
+            server.broadcastMessage(new JoinedLobbyMessage(newLobby.getLobbyID(), SERVER_PLAYER_ID,
+                    newLobby.getPlayers(), newLobby.getHost()), newLobby.getHost());
         }
-
-        lobbys.get(lobbyNumber).setUser(1, new User("User 4: lobby:" + lobbyNumber));
-        lobbys.get(lobbyNumber).addUser(new User("User 5: lobby:" + lobbyNumber, true));
-        lobbys.get(lobbyNumber).getUser(2).setReady(true);
-
-        server.broadcastLobbyMessage((lobbyNumber), new UserList((ArrayList<User>) lobbys.get(lobbyNumber).getUsers()));
-        lobbyNumber++;
     }
 
     private synchronized void handleArmyPlaced(ArmyPlacedMessage msg) {
         Lobby lobby = ds.getLobbyByID(TEMP_LOBBY_ID);
         // only player to act can place armies & only if he has enough armies to place remaining
         if (lobby.isStarted() &&
-                msg.getFromPlayerID() == lobby.getCurrentPlayer().getUid() &&
-                lobby.getCurrentPlayer().getArmyReserveCount() >= msg.getArmyCountPlaced()) {
+                msg.getFromPlayerID() == lobby.getPlayerToAct().getUid() &&
+                lobby.getPlayerToAct().getArmyReserveCount() >= msg.getArmyCountPlaced()) {
             if (!lobby.areInitialArmiesPlaced()) {
                 handleInitialArmyPlaced(msg);
             }
@@ -143,30 +121,42 @@ public class MainServer {
 
             t.setOccupierPlayerID(msg.getFromPlayerID());
             t.addToArmyCount(msg.getArmyCountPlaced());
-            Player curPlayer = lobby.getCurrentPlayer();
+            Player curPlayer = lobby.getPlayerToAct();
             curPlayer.addToArmyReserveCount(msg.getArmyCountPlaced()*-1);
             msg.setArmyCountRemaining(curPlayer.getArmyReserveCount());
             lobby.nextPlayerTurn();
-            log.log(Level.ALL, "Broadcasting ArmyPlacedMessage");
-            server.broadcastMessage(msg);
+            log.log(Level.INFO, "Broadcasting ArmyPlacedMessage");
+            if (debug_lobbiesEnabled) {
+                server.broadcastMessage(msg, lobby.getPlayers());
+            }
+            else {
+                server.broadcastMessage(msg);
+            }
         }
     }
 
     private synchronized void handleReadyMessage(ReadyMessage msg) {
         Lobby lobby = ds.getLobbyByID(TEMP_LOBBY_ID);
         // TODO: remove once joinLobby is implemented
-        lobby.addPlayer(new Player(msg.getFromPlayerID(), "Player" + msg.getFromPlayerID()));
+        lobby.addPlayer(ds.getPlayerByID(msg.getFromPlayerID()));
 
         lobby.setPlayerReady(msg.getFromPlayerID(), msg.isReady());
+        ds.updateLobby(lobby);
 
         if (!lobby.isStarted() && lobby.canStartGame()) {
             lobby.setupForGameStart();
             lobby.setStarted(true);
+            ds.updateLobby(lobby);
             // start game
             StartGameMessage sgm = new StartGameMessage(msg.getLobbyID(), SERVER_PLAYER_ID, lobby.getPlayers(),
                     ArmyCountHelper.getStartCount(lobby.getPlayers().size()));
-            log.log(Level.ALL, "Broadcasting StartGameMessage");
-            server.broadcastMessage(sgm);
+            log.log(Level.INFO, "Broadcasting StartGameMessage");
+            if (debug_lobbiesEnabled) {
+                server.broadcastMessage(sgm, lobby.getPlayers());
+            }
+            else {
+                server.broadcastMessage(sgm);
+            }
 
             // TODO: replace once "dice to decide starter" is implemented
             // send turn order and initiate initial army placing
@@ -183,8 +173,14 @@ public class MainServer {
 
     private synchronized void broadcastInitialArmyPlacingMessage(Lobby lobby) {
         lobby.setTurnOrder(DiceHelper.getRandomTurnOrder(lobby.getPlayers()));
-        log.log(Level.ALL, "Broadcasting InitialArmyPlacingMessage");
-        server.broadcastMessage(new InitialArmyPlacingMessage(TEMP_LOBBY_ID, SERVER_PLAYER_ID,
-                lobby.getTurnOrder()));
+        log.log(Level.INFO, "Broadcasting InitialArmyPlacingMessage");
+        if (debug_lobbiesEnabled) {
+            server.broadcastMessage(new InitialArmyPlacingMessage(TEMP_LOBBY_ID, SERVER_PLAYER_ID,
+                    lobby.getTurnOrder()), lobby.getPlayers());
+        }
+        else {
+            server.broadcastMessage(new InitialArmyPlacingMessage(TEMP_LOBBY_ID, SERVER_PLAYER_ID,
+                    lobby.getTurnOrder()));
+        }
     }
 }

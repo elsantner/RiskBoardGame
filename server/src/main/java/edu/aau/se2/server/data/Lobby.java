@@ -6,12 +6,10 @@ import java.util.TreeMap;
 
 import edu.aau.se2.server.logic.ArmyCountHelper;
 
-/**
- * @author Elias
- */
 public class Lobby {
     private int lobbyID;
     private TreeMap<Integer, Player> players;
+    private Player host;
     private List<Integer> turnOrder;
     private int currentTurnIndex;
     private Territory[] territories;
@@ -40,6 +38,15 @@ public class Lobby {
 
     public int getLobbyID() {
         return lobbyID;
+    }
+
+    public Player getHost() {
+        return host;
+    }
+
+    public void setHost(Player host) {
+        this.host = host;
+        players.put(host.getUid(), host);
     }
 
     public boolean canStartGame() {
@@ -98,7 +105,7 @@ public class Lobby {
         this.currentTurnIndex = 0;
     }
 
-    public Player getCurrentPlayer() {
+    public Player getPlayerToAct() {
         return players.get(turnOrder.get(currentTurnIndex));
     }
 
@@ -130,5 +137,14 @@ public class Lobby {
             }
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Lobby{" +
+                "lobbyID=" + lobbyID +
+                ", players=" + players +
+                ", host=" + host +
+                '}';
     }
 }

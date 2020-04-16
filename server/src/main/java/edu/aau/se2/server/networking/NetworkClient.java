@@ -33,4 +33,11 @@ public interface NetworkClient {
      */
     void sendMessage(BaseMessage message);
 
+    void registerConnectionListener(OnConnectionChangedListener listener);
+
+    interface OnConnectionChangedListener {
+        void connected();
+        void disconnected();
+    }
+
 }

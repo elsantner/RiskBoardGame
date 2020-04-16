@@ -1,4 +1,4 @@
-package edu.aau.se2;
+package edu.aau.se2.view.lobby;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -10,10 +10,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 
 import java.util.ArrayList;
+import java.util.List;
 
-import edu.aau.se2.server.User;
+import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnPlayersChangedListener;
+import edu.aau.se2.server.data.Player;
 
-public class LobbyScreen implements Screen {
+public class LobbyScreen implements Screen, OnPlayersChangedListener {
 
     private static final String TAG = "LobbyScreen";
     private Texture background;
@@ -22,18 +25,15 @@ public class LobbyScreen implements Screen {
     private Texture line;
     private SpriteBatch batch;
     private BitmapFont font;
-    private Lobby lobby;
-    private ArrayList<User> users;
+
+    private Database db;
+    public List<Player> users;
 
     public LobbyScreen() {
+        db = Database.getInstance();
+        db.setPlayersChangedListener(this);
         assets();
         users = new ArrayList<>();
-    }
-
-    public LobbyScreen(Lobby lobby) {
-        this.lobby = lobby;
-        users = new ArrayList<>();
-        assets();
     }
 
     @Override
@@ -59,20 +59,15 @@ public class LobbyScreen implements Screen {
         renderUsers();
     }
 
-    public void renderUsers() {
-
-        if (lobby.isUsersChanged()) {
-            this.users = (ArrayList<User>) lobby.getUsers();
-            lobby.setUsersChanged(false);
-        }
+    private void renderUsers() {
 
         int xCord = 85;
         int yCord = 775;
 
         batch.begin();
-        for (User us : users
+        for (Player us : users
         ) {
-            String name = us.getName();
+            String name = us.getNickname();
             boolean ready = us.isReady();
             font.setColor(new Color(0.6f, 0, 0, 1));
             font.draw(batch, name, xCord, yCord);
@@ -127,5 +122,10 @@ public class LobbyScreen implements Screen {
         lobbyText = new Texture(Gdx.files.internal("lobby/lobby2.png"));
         lobbyOverlay = new Texture(Gdx.files.internal("lobby/lobbyMenuOverlay.png"));
         line = new Texture(Gdx.files.internal("lobby/line.png"));
+    }
+
+    @Override
+    public void playersChanged(List<Player> newPlayers) {
+        this.users = newPlayers;
     }
 }

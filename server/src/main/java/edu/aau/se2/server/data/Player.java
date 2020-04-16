@@ -6,8 +6,8 @@ public class Player implements Serializable {
     private int uid;
     private String nickname;
     private int colorID;
+    private boolean isReady;
     private transient int armyReserveCount;
-    private transient boolean isReady;
 
     public Player() {
     }

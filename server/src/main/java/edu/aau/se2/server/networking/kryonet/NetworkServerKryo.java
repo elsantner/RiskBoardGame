@@ -5,24 +5,26 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import edu.aau.se2.server.data.DataStore;
+import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.Callback;
 import edu.aau.se2.server.networking.NetworkServer;
 import edu.aau.se2.server.networking.dto.BaseMessage;
-import edu.aau.se2.server.networking.dto.CreateLobby;
+import edu.aau.se2.server.networking.dto.ConnectedMessage;
 
 public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
     private Server server;
     private Callback<BaseMessage> messageCallback;
-
-    private List<List<Connection>> connections;
-    private int lobbyCount = 0;
+    private Map<Integer, Connection> connections;
 
     public NetworkServerKryo() {
         server = new Server();
-        connections = new ArrayList<>();
+        connections = new HashMap<>();
     }
 
     @Override
@@ -35,14 +37,24 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
         server.start();
         server.bind(NetworkConstants.TCP_PORT);
         server.addListener(new Listener() {
+            @Override
             public void received(Connection connection, Object object) {
-                if (object instanceof CreateLobby) {
-                    connections.add(new ArrayList<>());
-                    connections.get(lobbyCount).add(connection);
-                    lobbyCount++;
-                }
                 if (messageCallback != null && object instanceof BaseMessage)
                     messageCallback.callback((BaseMessage) object);
+            }
+
+            @Override
+            public void connected(Connection connection) {
+                super.connected(connection);
+                Player newPlayer = DataStore.getInstance().newPlayer();
+                connections.put(newPlayer.getUid(), connection);
+                broadcastMessage(new ConnectedMessage(newPlayer), newPlayer);
+            }
+
+            @Override
+            public void disconnected(Connection connection) {
+                super.disconnected(connection);
+                connections.values().remove(connection);
             }
         });
     }
@@ -63,10 +75,13 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
             connection.sendTCP(message);
     }
 
-    public void broadcastLobbyMessage(int id, BaseMessage message) {
-        for (Connection connection : connections.get(id)
-        ) {
-            connection.sendTCP(message);
+    public void broadcastMessage(BaseMessage message, Player recipient) {
+        broadcastMessage(message, Collections.singletonList(recipient));
+    }
+
+    public void broadcastMessage(BaseMessage message, List<Player> recipients) {
+        for (Player p: recipients) {
+            connections.get(p.getUid()).sendTCP(message);
         }
     }
 }

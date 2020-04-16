@@ -65,40 +65,30 @@ public class DatabaseSetupGameTest {
     }
 
     private void startServer() throws IOException {
-        server = new MainServer();
+        server = new MainServer(false);
         server.start();
     }
 
-    private void startClients() throws IOException {
+    private void startClients() throws IOException, InterruptedException {
         DatabaseTestSubclass.setServerAddress("localhost");
         for (int i=0; i<NUM_CLIENTS; i++) {
             Database db = new DatabaseTestSubclass();
             clients.add(db);
             int finalI = i;
-            db.setOnGameStartListener(new OnGameStartListener() {
-                @Override
-                public void onGameStarted(List<Player> players, int initialArmyCount) {
-                    clientsReceivedGameStarted.get(finalI).set(true);
+            db.setGameStartListener((players, initialArmyCount) -> clientsReceivedGameStarted.get(finalI).set(true));
+            db.setNextTurnListener((playerID, isThisPlayer) -> {
+                Database curDB = clients.get(finalI);
+                Assert.assertEquals(curDB.getCurrentPlayerToAct().getUid(), playerID);
+                Assert.assertEquals(curDB.getThisPlayer().getUid() == playerID, isThisPlayer);
+                if (isThisPlayer) {
+                    curDB.armyPlaced(getNextTerritoryToPlaceArmy(finalI), 1);
                 }
             });
-            db.setOnNextTurnListener(new OnNextTurnListener() {
-                @Override
-                public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
-                    Database curDB = clients.get(finalI);
-                    Assert.assertEquals(curDB.getCurrentPlayerToAct().getUid(), playerID);
-                    Assert.assertEquals(curDB.getThisPlayer().getUid() == playerID, isThisPlayer);
-                    if (isThisPlayer) {
-                        curDB.armyPlaced(getNextTerritoryToPlaceArmy(finalI), 1);
-                    }
-                }
-            });
-            db.setOnTerritoryUpdateListener(new OnTerritoryUpdateListener() {
-                @Override
-                public void territoryUpdated(int territoryID, int armyCount, int colorID) {
-                    armiesPlaced.getAndAdd(1);
-                }
-            });
+            db.setTerritoryUpdateListener((territoryID, armyCount, colorID) -> armiesPlaced.getAndAdd(1));
         }
+
+        Thread.sleep(500);
+
         for (Database db: clients) {
             db.setPlayerReady(true);
         }
