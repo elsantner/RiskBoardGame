@@ -7,17 +7,29 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnNextTurnListener;
+import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+
 /**
  * @author Elias
  */
-public class GameScreen implements Screen {
+public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener {
     private BoardStage boardStage;
+    private Database db;
 
     public GameScreen() {
-        boardStage = new BoardStage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+        this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
     public GameScreen(int width, int height) {
         boardStage = new BoardStage(new FitViewport(width, height));
+        db = Database.getInstance();
+        boardStage.setListener(db);
+        db.setOnTerritoryUpdateListener(this);
+        db.setOnNextTurnListener(this);
+        // trigger player turn update because listener might not have been registered when
+        // server message was received
+        isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());
     }
 
     public void setListener(OnBoardInteractionListener l) {
@@ -67,5 +79,21 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         boardStage.dispose();
+    }
+
+    @Override
+    public void territoryUpdated(int territoryID, int armyCount, int colorID) {
+        boardStage.setArmyCount(territoryID, armyCount);
+        boardStage.setArmyColor(territoryID, colorID);
+    }
+
+    @Override
+    public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
+        if (isThisPlayer) {
+            boardStage.setArmiesPlacable(true);
+        }
+        else {
+            boardStage.setArmiesPlacable(false);
+        }
     }
 }

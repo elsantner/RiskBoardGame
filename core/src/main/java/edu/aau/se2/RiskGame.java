@@ -1,12 +1,9 @@
 package edu.aau.se2;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnGameStartListener;
 import edu.aau.se2.server.data.Player;
@@ -22,11 +19,21 @@ public class RiskGame extends Game {
 		db.setOnGameStartListener(new OnGameStartListener() {
 			@Override
 			public void onGameStarted(ArrayList<Player> players, int initialArmyCount) {
-				System.out.println("Starting game with " + initialArmyCount + " armies and " + players.toString());
-				gameScreen = new GameScreen();
-				setScreen(gameScreen);
+				Gdx.app.postRunnable(new Runnable() {
+					@Override
+					public void run() {
+						System.out.println("Starting game with " + initialArmyCount + " armies and " + players.toString());
+						gameScreen = new GameScreen();
+						setScreen(gameScreen);
+					}
+				});
 			}
 		});
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		db.setPlayerReady(true);
 	}
 
