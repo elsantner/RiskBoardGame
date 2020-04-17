@@ -86,6 +86,7 @@ public class DataStore {
             playersOnline.remove(disconnectedPlayerID);
             for (Lobby l: lobbies.values()) {
                 l.removePlayer(disconnectedPlayerID);
+                l.setStarted(false);
                 updateLobby(l);
                 // TODO: handle client messaging
             }

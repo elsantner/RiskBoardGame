@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,6 +36,8 @@ import edu.aau.se2.server.networking.kryonet.NetworkConstants;
 import edu.aau.se2.view.game.OnBoardInteractionListener;
 
 public class Database implements OnBoardInteractionListener, NetworkClient.OnConnectionChangedListener {
+    private static final String TAG = "Database";
+
     private static Database instance = null;
     private static String serverAddress = NetworkConstants.SERVER_IP;
 
@@ -60,6 +64,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         Database.serverAddress = serverAddress;
     }
 
+    private Logger log;
     private NetworkClientKryo client;
     private boolean isConnected;
     private OnGameStartListener gameStartListener;
@@ -90,6 +95,16 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         client.registerConnectionListener(this);
         SerializationRegister.registerClassesForComponent(client);
         registerClientCallback();
+        setupLogger();
+    }
+
+    private void setupLogger() {
+        log = Logger.getLogger(TAG);
+        Handler handlerObj = new ConsoleHandler();
+        handlerObj.setLevel(Level.INFO);
+        log.addHandler(handlerObj);
+        log.setLevel(Level.INFO);
+        log.setUseParentHandlers(false);
     }
 
     public void connectIfNotConnected() throws IOException {
@@ -129,12 +144,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public synchronized void setConnectionChangedListener(OnConnectionChangedListener l) {
         this.connectionChangedListener = l;
-        if (isConnected) {
-            connectionChangedListener.connected(thisPlayer);
-        }
-        else {
-            connectionChangedListener.disconnected();
-        }
     }
     public void setGameStartListener(OnGameStartListener l) {
         this.gameStartListener = l;
@@ -152,27 +161,35 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private void registerClientCallback() {
         this.client.registerCallback(msg -> {
             if (msg instanceof ConnectedMessage) {
+                log.info("Received ConnectedMessage");
                 handleConnectedMessage((ConnectedMessage) msg);
             }
             else if (msg instanceof StartGameMessage) {
+                log.info("Received StartGameMessage");
                 handleStartGameMessage((StartGameMessage) msg);
             }
             else if (msg instanceof InitialArmyPlacingMessage) {
+                log.info("Received InitialArmyPlacingMessage");
                 handleInitialArmyPlacingMessage((InitialArmyPlacingMessage) msg);
             }
             else if (msg instanceof ArmyPlacedMessage) {
+                log.info("Received ArmyPlacedMessage");
                 handleArmyPlacedMessage((ArmyPlacedMessage) msg);
             }
             else if (msg instanceof PlayersChangedMessage) {
+                log.info("Received PlayersChangedMessage");
                 handlePlayersChangedMessage((PlayersChangedMessage) msg);
             }
             else if (msg instanceof JoinedLobbyMessage) {
+                log.info("Received JoinedLobbyMessage");
                 handleJoinedLobbyMessage((JoinedLobbyMessage) msg);
             }
             else if (msg instanceof NextTurnMessage) {
+                log.info("Received NextTurnMessage");
                 handleNextTurnMessage((NextTurnMessage) msg);
             }
             else if (msg instanceof NewArmiesMessage) {
+                log.info("Received NewArmiesMessage");
                 handleNewArmiesMessage((NewArmiesMessage) msg);
             }
         });
@@ -307,11 +324,13 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public void setPlayerReady(boolean ready) {
+        log.info("Sending ReadyMessage");
         client.sendMessage(new ReadyMessage(0, thisPlayer.getUid(), ready));
     }
 
     @Override
     public void armyPlaced(int territoryID, int count) {
+        log.info("Sending ArmyPlacedMessage");
         client.sendMessage(new ArmyPlacedMessage(currentLobbyID, thisPlayer.getUid(), territoryID, count));
     }
 
@@ -326,6 +345,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public void hostLobby() {
+        log.info("Sending CreateLobbyMessage");
         client.sendMessage(new CreateLobbyMessage(thisPlayer.getUid()));
     }
 
@@ -348,6 +368,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     // TODO: Change when cards are implemented
     public void exchangeCards() {
+        log.info("Sending CardExchangeMessage");
         client.sendMessage(new CardExchangeMessage(currentLobbyID, thisPlayer.getUid()));
     }
 
@@ -362,6 +383,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         if (!(isThisPlayersTurn() && hasPlayerReceivedArmiesThisTurn && currentArmyReserve == 0)) {
             throw new IllegalStateException("can only finish own turn after all army reserves have been placed");
         }
+        log.info("Sending NextTurnMessage");
         client.sendMessage(new NextTurnMessage(currentLobbyID, thisPlayer.getUid()));
     }
 

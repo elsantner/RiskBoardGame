@@ -39,7 +39,8 @@ public class RiskGame extends Game {
 
 			@Override
 			public void disconnected() {
-
+				Logger.getLogger("RiskGame").log(Level.SEVERE, "Connection lost");
+				System.exit(-1);
 			}
 		});
 

@@ -1,12 +1,16 @@
 package edu.aau.se2.server.data;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 
 import edu.aau.se2.server.logic.ArmyCountHelper;
 
 public class Lobby {
+    private static final Integer[] COLOR_IDS = {0, 1, 2, 3, 4, 5};
+
     private int lobbyID;
     private TreeMap<Integer, Player> players;
     private Player host;
@@ -66,9 +70,11 @@ public class Lobby {
      * Give all players a unique color
      */
     public void setupForGameStart() {
-        int curColorID = 0;
+        int curColorIDIndex = 0;
+        List<Integer> randomColorPermutation = Arrays.asList(COLOR_IDS);
+        Collections.shuffle(randomColorPermutation);
         for (Player p: players.values()) {
-            p.setColorID(curColorID++);
+            p.setColorID(randomColorPermutation.get(curColorIDIndex++));
             p.setArmyReserveCount(ArmyCountHelper.getStartCount(players.size()));
         }
     }

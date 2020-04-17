@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import edu.aau.se2.server.data.DataStore;
 import edu.aau.se2.server.data.Player;
@@ -36,7 +37,6 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
 
     @Override
     public void start() throws IOException {
-        server.start();
         server.bind(NetworkConstants.TCP_PORT);
         server.addListener(new Listener() {
             @Override
@@ -50,6 +50,7 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
                 super.connected(connection);
                 Player newPlayer = DataStore.getInstance().newPlayer();
                 connections.put(newPlayer.getUid(), connection);
+                Logger.getAnonymousLogger().info("Sending ConnectedMessage");
                 broadcastMessage(new ConnectedMessage(newPlayer), newPlayer);
             }
 
@@ -60,6 +61,7 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
                 DataStore.getInstance().removePlayer(disconnectedPlayerID);
             }
         });
+        server.start();
     }
 
     @Override
