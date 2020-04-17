@@ -15,6 +15,7 @@ public class Lobby {
     private Territory[] territories;
     private boolean isStarted;
     private boolean areInitialArmiesPlaced;
+    private boolean hasCurrentPlayerToActReceivedNewArmies;
 
     public Lobby(int lobbyID) {
         this.lobbyID = lobbyID;
@@ -118,6 +119,7 @@ public class Lobby {
     public void nextPlayersTurn() {
         this.currentTurnIndex++;
         this.currentTurnIndex %= getPlayers().size();
+        hasCurrentPlayerToActReceivedNewArmies = false;
     }
 
     private void initTerritories() {
@@ -152,5 +154,10 @@ public class Lobby {
     public void giveNewArmiesToPlayer(int playerID) {
         Player p = players.get(playerID);
         p.setArmyReserveCount(ArmyCountHelper.getNewArmyCount(territories, playerID));
+        hasCurrentPlayerToActReceivedNewArmies = true;
+    }
+
+    public boolean hasCurrentPlayerToActReceivedNewArmies() {
+        return hasCurrentPlayerToActReceivedNewArmies;
     }
 }

@@ -98,8 +98,11 @@ public class MainServer {
 
     private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
         Lobby lobby = ds.getLobbyByID(msg.getLobbyID());
-        // only player to act can trigger next turn
-        if (lobby.getPlayerToAct().getUid() == msg.getFromPlayerID()) {
+        // only player to act can trigger next turn AND only if all new armies have been received and placed
+        if (lobby.getPlayerToAct().getUid() == msg.getFromPlayerID() &&
+                lobby.hasCurrentPlayerToActReceivedNewArmies() &&
+                lobby.getPlayerToAct().getArmyReserveCount() == 0) {
+
             lobby.nextPlayersTurn();
             ds.updateLobby(lobby);
 
