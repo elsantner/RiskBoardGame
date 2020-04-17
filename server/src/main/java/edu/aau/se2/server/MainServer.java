@@ -29,7 +29,7 @@ public class MainServer {
         try {
             new MainServer().start();
         } catch (IOException e) {
-            Logger.getLogger(TAG).log(Level.SEVERE, "Error starting server", e);
+            Logger.getLogger(TAG).log(Level.SEVERE, "Error starting server: ", e);
         }
     }
 
