@@ -12,7 +12,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
+import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.MainServer;
+import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.ArmyCountHelper;
 
@@ -104,12 +106,18 @@ public class DatabaseSetupGameTest {
                     }
                 }
             });
-        }
+            db.setConnectionChangedListener(new OnConnectionChangedListener() {
+                @Override
+                public void connected(Player thisPlayer) {
+                    db.setPlayerReady(true);
+                }
 
-        Thread.sleep(2000);
+                @Override
+                public void disconnected() {
 
-        for (Database db: clients) {
-            db.setPlayerReady(true);
+                }
+            });
+            db.connectIfNotConnected();
         }
     }
 

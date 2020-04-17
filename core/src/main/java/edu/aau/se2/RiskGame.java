@@ -3,8 +3,11 @@ package edu.aau.se2;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
@@ -39,6 +42,13 @@ public class RiskGame extends Game {
 
 			}
 		});
+
+		try {
+			db.connectIfNotConnected();
+		} catch (IOException e) {
+			Logger.getLogger("RiskGame").log(Level.SEVERE, "Connection Error: ", e);
+			System.exit(-1);
+		}
 	}
 
 	@Override

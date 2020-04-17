@@ -82,6 +82,8 @@ public class HostLobbyTest {
 
             }
         });
+        db1.connectIfNotConnected();
+        db2.connectIfNotConnected();
     }
 
     @After

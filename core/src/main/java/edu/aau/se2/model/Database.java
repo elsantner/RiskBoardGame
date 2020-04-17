@@ -43,12 +43,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
      */
     public static synchronized Database getInstance() {
         if (instance == null) {
-            try {
-                instance = new Database();
-            } catch (IOException e) {
-                Logger.getLogger("Server connection").log(Level.SEVERE, "Connection failed: " + e);
-                instance = null;
-            }
+            instance = new Database();
         }
         return instance;
     }
@@ -87,7 +82,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private int currentArmyReserve = 0;
 
-    protected Database() throws IOException {
+    protected Database() {
         resetLobby();
         isConnected = false;
 
@@ -95,7 +90,22 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         client.registerConnectionListener(this);
         SerializationRegister.registerClassesForComponent(client);
         registerClientCallback();
-        this.client.connect(serverAddress);
+    }
+
+    public void connectIfNotConnected() throws IOException {
+        if (!isConnected) {
+            connect();
+        }
+    }
+
+    public void connect() throws IOException {
+        try {
+            this.client.connect(serverAddress);
+        }
+        catch (IOException ex) {
+            Logger.getLogger("Server connection").log(Level.SEVERE, "Connection failed: " + ex);
+            throw ex;
+        }
     }
 
     /**
@@ -117,7 +127,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
-    public void setConnectionChangedListener(OnConnectionChangedListener l) {
+    public synchronized void setConnectionChangedListener(OnConnectionChangedListener l) {
         this.connectionChangedListener = l;
         if (isConnected) {
             connectionChangedListener.connected(thisPlayer);
