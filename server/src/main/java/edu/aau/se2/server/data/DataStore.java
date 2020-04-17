@@ -80,4 +80,15 @@ public class DataStore {
     public Lobby getLobbyByID(int lobbyID) {
         return lobbies.get(lobbyID);
     }
+
+    public synchronized void removePlayer(Integer disconnectedPlayerID) {
+        if (disconnectedPlayerID != null) {
+            playersOnline.remove(disconnectedPlayerID);
+            for (Lobby l: lobbies.values()) {
+                l.removePlayer(disconnectedPlayerID);
+                updateLobby(l);
+                // TODO: handle client messaging
+            }
+        }
+    }
 }

@@ -94,7 +94,6 @@ public class NetworkCommunicationIntegrationTest {
                     }
                 }
         );
-
         client.sendMessage(new TextMessageSubClass());
         client.sendMessage(new TextMessage(REQUEST_TEST));
     }

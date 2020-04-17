@@ -5,6 +5,7 @@ apply plugin: 'jacoco'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.esotericsoftware:kryonet:2.22.0-RC1'
+    implementation 'com.google.guava:guava:24.1-jre'
     implementation 'junit:junit:4.12'
 }
 

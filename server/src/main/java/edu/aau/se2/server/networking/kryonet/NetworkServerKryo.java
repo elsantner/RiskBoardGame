@@ -3,6 +3,8 @@ package edu.aau.se2.server.networking.kryonet;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -20,11 +22,11 @@ import edu.aau.se2.server.networking.dto.ConnectedMessage;
 public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
     private Server server;
     private Callback<BaseMessage> messageCallback;
-    private Map<Integer, Connection> connections;
+    private BiMap<Integer, Connection> connections;
 
     public NetworkServerKryo() {
         server = new Server();
-        connections = new HashMap<>();
+        connections = HashBiMap.create();
     }
 
     @Override
@@ -54,7 +56,8 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
             @Override
             public void disconnected(Connection connection) {
                 super.disconnected(connection);
-                connections.values().remove(connection);
+                Integer disconnectedPlayerID = connections.inverse().remove(connection);
+                DataStore.getInstance().removePlayer(disconnectedPlayerID);
             }
         });
     }
@@ -81,7 +84,10 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
 
     public void broadcastMessage(BaseMessage message, List<Player> recipients) {
         for (Player p: recipients) {
-            connections.get(p.getUid()).sendTCP(message);
+            Connection connection = connections.get(p.getUid());
+            if (connection != null) {
+                connection.sendTCP(message);
+            }
         }
     }
 }
