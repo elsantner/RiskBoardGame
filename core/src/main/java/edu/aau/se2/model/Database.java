@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.TreeMap;
 
+import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.model.listener.OnGameStartListener;
 import edu.aau.se2.model.listener.OnJoinedLobbyListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
@@ -65,6 +66,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private OnTerritoryUpdateListener territoryUpdateListener;
     private OnNextTurnListener nextTurnListener;
     private OnJoinedLobbyListener joinedLobbyListener;
+    private OnConnectionChangedListener connectionChangedListener;
 
     private Player thisPlayer;
     private TreeMap<Integer, Player> currentPlayers;
@@ -106,6 +108,15 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
+    public void setConnectionChangedListener(OnConnectionChangedListener l) {
+        this.connectionChangedListener = l;
+        if (isConnected) {
+            connectionChangedListener.connected(thisPlayer);
+        }
+        else {
+            connectionChangedListener.disconnected();
+        }
+    }
     public void setGameStartListener(OnGameStartListener l) {
         this.gameStartListener = l;
     }
@@ -156,6 +167,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private void handleConnectedMessage(ConnectedMessage msg) {
         thisPlayer = msg.getPlayer();
+        if (connectionChangedListener != null) {
+            connectionChangedListener.connected(thisPlayer);
+        }
     }
 
     private synchronized void setCurrentPlayers(List<Player> players) {
@@ -270,6 +284,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     @Override
     public void disconnected() {
         isConnected = false;
+        if (connectionChangedListener != null) {
+            connectionChangedListener.disconnected();
+        }
     }
 
     public boolean isConnected() {
