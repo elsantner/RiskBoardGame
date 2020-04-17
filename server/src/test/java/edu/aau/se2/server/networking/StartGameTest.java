@@ -81,6 +81,7 @@ public class StartGameTest {
     @Test
     public void testStartGameSetup() throws IOException, InterruptedException {
         startServer();
+        Thread.sleep(1000);
         startClients();
 
         Thread.sleep(5000);

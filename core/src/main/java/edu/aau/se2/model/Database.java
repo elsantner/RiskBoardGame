@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
@@ -44,6 +46,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             try {
                 instance = new Database();
             } catch (IOException e) {
+                Logger.getLogger("Server connection").log(Level.SEVERE, "Connection failed: " + e);
                 instance = null;
             }
         }
@@ -196,6 +199,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void handleConnectedMessage(ConnectedMessage msg) {
         thisPlayer = msg.getPlayer();
+        isConnected = true;
         if (connectionChangedListener != null) {
             connectionChangedListener.connected(thisPlayer);
         }
@@ -317,7 +321,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     @Override
     public void connected() {
-        isConnected = true;
+        // handled in ConnectedMessage
     }
 
     @Override

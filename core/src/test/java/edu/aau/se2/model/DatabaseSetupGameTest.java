@@ -55,6 +55,7 @@ public class DatabaseSetupGameTest {
     @Test
     public void testSetupGame() throws IOException, InterruptedException {
         startServer();
+        Thread.sleep(1000);
         startClients();
         // wait for server and client to handle messages
         Thread.sleep(5000);
@@ -105,7 +106,7 @@ public class DatabaseSetupGameTest {
             });
         }
 
-        Thread.sleep(500);
+        Thread.sleep(2000);
 
         for (Database db: clients) {
             db.setPlayerReady(true);

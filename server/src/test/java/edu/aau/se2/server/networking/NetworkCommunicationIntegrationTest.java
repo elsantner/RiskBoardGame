@@ -36,10 +36,11 @@ public class NetworkCommunicationIntegrationTest {
     @Test
     public void NetworkConnection_OneClient_SendAndReceiveText() throws IOException, InterruptedException {
         startServer();
+        Thread.sleep(1000);
         startClient();
 
         // wait for server and client to handle messages
-        Thread.sleep(3000);
+        Thread.sleep(5000);
 
         Assert.assertTrue(request1Handled.get());
         Assert.assertTrue(request2Handled.get());
