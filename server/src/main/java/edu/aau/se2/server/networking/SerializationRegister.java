@@ -3,9 +3,12 @@ package edu.aau.se2.server.networking;
 import java.util.ArrayList;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.dto.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.ReadyMessage;
 import edu.aau.se2.server.networking.dto.StartGameMessage;
 import edu.aau.se2.server.networking.dto.ConnectedMessage;
@@ -28,5 +31,8 @@ public interface SerializationRegister {
         component.registerClass(ConnectedMessage.class);
         component.registerClass(CreateLobbyMessage.class);
         component.registerClass(JoinedLobbyMessage.class);
+        component.registerClass(NextTurnMessage.class);
+        component.registerClass(CardExchangeMessage.class);
+        component.registerClass(NewArmiesMessage.class);
     }
 }

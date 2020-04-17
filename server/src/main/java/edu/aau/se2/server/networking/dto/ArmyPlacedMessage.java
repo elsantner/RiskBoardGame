@@ -39,4 +39,15 @@ public class ArmyPlacedMessage extends InLobbyMessage {
     public void setArmyCountRemaining(int armyCountRemaining) {
         this.armyCountRemaining = armyCountRemaining;
     }
+
+    @Override
+    public String toString() {
+        return "ArmyPlacedMessage{" +
+                "onTerritoryID=" + onTerritoryID +
+                ", armyCountPlaced=" + armyCountPlaced +
+                ", armyCountRemaining=" + armyCountRemaining +
+                ", lobbyID=" + lobbyID +
+                ", fromPlayerID=" + fromPlayerID +
+                '}';
+    }
 }

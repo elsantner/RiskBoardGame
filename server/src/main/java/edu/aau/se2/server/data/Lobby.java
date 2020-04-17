@@ -89,11 +89,17 @@ public class Lobby {
     }
 
     public boolean areInitialArmiesPlaced() {
+        // check if all players have 0 armies remaining and initial armies have not yet been placed
+        if (!areInitialArmiesPlaced) {
+            int sumRemainingArmies = 0;
+            for (Player p: players.values()) {
+                sumRemainingArmies += p.getArmyReserveCount();
+            }
+            if (sumRemainingArmies == 0) {
+                areInitialArmiesPlaced = true;
+            }
+        }
         return areInitialArmiesPlaced;
-    }
-
-    public void setInitialArmiesPlaced(boolean areInitialArmiesPlaced) {
-        this.areInitialArmiesPlaced = areInitialArmiesPlaced;
     }
 
     public List<Integer> getTurnOrder() {
@@ -109,7 +115,7 @@ public class Lobby {
         return players.get(turnOrder.get(currentTurnIndex));
     }
 
-    public void nextPlayerTurn() {
+    public void nextPlayersTurn() {
         this.currentTurnIndex++;
         this.currentTurnIndex %= getPlayers().size();
     }
@@ -117,13 +123,13 @@ public class Lobby {
     private void initTerritories() {
         this.territories = new Territory[42];
         for (int i=0; i<42; i++) {
-            this.territories[i] = new Territory(i+1);
+            this.territories[i] = new Territory(i);
         }
     }
 
     public synchronized Territory getTerritoryByID(int territoryID) {
         try {
-            return territories[territoryID - 1];
+            return territories[territoryID];
         }
         catch (ArrayIndexOutOfBoundsException ex) {
             throw new IllegalArgumentException("no territory with id " + territoryID + " exists");
@@ -139,12 +145,12 @@ public class Lobby {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return "Lobby{" +
-                "lobbyID=" + lobbyID +
-                ", players=" + players +
-                ", host=" + host +
-                '}';
+    /**
+     * Calculate and set the number of new armies based on occupied territories
+     * @param playerID Player to give armies to.
+     */
+    public void giveNewArmiesToPlayer(int playerID) {
+        Player p = players.get(playerID);
+        p.setArmyReserveCount(ArmyCountHelper.getNewArmyCount(territories, playerID));
     }
 }

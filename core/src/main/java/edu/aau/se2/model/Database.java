@@ -200,11 +200,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 currentArmyReserve = msg.getArmyCountRemaining();
             }
             // update territory state
-            territoryData[msg.getOnTerritoryID()-1].addToArmyCount(msg.getArmyCountPlaced());
-            territoryData[msg.getOnTerritoryID()-1].setOccupierPlayerID(msg.getFromPlayerID());
+            territoryData[msg.getOnTerritoryID()].addToArmyCount(msg.getArmyCountPlaced());
+            territoryData[msg.getOnTerritoryID()].setOccupierPlayerID(msg.getFromPlayerID());
 
             territoryUpdateListener.territoryUpdated(msg.getOnTerritoryID(),
-                    territoryData[msg.getOnTerritoryID()-1].getArmyCount(),
+                    territoryData[msg.getOnTerritoryID()].getArmyCount(),
                     currentPlayers.get(msg.getFromPlayerID()).getColorID());
 
             // if this message is part of initial army placement, initiate next turn
@@ -220,6 +220,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void handleStartGameMessage(StartGameMessage msg) {
         currentArmyReserve = msg.getStartArmyCount();
+        // TODO: Remove once join-lobby is implemented
+        currentLobbyID = msg.getLobbyID();
         if (gameStartListener != null) {
             currentArmyReserve = msg.getStartArmyCount();
             for (Player p: msg.getPlayers()) {
