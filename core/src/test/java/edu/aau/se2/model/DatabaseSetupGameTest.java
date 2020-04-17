@@ -7,22 +7,19 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import edu.aau.se2.model.listener.OnGameStartListener;
-import edu.aau.se2.model.listener.OnNextTurnListener;
-import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
 import edu.aau.se2.server.MainServer;
-import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.ArmyCountHelper;
 
 
 public class DatabaseSetupGameTest {
     private final int NUM_CLIENTS = 2;
+    private final int TURNS_TO_PLAY = 4;
 
     private MainServer server;
     private ArrayList<Database> clients;
@@ -30,6 +27,8 @@ public class DatabaseSetupGameTest {
     private ArrayList<Territory> unoccupiedTerritories;
     private ArrayList<ArrayList<Territory>> playerOccupiedTerritories;
     private AtomicInteger armiesPlaced;
+    private AtomicInteger turnsPlayed;
+    private AtomicInteger armiesReceivedInTurns;
 
     @Before
     public void setup() {
@@ -42,8 +41,11 @@ public class DatabaseSetupGameTest {
         unoccupiedTerritories = new ArrayList<>();
         playerOccupiedTerritories = new ArrayList<>();
         armiesPlaced = new AtomicInteger(0);
+        turnsPlayed = new AtomicInteger(-1);
+        armiesReceivedInTurns = new AtomicInteger(0);
+
         for (int i=0; i<42; i++) {
-            unoccupiedTerritories.add(new Territory(i+1));
+            unoccupiedTerritories.add(new Territory(i));
         }
         for (int i=0; i<NUM_CLIENTS; i++) {
             playerOccupiedTerritories.add(new ArrayList<>());
@@ -61,7 +63,8 @@ public class DatabaseSetupGameTest {
             Assert.assertTrue(b.get());
         }
         // check if all armies were placed (all clients count every ArmyPlacedMessage --> *NUM_CLIENTS*NUM_CLIENTS)
-        Assert.assertEquals(ArmyCountHelper.getStartCount(NUM_CLIENTS)*NUM_CLIENTS*NUM_CLIENTS, armiesPlaced.get());
+        Assert.assertEquals(ArmyCountHelper.getStartCount(NUM_CLIENTS)*NUM_CLIENTS*NUM_CLIENTS +
+                armiesReceivedInTurns.get()*NUM_CLIENTS, armiesPlaced.get());
     }
 
     private void startServer() throws IOException {
@@ -83,8 +86,23 @@ public class DatabaseSetupGameTest {
                 if (isThisPlayer) {
                     curDB.armyPlaced(getNextTerritoryToPlaceArmy(finalI), 1);
                 }
+                if (db.isInitialArmyPlacementFinished() && db.isThisPlayersTurn()) {
+                    turnsPlayed.addAndGet(1);
+                }
             });
             db.setTerritoryUpdateListener((territoryID, armyCount, colorID) -> armiesPlaced.getAndAdd(1));
+            db.setArmyReserveChangedListener((armyCount, isInitialCount) -> {
+                Database curDB = clients.get(finalI);
+                if (curDB.isInitialArmyPlacementFinished() && turnsPlayed.get() < TURNS_TO_PLAY) {
+                    if (isInitialCount) {
+                        armiesReceivedInTurns.addAndGet(armyCount);
+                    }
+                    curDB.armyPlaced(getNextTerritoryToPlaceArmy(finalI), 1);
+                    if (curDB.getCurrentArmyReserve() == 0) {
+                        curDB.finishTurn();
+                    }
+                }
+            });
         }
 
         Thread.sleep(500);

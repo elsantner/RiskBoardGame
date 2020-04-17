@@ -118,7 +118,7 @@ public class Territory extends Actor {
             throw new IllegalStateException(ERR_MSG_NOT_INIT);
         }
         try {
-            return territories[id - 1];
+            return territories[id];
         }
         catch (ArrayIndexOutOfBoundsException ex) {
             throw new IllegalArgumentException("territory with id " + id + " does not exist");

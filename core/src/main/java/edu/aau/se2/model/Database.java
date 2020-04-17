@@ -3,9 +3,9 @@ package edu.aau.se2.model;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.TreeMap;
 
+import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.model.listener.OnGameStartListener;
 import edu.aau.se2.model.listener.OnJoinedLobbyListener;
@@ -17,10 +17,13 @@ import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.ReadyMessage;
 import edu.aau.se2.server.networking.dto.StartGameMessage;
@@ -67,6 +70,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private OnNextTurnListener nextTurnListener;
     private OnJoinedLobbyListener joinedLobbyListener;
     private OnConnectionChangedListener connectionChangedListener;
+    private OnArmyReserveChangedListener armyReserveChangedListener;
 
     private Player thisPlayer;
     private TreeMap<Integer, Player> currentPlayers;
@@ -75,6 +79,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private int currentLobbyID;
     private Territory[] territoryData;
     private boolean initialArmyPlacementFinished;
+    private int currentTurnPlayerID;
+    private boolean hasPlayerReceivedArmiesThisTurn;
 
     private int currentArmyReserve = 0;
 
@@ -120,19 +126,15 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     public void setGameStartListener(OnGameStartListener l) {
         this.gameStartListener = l;
     }
-    public void setPlayersChangedListener(OnPlayersChangedListener l) {
-        this.playersChangedListener = l;
-    }
-    public void setTerritoryUpdateListener(OnTerritoryUpdateListener l) {
-        this.territoryUpdateListener = l;
-    }
+    public void setPlayersChangedListener(OnPlayersChangedListener l) { this.playersChangedListener = l; }
+    public void setTerritoryUpdateListener(OnTerritoryUpdateListener l) { this.territoryUpdateListener = l; }
     public void setNextTurnListener(OnNextTurnListener l) {
         this.nextTurnListener = l;
     }
-
     public void setJoinedLobbyListener(OnJoinedLobbyListener l) {
         this.joinedLobbyListener = l;
     }
+    public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) { this.armyReserveChangedListener = l; }
 
     private void registerClientCallback() {
         this.client.registerCallback(msg -> {
@@ -152,12 +154,39 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handlePlayersChangedMessage((PlayersChangedMessage) msg);
             }
             else if (msg instanceof JoinedLobbyMessage) {
-                handleJoinedLobby((JoinedLobbyMessage) msg);
+                handleJoinedLobbyMessage((JoinedLobbyMessage) msg);
+            }
+            else if (msg instanceof NextTurnMessage) {
+                handleNextTurnMessage((NextTurnMessage) msg);
+            }
+            else if (msg instanceof NewArmiesMessage) {
+                handleNewArmiesMessage((NewArmiesMessage) msg);
             }
         });
     }
 
-    private void handleJoinedLobby(JoinedLobbyMessage msg) {
+    private synchronized void handleNewArmiesMessage(NewArmiesMessage msg) {
+        currentPlayers.get(msg.getFromPlayerID()).setArmyReserveCount(msg.getNewArmyCount());
+        if (thisPlayer.getUid() == msg.getFromPlayerID()) {
+            setCurrentArmyReserve(msg.getNewArmyCount(), true);
+            hasPlayerReceivedArmiesThisTurn = true;
+        }
+    }
+
+    private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
+        initialArmyPlacementFinished = true;
+        currentTurnPlayerID = msg.getPlayerToActID();
+        if (nextTurnListener != null) {
+            nextTurnListener.isPlayersTurnNow(currentTurnPlayerID,
+                    thisPlayer.getUid() == currentTurnPlayerID);
+        }
+        if (isThisPlayersTurn()) {
+            hasPlayerReceivedArmiesThisTurn = false;
+            exchangeCards();
+        }
+    }
+
+    private synchronized void handleJoinedLobbyMessage(JoinedLobbyMessage msg) {
         this.currentLobbyID = msg.getLobbyID();
         setCurrentPlayers(msg.getPlayers());
         if (joinedLobbyListener != null) {
@@ -165,7 +194,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
-    private void handleConnectedMessage(ConnectedMessage msg) {
+    private synchronized void handleConnectedMessage(ConnectedMessage msg) {
         thisPlayer = msg.getPlayer();
         if (connectionChangedListener != null) {
             connectionChangedListener.connected(thisPlayer);
@@ -188,42 +217,44 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void handleInitialArmyPlacingMessage(InitialArmyPlacingMessage msg) {
         turnOrder = msg.getPlayerOrder();
+        currentTurnPlayerID = turnOrder.get(0);
         if (nextTurnListener != null) {
             nextTurnListener.isPlayersTurnNow(turnOrder.get(0), thisPlayer.getUid() == turnOrder.get(0));
         }
     }
 
     private synchronized void handleArmyPlacedMessage(ArmyPlacedMessage msg) {
-        if (territoryUpdateListener != null) {
-            // adjust remaining army count if this player placed armies
-            if (msg.getFromPlayerID() == thisPlayer.getUid()) {
-                currentArmyReserve = msg.getArmyCountRemaining();
-            }
-            // update territory state
-            territoryData[msg.getOnTerritoryID()].addToArmyCount(msg.getArmyCountPlaced());
-            territoryData[msg.getOnTerritoryID()].setOccupierPlayerID(msg.getFromPlayerID());
+        // adjust remaining army count if this player placed armies
+        if (msg.getFromPlayerID() == thisPlayer.getUid()) {
+            setCurrentArmyReserve(msg.getArmyCountRemaining(), false);
+        }
+        // update remaining army count on player
+        currentPlayers.get(msg.getFromPlayerID()).setArmyReserveCount(msg.getArmyCountRemaining());
+        // update territory state
+        territoryData[msg.getOnTerritoryID()].addToArmyCount(msg.getArmyCountPlaced());
+        territoryData[msg.getOnTerritoryID()].setOccupierPlayerID(msg.getFromPlayerID());
 
+        if (territoryUpdateListener != null) {
             territoryUpdateListener.territoryUpdated(msg.getOnTerritoryID(),
                     territoryData[msg.getOnTerritoryID()].getArmyCount(),
                     currentPlayers.get(msg.getFromPlayerID()).getColorID());
-
-            // if this message is part of initial army placement, initiate next turn
-            if (!initialArmyPlacementFinished) {
-                nextPlayersTurn();
-                if (nextTurnListener != null) {
-                    nextTurnListener.isPlayersTurnNow(turnOrder.get(currentTurnIndex),
-                            thisPlayer.getUid() == turnOrder.get(currentTurnIndex));
-                }
+        }
+        // if this message is part of initial army placement, initiate next turn
+        if (!initialArmyPlacementFinished) {
+            nextPlayersTurn();
+            if (nextTurnListener != null) {
+                nextTurnListener.isPlayersTurnNow(currentTurnPlayerID,
+                        thisPlayer.getUid() == currentTurnPlayerID);
             }
         }
     }
 
     private synchronized void handleStartGameMessage(StartGameMessage msg) {
-        currentArmyReserve = msg.getStartArmyCount();
         // TODO: Remove once join-lobby is implemented
         currentLobbyID = msg.getLobbyID();
+
+        setCurrentArmyReserve(msg.getStartArmyCount(), true);
         if (gameStartListener != null) {
-            currentArmyReserve = msg.getStartArmyCount();
             for (Player p: msg.getPlayers()) {
                 currentPlayers.put(p.getUid(), p);
             }
@@ -231,8 +262,14 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
-    private void nextPlayersTurn() {
+    /**
+     * Sets the current player to act to the next player according to turn order.
+     * WARNING: This method should only be used during initial army placing phase.
+     * Use the player id communicated in the NextTurnMessage from server instead.
+     */
+    private synchronized void nextPlayersTurn() {
         currentTurnIndex = (currentTurnIndex + 1) % currentPlayers.size();
+        currentTurnPlayerID = turnOrder.get(currentTurnIndex);
     }
 
     public int getCurrentArmyReserve() {
@@ -244,7 +281,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public Player getCurrentPlayerToAct() {
-        return currentPlayers.get(turnOrder.get(currentTurnIndex));
+        return currentPlayers.get(currentTurnPlayerID);
     }
 
     public Player getThisPlayer() {
@@ -293,5 +330,28 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public boolean isConnected() {
         return isConnected;
+    }
+
+    // TODO: Change when cards are implemented
+    public void exchangeCards() {
+        client.sendMessage(new CardExchangeMessage(currentLobbyID, thisPlayer.getUid()));
+    }
+
+    private synchronized void setCurrentArmyReserve(int newValue, boolean isInitialCount) {
+        this.currentArmyReserve = newValue;
+        if (armyReserveChangedListener != null) {
+            armyReserveChangedListener.newArmyCount(this.currentArmyReserve, isInitialCount);
+        }
+    }
+
+    public synchronized void finishTurn() {
+        if (!(isThisPlayersTurn() && hasPlayerReceivedArmiesThisTurn && currentArmyReserve == 0)) {
+            throw new IllegalStateException("can only finish own turn after all army reserves have been placed");
+        }
+        client.sendMessage(new NextTurnMessage(currentLobbyID, thisPlayer.getUid()));
+    }
+
+    public synchronized boolean isInitialArmyPlacementFinished() {
+        return initialArmyPlacementFinished;
     }
 }

@@ -21,7 +21,7 @@ public class TerritoryTest {
 	@Test
 	public void testTerritoryInit() {
 		Territory[] territories = Territory.getAll();
-		assertEquals(42, territories[territories.length-1].getID());
+		assertEquals(41, territories[territories.length-1].getID());
 	}
 
 	@Test
