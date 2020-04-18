@@ -2,6 +2,7 @@ package edu.aau.se2;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,10 +15,12 @@ import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.game.GameScreen;
 import edu.aau.se2.view.lobby.LobbyScreen;
+import edu.aau.se2.view.lobbylist.LobbyListScreen;
 
 public class RiskGame extends Game {
 	private GameScreen gameScreen;
-  	private LobbyScreen lobbyScreen;
+	private LobbyScreen lobbyScreen;
+	private LobbyListScreen lobbyListScreen;
 
 	@Override
 	public void create () {
@@ -26,10 +29,12 @@ public class RiskGame extends Game {
             gameScreen = new GameScreen();
             setScreen(gameScreen);
         }));
-		// TODO: Replace once Main Menu is done
-		lobbyScreen = new LobbyScreen();
-		lobbyScreen.setUsers(new ArrayList<>(Arrays.asList(new Player(0, "Player 1"), new Player(1, "Player 2"))));
-		setScreen(lobbyScreen);
+		/*// TODO: Replace once Main Menu is done
+		lobbyScreen = new LobbyScreen(this);
+		lobbyScreen.setPlayers(new ArrayList<>(Arrays.asList(new Player(0, "Player 1"), new Player(1, "Player 2"))));
+		setScreen(lobbyScreen);*/
+		lobbyListScreen = new LobbyListScreen(this);
+		setScreen(lobbyListScreen);
 
 		db.setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override
@@ -65,11 +70,5 @@ public class RiskGame extends Game {
         if (oldScreen != null)
             oldScreen.dispose();
         super.setScreen(screen);
-    }
-
-    public Lobby createLobby() {
-        Lobby lobby = new Lobby();
-        lobby.createLobby();
-        return lobby;
     }
 }

@@ -384,4 +384,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     public synchronized boolean isInitialArmyPlacementFinished() {
         return initialArmyPlacementFinished;
     }
+
+    public List<Player> getCurrentPlayers() {
+        return new ArrayList<>(currentPlayers.values());
+    }
 }

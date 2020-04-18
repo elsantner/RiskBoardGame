@@ -4,7 +4,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
-import edu.aau.se2.LobbyScreen;
+import edu.aau.se2.view.lobby.LobbyScreen;
 
 public class JoinLobbyDialog extends Dialog {
     private Game game;

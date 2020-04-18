@@ -1,4 +1,4 @@
-package edu.aau.se2;
+package edu.aau.se2.view.lobby;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -17,11 +17,16 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
-import edu.aau.se2.server.User;
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnPlayersChangedListener;
+import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.lobbylist.ExitButtonListener;
 import edu.aau.se2.view.lobbylist.ReadyButtonListener;
 
-public class LobbyScreen extends ScreenAdapter {
+public class LobbyScreen extends ScreenAdapter implements OnPlayersChangedListener {
 
     private static final String TAG = "LobbyScreen";
     private Texture background;
@@ -33,18 +38,16 @@ public class LobbyScreen extends ScreenAdapter {
     private Table lobbyListTable;
     private Skin skin;
 
-    private Lobby lobby;
     private Game game;
+    private Database db;
+    private List<Player> players;
+
 
     public LobbyScreen(Game riskGame) {
-        lobby = new Lobby();
-        lobby.createLobby();
         game = riskGame;
-    }
-
-    public LobbyScreen(Game riskGame, Lobby lobby) {
-        game = riskGame;
-        this.lobby = lobby;
+        db = Database.getInstance();
+        db.setPlayersChangedListener(this);
+        players = new ArrayList<>();
     }
 
     @Override
@@ -77,8 +80,8 @@ public class LobbyScreen extends ScreenAdapter {
     }
 
     private void updateUsersList() {
-        for(User u : lobby.getUsers()) {
-            Label text = new Label(u.getName(), skin);
+        for(Player u : players) {
+            Label text = new Label(u.getNickname(), skin);
             Label text2 = new Label(u.isReady() + "", skin);
             lobbyListTable.add(text).minHeight(80f).minWidth(180f);
             lobbyListTable.add(text2).minHeight(30f).minWidth(180f);
@@ -129,5 +132,14 @@ public class LobbyScreen extends ScreenAdapter {
         outerTable.add(scroller).colspan(2).fill();
 
         this.stage.addActor(outerTable);
+    }
+
+    @Override
+    public void playersChanged(List<Player> newPlayers) {
+        setPlayers(newPlayers);
+    }
+
+    public void setPlayers(List<Player> players) {
+        this.players = players;
     }
 }
