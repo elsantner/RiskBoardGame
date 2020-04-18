@@ -58,4 +58,18 @@ public class RiskGame extends Game {
 		gameScreen.dispose();
 		lobbyScreen.dispose();
 	}
+    @Override
+    public void setScreen(Screen screen) {
+        // making sure no memory leaks are happening
+        Screen oldScreen = getScreen();
+        if (oldScreen != null)
+            oldScreen.dispose();
+        super.setScreen(screen);
+    }
+
+    public Lobby createLobby() {
+        Lobby lobby = new Lobby();
+        lobby.createLobby();
+        return lobby;
+    }
 }
