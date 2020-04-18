@@ -1,12 +1,13 @@
 package edu.aau.se2.view.lobbylist;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
-import edu.aau.se2.RiskGame;
+import edu.aau.se2.LobbyScreen;
 
 public class JoinLobbyDialog extends Dialog {
-    private RiskGame game;
+    private Game game;
 
     public JoinLobbyDialog(String title, Skin skin) {
         super(title, skin);
@@ -23,6 +24,8 @@ public class JoinLobbyDialog extends Dialog {
         initComponents();
     }
 
+
+
     private void initComponents() {
         text("Wollen Sie wirklich beitreten?");
         button("Ja", true);
@@ -33,11 +36,11 @@ public class JoinLobbyDialog extends Dialog {
     protected void result(Object object) {
         if (object instanceof Boolean && (Boolean)object) {
             // TODO pass lobby
-            // TODO game.setScreen(new LobbyScreen());
+            game.setScreen(new LobbyScreen(game));
         }
     }
 
-    public void setGame(RiskGame game) {
+    public void setGame(Game game) {
         this.game = game;
     }
 }
