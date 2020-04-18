@@ -87,7 +87,7 @@ public class LobbyListScreen extends ScreenAdapter {
         for(int i = 0; i < 20; i++) {
             Label text = new Label("Lobby #" + (i+1), skin);
             Label text2 = new Label("Lobby #" + (i+1), skin);
-            TextButton text3 = new TextButton("Lobby #" + (i+1), skin);
+            TextButton text3 = new TextButton("Beitreten" + (i+1), skin);
             text3.addListener(new ClickListener() {
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {

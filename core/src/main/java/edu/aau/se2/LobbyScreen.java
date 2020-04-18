@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -16,11 +15,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import edu.aau.se2.server.User;
-import edu.aau.se2.view.lobbylist.LobbyListScreen;
+import edu.aau.se2.view.lobbylist.ExitButtonListener;
+import edu.aau.se2.view.lobbylist.ReadyButtonListener;
 
 public class LobbyScreen extends ScreenAdapter {
 
@@ -31,7 +30,6 @@ public class LobbyScreen extends ScreenAdapter {
     private Texture line;
     private SpriteBatch batch;
     private Stage stage;
-    private Table outerTable;
     private Table lobbyListTable;
     private Skin skin;
 
@@ -66,7 +64,7 @@ public class LobbyScreen extends ScreenAdapter {
 
     @Override
     public void resize(int width, int height) {
-        //resize
+        stage.getViewport().update(width, height, true);
     }
 
     @Override
@@ -82,8 +80,6 @@ public class LobbyScreen extends ScreenAdapter {
         for(User u : lobby.getUsers()) {
             Label text = new Label(u.getName(), skin);
             Label text2 = new Label(u.isReady() + "", skin);
-            //text.setAlignment(Align.center);
-            //text.setWrap(true);
             lobbyListTable.add(text).minHeight(80f).minWidth(180f);
             lobbyListTable.add(text2).minHeight(30f).minWidth(180f);
             lobbyListTable.row();
@@ -107,44 +103,26 @@ public class LobbyScreen extends ScreenAdapter {
 
         lobbyListTable = new Table();
         lobbyListTable.setBounds(0,0,1600, 1600);
-        //lobbyListTable.setDebug(true);
 
         updateUsersList();
 
         final ScrollPane scroller = new ScrollPane(lobbyListTable);
 
-        outerTable = new Table();
+        Table outerTable = new Table();
         outerTable.setFillParent(true);
-        //outerTable.setDebug(true);
         outerTable.pad(120f);
 
         outerTable.add(new Image(lobbyText)).minHeight(lobbyText.getHeight());
         TextButton ready = new TextButton("Bereit", skin);
-        ready.addListener(new ClickListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                System.out.println("event = " + event + ", x = " + x + ", y = " + y + ", pointer = " + pointer + ", button = " + button);
-                Gdx.app.log(TAG, "Bereit");
-                // TODO notify server
-                return true;
-            }
-        });
+        ready.addListener(new ReadyButtonListener());
         TextButton exit = new TextButton("Verlassen", skin);
-        exit.addListener(new ClickListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                System.out.println("event = " + event + ", x = " + x + ", y = " + y + ", pointer = " + pointer + ", button = " + button);
-                Gdx.app.log(TAG, "Verlassen");
-                // TODO notify server
-                game.setScreen(new LobbyListScreen(game));
-                return true;
-            }
-        });
+        exit.addListener(new ExitButtonListener(game));
+
         VerticalGroup buttonGroup = new VerticalGroup();
         buttonGroup.addActor(ready);
         buttonGroup.addActor(exit);
         outerTable.add(buttonGroup);
-        // add exit lobby button
+
         outerTable.row();
         outerTable.add(new Image(line)).colspan(2);
         outerTable.row();
