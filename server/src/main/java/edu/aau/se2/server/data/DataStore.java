@@ -1,5 +1,8 @@
 package edu.aau.se2.server.data;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.TreeMap;
 
 public class DataStore {
@@ -16,6 +19,7 @@ public class DataStore {
     private TreeMap<Integer, Player> playersOnline;
     private int nextLobbyID;
     private int nextPlayerID;
+    private PlayerLostConnectionListener lostConnectionListener;
 
     protected DataStore() {
         lobbies = new TreeMap<>();
@@ -24,10 +28,12 @@ public class DataStore {
         nextPlayerID = 1;
     }
 
-    public synchronized boolean isPlayerHostingLobby(int playerID) {
+    public synchronized boolean isPlayerInAnyLobby(int playerID) {
         for (Lobby l: lobbies.values()) {
-            if (l.getHost() != null && l.getHost().getUid() == playerID) {
-                return true;
+            for (Player p: l.getPlayers()) {
+                if (p.getUid() == playerID) {
+                    return true;
+                }
             }
         }
         return false;
@@ -40,10 +46,8 @@ public class DataStore {
         return l;
     }
 
-    public synchronized Lobby createLobby() {
-        Lobby l = new Lobby(getNextLobbyID());
-        lobbies.put(l.getLobbyID(), l);
-        return l;
+    public synchronized Lobby removeLobby(int lobbyID) {
+        return lobbies.remove(lobbyID);
     }
 
     public synchronized void updateLobby(Lobby l) {
@@ -81,15 +85,35 @@ public class DataStore {
         return lobbies.get(lobbyID);
     }
 
-    public synchronized void removePlayer(Integer disconnectedPlayerID) {
-        if (disconnectedPlayerID != null) {
-            playersOnline.remove(disconnectedPlayerID);
-            for (Lobby l: lobbies.values()) {
-                l.removePlayer(disconnectedPlayerID);
-                l.setStarted(false);
-                updateLobby(l);
-                // TODO: handle client messaging
+    public synchronized List<Lobby> getJoinableLobbyList() {
+        List<Lobby> joinableLobbies = new ArrayList<>();
+        for (Lobby l: lobbies.values()) {
+            if (l.isJoinable()) {
+                joinableLobbies.add(l);
             }
         }
+        return joinableLobbies;
+    }
+
+    public synchronized void removePlayer(Integer disconnectedPlayerID) {
+        if (disconnectedPlayerID != null) {
+            Player p = playersOnline.remove(disconnectedPlayerID);
+            Lobby curLobby;
+            Lobby playersLobby = null;
+            Iterator<Lobby> iterator = lobbies.values().iterator();
+            while (iterator.hasNext() && playersLobby == null) {
+                curLobby = iterator.next();
+                if (curLobby.isPlayerJoined(disconnectedPlayerID)) {
+                    playersLobby = curLobby;
+                }
+            }
+            if (lostConnectionListener != null) {
+                lostConnectionListener.playerLostConnection(p, playersLobby);
+            }
+        }
+    }
+
+    public void setLostConnectionListener(PlayerLostConnectionListener l) {
+        this.lostConnectionListener = l;
     }
 }

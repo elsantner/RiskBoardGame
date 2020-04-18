@@ -10,6 +10,13 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.*;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 
 import java.util.ArrayList;
@@ -18,6 +25,8 @@ import java.util.List;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.view.lobbylist.ExitButtonListener;
+import edu.aau.se2.view.lobbylist.ReadyButtonListener;
 
 public class LobbyScreen implements Screen, OnPlayersChangedListener {
 
@@ -30,6 +39,9 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
     private BitmapFont font;
     private int height;
     private int width;
+    private Stage stage;
+    private Table lobbyListTable;
+    private Skin skin;
 
     private Database db;
     private List<Player> users;
@@ -38,7 +50,7 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
         db = Database.getInstance();
         db.setPlayersChangedListener(this);
 
-        users = new ArrayList<>();
+        users = db.getCurrentPlayers();
 
         height = Gdx.graphics.getHeight();
         width = Gdx.graphics.getWidth();
@@ -55,7 +67,27 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
 
     @Override
     public void show() {
-        // show
+        this.stage = new Stage(new StretchViewport(1920,1080));
+        stage.stageToScreenCoordinates(new Vector2(0,0));
+        Gdx.input.setInputProcessor(this.stage);
+        skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        skin.getFont("default-font").getData().setScale(0.5f);
+
+        Table outerTable = new Table();
+        outerTable.setFillParent(true);
+        outerTable.pad(120f);
+
+        TextButton ready = new TextButton("Bereit", skin);
+        ready.addListener(new ReadyButtonListener());
+        TextButton exit = new TextButton("Verlassen", skin);
+        exit.addListener(new ExitButtonListener(null));
+
+        VerticalGroup buttonGroup = new VerticalGroup();
+        buttonGroup.addActor(ready);
+        buttonGroup.addActor(exit);
+        outerTable.add(buttonGroup);
+
+        this.stage.addActor(outerTable);
     }
 
     @Override
@@ -74,6 +106,8 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
 
         batch.end();
         renderUsers();
+        stage.act();
+        stage.draw();
     }
 
     private void renderUsers() {

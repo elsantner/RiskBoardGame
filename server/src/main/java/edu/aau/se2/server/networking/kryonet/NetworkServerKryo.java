@@ -48,7 +48,6 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
                 super.connected(connection);
                 Player newPlayer = DataStore.getInstance().newPlayer();
                 connections.put(newPlayer.getUid(), connection);
-                Logger.getAnonymousLogger().info("Sending ConnectedMessage");
                 synchronized (newPlayer) {
                     try {
                         newPlayer.wait(500);
@@ -56,6 +55,7 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
                         Thread.currentThread().interrupt();
                     }
                 }
+                Logger.getAnonymousLogger().info("Sending ConnectedMessage");
                 broadcastMessage(new ConnectedMessage(newPlayer), newPlayer);
             }
 
@@ -91,9 +91,11 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
 
     public void broadcastMessage(BaseMessage message, List<Player> recipients) {
         for (Player p: recipients) {
-            Connection connection = connections.get(p.getUid());
-            if (connection != null) {
-                connection.sendTCP(message);
+            if (p != null) {
+                Connection connection = connections.get(p.getUid());
+                if (connection != null) {
+                    connection.sendTCP(message);
+                }
             }
         }
     }

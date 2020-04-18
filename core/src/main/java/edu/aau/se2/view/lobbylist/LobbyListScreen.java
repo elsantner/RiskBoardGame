@@ -18,6 +18,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnLobbyListChangedListener;
+import edu.aau.se2.server.networking.dto.LobbyListMessage;
+
 public class LobbyListScreen extends ScreenAdapter {
 
     private static final String TAG = "LobbyScreen";
@@ -30,12 +37,11 @@ public class LobbyListScreen extends ScreenAdapter {
     private Stage stage;
     private Table outerTable;
     private Table lobbyListTable;
-    private JoinLobbyDialog joinDialog;
 
-    private Game game;
+    private List<LobbyListMessage.LobbyData> lobbyData;
 
-    public LobbyListScreen(Game game) {
-        this.game = game;
+    public LobbyListScreen(List<LobbyListMessage.LobbyData> lobbyData) {
+        this.lobbyData = lobbyData;
     }
 
     @Override
@@ -73,21 +79,19 @@ public class LobbyListScreen extends ScreenAdapter {
         final Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
         skin.getFont("default-font").getData().setScale(0.5f);
 
-        joinDialog = new JoinLobbyDialog("Beitreten", skin);
-        joinDialog.setGame(game);
-
         lobbyListTable = new Table();
         lobbyListTable.setBounds(0,0,1600, 1600);
-        // TODO replace by list from server
-        for(int i = 0; i < 20; i++) {
-            Label text = new Label("Lobby #" + (i+1), skin);
-            Label text2 = new Label("Lobby #" + (i+1), skin);
-            TextButton text3 = new TextButton("Beitreten" + (i+1), skin);
+
+        for (LobbyListMessage.LobbyData l: lobbyData) {
+            System.out.println(l);
+            Label text = new Label(l.getHost().getNickname(), skin);
+            Label text2 = new Label("Player Count: " + l.getPlayerCount(), skin);
+            TextButton text3 = new TextButton("Beitreten", skin);
             text3.addListener(new ClickListener() {
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                     System.out.println("event = " + event + ", x = " + x + ", y = " + y + ", pointer = " + pointer + ", button = " + button);
-                    joinDialog.show(stage);
+                    new JoinLobbyDialog("Beitreten", skin, l.getLobbyID()).show(stage);
                     return true;
                 }
             });

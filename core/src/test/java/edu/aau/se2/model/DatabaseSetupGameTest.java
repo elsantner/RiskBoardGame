@@ -7,12 +7,14 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
+import edu.aau.se2.model.listener.OnJoinedLobbyListener;
+import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.server.MainServer;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
@@ -20,7 +22,7 @@ import edu.aau.se2.server.logic.ArmyCountHelper;
 
 
 public class DatabaseSetupGameTest {
-    private final int NUM_CLIENTS = 2;
+    private final int NUM_CLIENTS = 4;
     private final int TURNS_TO_PLAY = 4;
 
     private MainServer server;
@@ -31,6 +33,7 @@ public class DatabaseSetupGameTest {
     private AtomicInteger armiesPlaced;
     private AtomicInteger turnsPlayed;
     private AtomicInteger armiesReceivedInTurns;
+    private AtomicBoolean setReady;
 
     @Before
     public void setup() {
@@ -45,6 +48,7 @@ public class DatabaseSetupGameTest {
         armiesPlaced = new AtomicInteger(0);
         turnsPlayed = new AtomicInteger(-1);
         armiesReceivedInTurns = new AtomicInteger(0);
+        setReady = new AtomicBoolean(false);
 
         for (int i=0; i<42; i++) {
             unoccupiedTerritories.add(new Territory(i));
@@ -71,11 +75,11 @@ public class DatabaseSetupGameTest {
     }
 
     private void startServer() throws IOException {
-        server = new MainServer(false);
+        server = new MainServer();
         server.start();
     }
 
-    private void startClients() throws IOException, InterruptedException {
+    private void startClients() throws IOException {
         DatabaseTestSubclass.setServerAddress("localhost");
         for (int i=0; i<NUM_CLIENTS; i++) {
             Database db = new DatabaseTestSubclass();
@@ -109,7 +113,9 @@ public class DatabaseSetupGameTest {
             db.setConnectionChangedListener(new OnConnectionChangedListener() {
                 @Override
                 public void connected(Player thisPlayer) {
-                    db.setPlayerReady(true);
+                    if (finalI == NUM_CLIENTS-1) {
+                        db.hostLobby();
+                    }
                 }
 
                 @Override
@@ -117,7 +123,26 @@ public class DatabaseSetupGameTest {
 
                 }
             });
+            db.setJoinedLobbyListener((lobbyID, host, players) -> {
+                if (finalI == NUM_CLIENTS-1) {
+                    joinLobby(lobbyID);
+                }
+            });
+            db.setPlayersChangedListener(newPlayers -> {
+                if (newPlayers.size() == NUM_CLIENTS && !setReady.get()) {
+                    setReady.set(true);
+                    for (Database c: clients) {
+                        c.setPlayerReady(true);
+                    }
+                }
+            });
             db.connectIfNotConnected();
+        }
+    }
+
+    private synchronized void joinLobby(int lobbyID) {
+        for (int i=0; i<NUM_CLIENTS-1; i++) {
+            clients.get(i).joinLobby(lobbyID);
         }
     }
 

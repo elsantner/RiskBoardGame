@@ -19,4 +19,11 @@ public class ConnectedMessage extends BaseMessage {
     public void setPlayer(Player player) {
         this.player = player;
     }
+
+    @Override
+    public String toString() {
+        return "ConnectedMessage{" +
+                "player=" + player +
+                '}';
+    }
 }
