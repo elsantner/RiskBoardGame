@@ -18,8 +18,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
-import java.util.List;
-
 public class LobbyListScreen extends ScreenAdapter {
 
     private static final String TAG = "LobbyScreen";
@@ -29,7 +27,6 @@ public class LobbyListScreen extends ScreenAdapter {
     private Texture line;
     private SpriteBatch batch;
 
-    private List<String> lobbies;
     private Stage stage;
     private Table outerTable;
     private Table lobbyListTable;
@@ -81,8 +78,6 @@ public class LobbyListScreen extends ScreenAdapter {
 
         lobbyListTable = new Table();
         lobbyListTable.setBounds(0,0,1600, 1600);
-        //lobbyListTable.setDebug(true);
-
         // TODO replace by list from server
         for(int i = 0; i < 20; i++) {
             Label text = new Label("Lobby #" + (i+1), skin);
@@ -96,8 +91,7 @@ public class LobbyListScreen extends ScreenAdapter {
                     return true;
                 }
             });
-            //text.setAlignment(Align.center);
-            //text.setWrap(true);
+
             lobbyListTable.add(text).minHeight(80f).minWidth(180f);
             lobbyListTable.add(text2).minHeight(30f).minWidth(180f);
             lobbyListTable.add(text3).minHeight(30f).minWidth(180f);
@@ -108,13 +102,11 @@ public class LobbyListScreen extends ScreenAdapter {
 
         outerTable = new Table();
         outerTable.setFillParent(true);
-        //outerTable.setDebug(true);
         outerTable.pad(120f);
 
         outerTable.add(new Image(lobbyText)).minHeight(lobbyText.getHeight());
-        // add exit lobby button
         outerTable.row();
-        outerTable.add(new Image(line)) /* .colspan(2) */;
+        outerTable.add(new Image(line));
         outerTable.row();
         outerTable.add(scroller).fill();
 

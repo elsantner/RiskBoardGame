@@ -12,7 +12,6 @@ public class RiskGame extends Game {
 
     @Override
     public void create() {
-        //LobbyScreen lobbyScreen = new LobbyScreen(createLobby());
         Gdx.app.log(RiskGame.class.getName(), "Starting game");
         LobbyListScreen lobbyListScreen = new LobbyListScreen(this);
         setScreen(lobbyListScreen);
