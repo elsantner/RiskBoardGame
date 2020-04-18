@@ -1,7 +1,6 @@
 package edu.aau.se2.server.logic;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import edu.aau.se2.server.data.Territory;

@@ -118,7 +118,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             this.client.connect(serverAddress);
         }
         catch (IOException ex) {
-            Logger.getLogger("Server connection").log(Level.SEVERE, "Connection failed: " + ex);
             throw ex;
         }
     }

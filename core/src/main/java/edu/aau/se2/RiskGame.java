@@ -28,7 +28,7 @@ public class RiskGame extends Game {
         }));
 		// TODO: Replace once Main Menu is done
 		lobbyScreen = new LobbyScreen();
-		lobbyScreen.users = new ArrayList<>(Arrays.asList(new Player(0, "Player 1"), new Player(1, "Player 2")));
+		lobbyScreen.setUsers(new ArrayList<>(Arrays.asList(new Player(0, "Player 1"), new Player(1, "Player 2"))));
 		setScreen(lobbyScreen);
 
 		db.setConnectionChangedListener(new OnConnectionChangedListener() {

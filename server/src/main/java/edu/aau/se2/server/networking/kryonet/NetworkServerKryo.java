@@ -8,9 +8,7 @@ import com.google.common.collect.HashBiMap;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import edu.aau.se2.server.data.DataStore;
@@ -51,6 +49,13 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
                 Player newPlayer = DataStore.getInstance().newPlayer();
                 connections.put(newPlayer.getUid(), connection);
                 Logger.getAnonymousLogger().info("Sending ConnectedMessage");
+                synchronized (newPlayer) {
+                    try {
+                        newPlayer.wait(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
                 broadcastMessage(new ConnectedMessage(newPlayer), newPlayer);
             }
 
