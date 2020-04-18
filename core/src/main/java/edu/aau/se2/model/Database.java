@@ -114,12 +114,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public void connect() throws IOException {
-        try {
-            this.client.connect(serverAddress);
-        }
-        catch (IOException ex) {
-            throw ex;
-        }
+        this.client.connect(serverAddress);
     }
 
     /**

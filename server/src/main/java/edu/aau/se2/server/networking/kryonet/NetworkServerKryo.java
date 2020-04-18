@@ -53,7 +53,7 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
                     try {
                         newPlayer.wait(500);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        Thread.currentThread().interrupt();
                     }
                 }
                 broadcastMessage(new ConnectedMessage(newPlayer), newPlayer);
