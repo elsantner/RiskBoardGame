@@ -33,6 +33,10 @@ test {
     jacoco {
         append = false
     }
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+    }
 }
 
 jacocoTestReport {

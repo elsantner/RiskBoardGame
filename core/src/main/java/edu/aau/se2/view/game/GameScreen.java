@@ -44,6 +44,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public void show() {
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new GestureDetector(boardStage));
+        inputMultiplexer.addProcessor(boardStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 

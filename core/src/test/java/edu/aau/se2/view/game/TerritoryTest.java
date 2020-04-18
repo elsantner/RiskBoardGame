@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import edu.aau.se2.model.TerritoryHelper;
+import edu.aau.se2.server.logic.TerritoryHelper;
 import edu.aau.se2.view.GdxTestRunner;
 
 import static org.junit.Assert.assertEquals;
@@ -21,7 +21,7 @@ public class TerritoryTest {
 	@Test
 	public void testTerritoryInit() {
 		Territory[] territories = Territory.getAll();
-		assertEquals(42, territories[territories.length-1].getID());
+		assertEquals(41, territories[territories.length-1].getID());
 	}
 
 	@Test

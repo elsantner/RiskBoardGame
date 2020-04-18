@@ -1,6 +1,8 @@
-package edu.aau.se2.model;
+package edu.aau.se2.server.logic;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public abstract class TerritoryHelper {
     public abstract static class ID {
@@ -8,48 +10,48 @@ public abstract class TerritoryHelper {
             // defeat instantiation
         }
 
-        public static final int ARGENTINA = 1;
-        public static final int BRAZIL = 2;
-        public static final int PERU = 3;
-        public static final int VENEZUELA = 4;
-        public static final int ALASKA = 5;
-        public static final int WESTERN_CANADA = 6;
-        public static final int CENTRAL_AMERICA = 7;
-        public static final int EASTERN_US = 8;
-        public static final int GREENLAND = 9;
-        public static final int NORTHWEST_TERRITORY = 10;
-        public static final int CENTRAL_CANADA = 11;
-        public static final int EASTERN_CANADA = 12;
-        public static final int WESTERN_US = 13;
-        public static final int CENTRAL_AFRICA = 14;
-        public static final int EAST_AFRICA = 15;
-        public static final int EGYPT = 16;
-        public static final int MADAGASCAR = 17;
-        public static final int NORTH_AFRICA = 18;
-        public static final int SOUTH_AFRICA = 19;
-        public static final int GREAT_BRITAIN = 20;
-        public static final int ICELAND = 21;
-        public static final int NORTHERN_EUROPE = 22;
-        public static final int SCANDINAVIA = 23;
-        public static final int SOUTHERN_EUROPE = 24;
-        public static final int UKRAINE = 25;
-        public static final int WESTERN_EUROPE = 26;
-        public static final int EASTERN_AUSTRALIA = 27;
-        public static final int INDONESIA = 28;
-        public static final int NEW_GUINEA = 29;
-        public static final int WESTERN_AUSTRALIA = 30;
-        public static final int AFGHANISTAN = 31;
-        public static final int CHINA = 32;
-        public static final int INDIA = 33;
-        public static final int IRKUTSK = 34;
-        public static final int JAPAN = 35;
-        public static final int KAMCHATKA = 36;
-        public static final int MIDDLE_EAST = 37;
-        public static final int MONGOLIA = 38;
-        public static final int SOUTHEAST_ASIA = 39;
-        public static final int SIBERIA = 40;
-        public static final int URAL = 41;
-        public static final int YAKUTSK = 42;
+        public static final int ARGENTINA = 0;
+        public static final int BRAZIL = 1;
+        public static final int PERU = 2;
+        public static final int VENEZUELA = 3;
+        public static final int ALASKA = 4;
+        public static final int WESTERN_CANADA = 5;
+        public static final int CENTRAL_AMERICA = 6;
+        public static final int EASTERN_US = 7;
+        public static final int GREENLAND = 8;
+        public static final int NORTHWEST_TERRITORY = 9;
+        public static final int CENTRAL_CANADA = 10;
+        public static final int EASTERN_CANADA = 11;
+        public static final int WESTERN_US = 12;
+        public static final int CENTRAL_AFRICA = 13;
+        public static final int EAST_AFRICA = 14;
+        public static final int EGYPT = 15;
+        public static final int MADAGASCAR = 16;
+        public static final int NORTH_AFRICA = 17;
+        public static final int SOUTH_AFRICA = 18;
+        public static final int GREAT_BRITAIN = 19;
+        public static final int ICELAND = 20;
+        public static final int NORTHERN_EUROPE = 21;
+        public static final int SCANDINAVIA = 22;
+        public static final int SOUTHERN_EUROPE = 23;
+        public static final int UKRAINE = 24;
+        public static final int WESTERN_EUROPE = 25;
+        public static final int EASTERN_AUSTRALIA = 26;
+        public static final int INDONESIA = 27;
+        public static final int NEW_GUINEA = 28;
+        public static final int WESTERN_AUSTRALIA = 29;
+        public static final int AFGHANISTAN = 30;
+        public static final int CHINA = 31;
+        public static final int INDIA = 32;
+        public static final int IRKUTSK = 33;
+        public static final int JAPAN = 34;
+        public static final int KAMCHATKA = 35;
+        public static final int MIDDLE_EAST = 36;
+        public static final int MONGOLIA = 37;
+        public static final int SOUTHEAST_ASIA = 38;
+        public static final int SIBERIA = 39;
+        public static final int URAL = 40;
+        public static final int YAKUTSK = 41;
     }
 
     private static final Integer[][] neighbouringTerritories = new Integer[][] {
@@ -97,9 +99,9 @@ public abstract class TerritoryHelper {
             {ID.SIBERIA, ID.IRKUTSK, ID.KAMCHATKA}, // Yakutsk
     };
 
-    public static Integer[] getNeighbouringTerritories(int territoryID) {
+    public static List<Integer> getNeighbouringTerritories(int territoryID) {
         try {
-            return neighbouringTerritories[territoryID-1];
+            return Arrays.asList(neighbouringTerritories[territoryID]);
         }
         catch (ArrayIndexOutOfBoundsException ex) {
             throw new IllegalArgumentException("territory with id " + territoryID + " does not exist");
@@ -107,10 +109,51 @@ public abstract class TerritoryHelper {
     }
 
     public static boolean areNeighbouring(int territoryID1, int territoryID2) {
-        return Arrays.asList(getNeighbouringTerritories(territoryID1)).contains(territoryID2);
+        return getNeighbouringTerritories(territoryID1).contains(territoryID2);
     }
 
     private TerritoryHelper() {
         // defeat instantiation
+    }
+
+    private static final Integer[][] continentTerritories = new Integer[][] {
+            {ID.ARGENTINA, ID.BRAZIL, ID.PERU, ID.VENEZUELA},
+            {ID.ALASKA, ID.WESTERN_CANADA, ID.CENTRAL_AMERICA, ID.EASTERN_US, ID.GREENLAND, ID.NORTHWEST_TERRITORY, ID.CENTRAL_CANADA, ID.EASTERN_CANADA, ID.WESTERN_US},
+            {ID.CENTRAL_AFRICA, ID.EAST_AFRICA, ID.EGYPT, ID.MADAGASCAR, ID.NORTH_AFRICA, ID.SOUTH_AFRICA},
+            {ID.GREAT_BRITAIN, ID.ICELAND, ID.NORTHERN_EUROPE, ID.SCANDINAVIA, ID.SOUTHERN_EUROPE, ID.UKRAINE, ID.WESTERN_EUROPE},
+            {ID.EASTERN_AUSTRALIA, ID.INDONESIA, ID.NEW_GUINEA, ID.WESTERN_AUSTRALIA},
+            {ID.AFGHANISTAN, ID.CHINA, ID.INDIA, ID.IRKUTSK, ID.JAPAN, ID.KAMCHATKA, ID.MIDDLE_EAST, ID.MONGOLIA, ID.SOUTHEAST_ASIA, ID.SIBERIA, ID.URAL, ID.YAKUTSK}
+    };
+
+    public static List<Integer> getTerritoriesOfContinent(int continentID) {
+        try {
+            return Arrays.asList(continentTerritories[continentID]);
+        }
+        catch (IndexOutOfBoundsException ex) {
+            throw new IllegalArgumentException("continent with id " + continentID + " does not exist");
+        }
+    }
+
+    public static List<Integer> getFullyIncludedContinents(List<Integer> territoryIDs) {
+        List<Integer> continentIDs = new ArrayList<>();
+        for (int i=0; i<6; i++) {
+            if (territoryIDs.containsAll(getTerritoriesOfContinent(i))) {
+                continentIDs.add(i);
+            }
+        }
+        return continentIDs;
+    }
+
+    public abstract class Continent {
+        private Continent() {
+
+        }
+
+        public static final int SOUTH_AMERICA = 0;
+        public static final int NORTH_AMERICA = 1;
+        public static final int AFRICA = 2;
+        public static final int EUROPE = 3;
+        public static final int AUSTRALIA = 4;
+        public static final int ASIA = 5;
     }
 }

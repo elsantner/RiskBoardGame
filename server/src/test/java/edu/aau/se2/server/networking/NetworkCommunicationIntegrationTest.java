@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.server.networking.dto.BaseMessage;
 import edu.aau.se2.server.networking.dto.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.TextMessage;
 import edu.aau.se2.server.networking.kryonet.KryoNetComponent;
@@ -24,6 +25,8 @@ public class NetworkCommunicationIntegrationTest {
     private AtomicBoolean request2Handled;
     private AtomicBoolean responseHandled;
     private NetworkServer server;
+    private BaseMessage firstMessage;
+    private BaseMessage secondMessage;
 
     @Before
     public void setup() {
@@ -36,14 +39,17 @@ public class NetworkCommunicationIntegrationTest {
     @Test
     public void NetworkConnection_OneClient_SendAndReceiveText() throws IOException, InterruptedException {
         startServer();
+        Thread.sleep(1000);
         startClient();
 
         // wait for server and client to handle messages
-        Thread.sleep(3000);
+        Thread.sleep(5000);
 
         Assert.assertTrue(request1Handled.get());
         Assert.assertTrue(request2Handled.get());
         Assert.assertTrue(responseHandled.get());
+        Assert.assertTrue(firstMessage instanceof ConnectedMessage);
+        Assert.assertTrue(secondMessage instanceof TextMessage);
     }
 
     private void startServer() throws IOException {
@@ -82,18 +88,19 @@ public class NetworkCommunicationIntegrationTest {
         client.registerCallback(argument ->
                 {
                     if (!connectionMessageReceived.get()) {
+                        firstMessage = argument;
                         Assert.assertTrue(argument instanceof ConnectedMessage);
                         Assert.assertNotNull(((ConnectedMessage)argument).getPlayer());
                         connectionMessageReceived.set(true);
                     }
                     else {
+                        secondMessage = argument;
                         Assert.assertTrue(argument instanceof TextMessage);
                         Assert.assertEquals(RESPONSE_TEST, ((TextMessage) argument).getText());
                         responseHandled.set(true);
                     }
                 }
         );
-
         client.sendMessage(new TextMessageSubClass());
         client.sendMessage(new TextMessage(REQUEST_TEST));
     }

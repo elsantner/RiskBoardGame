@@ -19,14 +19,18 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.ArmyCountHelper;
 import edu.aau.se2.server.networking.dto.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.ReadyMessage;
 import edu.aau.se2.server.networking.dto.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 
 public class StartGameTest {
     private static final int NUM_CLIENTS = 2;
+    private static final int TURNS_TO_PLAY = 4;
 
     private ArrayList<NetworkClientKryo> clients;
     private MainServer server;
@@ -35,6 +39,7 @@ public class StartGameTest {
     private ArrayList<AtomicBoolean> clientsConnectedMsgReceived;
     private ArrayList<AtomicBoolean> clientsInitialArmyPlacingMsgReceived;
     private AtomicInteger armiesPlaced;
+    private AtomicInteger firstTurnPlayerID;
 
     private List<Integer> turnOrder;
     private int currentTurnIndex;
@@ -60,9 +65,10 @@ public class StartGameTest {
 
         playerOccupiedTerritories = new HashMap<>();
         armiesPlaced = new AtomicInteger(0);
+        firstTurnPlayerID = new AtomicInteger(-1);
 
         for (int i=0; i<42; i++) {
-            unoccupiedTerritories.add(new Territory(i+1));
+            unoccupiedTerritories.add(new Territory(i));
         }
         for (int i=0; i<NUM_CLIENTS; i++) {
             clientsStartMsgReceived.add(new AtomicBoolean(false));
@@ -73,8 +79,9 @@ public class StartGameTest {
     }
 
     @Test
-    public void testNetwork_StartGameMessage() throws IOException, InterruptedException {
+    public void testStartGameSetup() throws IOException, InterruptedException {
         startServer();
+        Thread.sleep(1000);
         startClients();
 
         Thread.sleep(5000);
@@ -85,6 +92,7 @@ public class StartGameTest {
         }
         // check if all armies were placed
         Assert.assertEquals(ArmyCountHelper.getStartCount(NUM_CLIENTS)*NUM_CLIENTS, armiesPlaced.get());
+        Assert.assertEquals((int)turnOrder.get(0), firstTurnPlayerID.get());
     }
 
     private void startServer() throws IOException {
@@ -99,46 +107,67 @@ public class StartGameTest {
             int finalI = i;
             client.registerCallback(argument -> {
                 if (argument instanceof ConnectedMessage) {
-                    clientPlayers[finalI] = ((ConnectedMessage)argument).getPlayer();
-                    playerOccupiedTerritories.put(clientPlayers[finalI].getUid(), new ArrayList<>());
-                    clientsConnectedMsgReceived.get(finalI).set(true);
-                    client.sendMessage(new ReadyMessage(0, clientPlayers[finalI].getUid(), true));
+                    handleConnectedMessage((ConnectedMessage)argument, finalI);
                 }
                 else if (argument instanceof StartGameMessage) {
                     Assert.assertTrue(clientsConnectedMsgReceived.get(finalI).get());
-                    StartGameMessage msg = (StartGameMessage) argument;
-                    // check if all clients are in the game
-                    Assert.assertEquals(NUM_CLIENTS, msg.getPlayers().size());
-                    // check if the right amount of initial armies are transmitted
-                    Assert.assertEquals(ArmyCountHelper.getStartCount(NUM_CLIENTS), msg.getStartArmyCount());
-                    clientArmyCount.set(finalI, msg.getStartArmyCount());
-                    clientsStartMsgReceived.get(finalI).set(true);
+                    handleStartGameMessage((StartGameMessage) argument, finalI);
                 }
                 else if (argument instanceof InitialArmyPlacingMessage) {
-                    InitialArmyPlacingMessage msg = (InitialArmyPlacingMessage) argument;
-                    // StartGameMessage must have already been received
-                    Assert.assertTrue(clientsStartMsgReceived.get(finalI).get());
-                    turnOrder = msg.getPlayerOrder();
-                    clientsInitialArmyPlacingMsgReceived.get(finalI).set(true);
-                    // let first client send ArmyPlacedMessage
-                    sendArmyPlaceIfClientsTurn(clientPlayers[finalI].getUid(), -1, client);
+                    handleInitialArmyPlacingMessage((InitialArmyPlacingMessage) argument, finalI);
                 }
                 else if (argument instanceof ArmyPlacedMessage) {
-                    ArmyPlacedMessage msg = (ArmyPlacedMessage) argument;
-                    // do once per ArmyPlacedMessage
-                    if (msg.getFromPlayerID() == clientPlayers[finalI].getUid()) {
-                        // increment armies placed count
-                        armiesPlaced.getAndAdd(1);
-                        // check if remaining army count is successfully calculated and returned by the server
-                        clientArmyCount.set(finalI, clientArmyCount.get(finalI)-1);
-                        Assert.assertEquals((int)clientArmyCount.get(finalI), msg.getArmyCountRemaining());
-                    }
-                    // let player to act do their turn
-                    sendArmyPlaceIfClientsTurn(clientPlayers[finalI].getUid(), msg.getFromPlayerID(), client);
+                    handleArmyPlacedMessage((ArmyPlacedMessage) argument, finalI);
+                }
+                else if (argument instanceof NextTurnMessage) {
+                    handleNextTurnMessage((NextTurnMessage) argument, finalI);
                 }
             });
             client.connect("localhost");
         }
+    }
+
+    private synchronized void handleNextTurnMessage(NextTurnMessage msg, int clientIndex) {
+        firstTurnPlayerID.set(msg.getPlayerToActID());
+    }
+
+    private synchronized void handleConnectedMessage(ConnectedMessage msg, int clientIndex) {
+        clientPlayers[clientIndex] = msg.getPlayer();
+        playerOccupiedTerritories.put(clientPlayers[clientIndex].getUid(), new ArrayList<>());
+        clientsConnectedMsgReceived.get(clientIndex).set(true);
+        clients.get(clientIndex).sendMessage(new ReadyMessage(0,
+                clientPlayers[clientIndex].getUid(), true));
+    }
+
+    private synchronized void handleStartGameMessage(StartGameMessage msg, int clientIndex) {
+        // check if all clients are in the game
+        Assert.assertEquals(NUM_CLIENTS, msg.getPlayers().size());
+        // check if the right amount of initial armies are transmitted
+        Assert.assertEquals(ArmyCountHelper.getStartCount(NUM_CLIENTS), msg.getStartArmyCount());
+        clientArmyCount.set(clientIndex, msg.getStartArmyCount());
+        clientsStartMsgReceived.get(clientIndex).set(true);
+    }
+
+    private synchronized void handleInitialArmyPlacingMessage(InitialArmyPlacingMessage msg, int clientIndex) {
+        // StartGameMessage must have already been received
+        Assert.assertTrue(clientsStartMsgReceived.get(clientIndex).get());
+        turnOrder = msg.getPlayerOrder();
+        clientsInitialArmyPlacingMsgReceived.get(clientIndex).set(true);
+        // let first client send ArmyPlacedMessage
+        sendArmyPlaceIfClientsTurn(clientPlayers[clientIndex].getUid(), -1, clients.get(clientIndex));
+    }
+
+    private synchronized void handleArmyPlacedMessage(ArmyPlacedMessage msg, int clientIndex) {
+        // do once per ArmyPlacedMessage
+        if (msg.getFromPlayerID() == clientPlayers[clientIndex].getUid()) {
+            // increment armies placed count
+            armiesPlaced.getAndAdd(1);
+            // check if remaining army count is successfully calculated and returned by the server
+            clientArmyCount.set(clientIndex, clientArmyCount.get(clientIndex)-1);
+            Assert.assertEquals((int)clientArmyCount.get(clientIndex), msg.getArmyCountRemaining());
+        }
+        // let player to act do their turn
+        sendArmyPlaceIfClientsTurn(clientPlayers[clientIndex].getUid(), msg.getFromPlayerID(), clients.get(clientIndex));
     }
 
     private synchronized void sendArmyPlaceIfClientsTurn(int clientPlayerID, int prevTurnPlayerID, NetworkClientKryo client) {

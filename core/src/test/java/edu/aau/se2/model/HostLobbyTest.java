@@ -29,6 +29,7 @@ public class HostLobbyTest {
     @Test
     public void testHostLobby() throws IOException, InterruptedException {
         startServer();
+        Thread.sleep(1000);
         startClients();
         // wait for server and client to handle messages
         Thread.sleep(3000);
@@ -81,6 +82,8 @@ public class HostLobbyTest {
 
             }
         });
+        db1.connectIfNotConnected();
+        db2.connectIfNotConnected();
     }
 
     @After

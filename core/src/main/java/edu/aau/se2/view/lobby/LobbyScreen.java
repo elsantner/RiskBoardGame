@@ -27,7 +27,7 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
     private BitmapFont font;
 
     private Database db;
-    public List<Player> users;
+    private List<Player> users;
 
     public LobbyScreen() {
         db = Database.getInstance();
@@ -122,6 +122,14 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
         lobbyText = new Texture(Gdx.files.internal("lobby/lobby2.png"));
         lobbyOverlay = new Texture(Gdx.files.internal("lobby/lobbyMenuOverlay.png"));
         line = new Texture(Gdx.files.internal("lobby/line.png"));
+    }
+
+    public List<Player> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<Player> users) {
+        this.users = users;
     }
 
     @Override

@@ -1,12 +1,16 @@
 package edu.aau.se2.server.data;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 
 import edu.aau.se2.server.logic.ArmyCountHelper;
 
 public class Lobby {
+    private static final Integer[] COLOR_IDS = {0, 1, 2, 3, 4, 5};
+
     private int lobbyID;
     private TreeMap<Integer, Player> players;
     private Player host;
@@ -15,6 +19,7 @@ public class Lobby {
     private Territory[] territories;
     private boolean isStarted;
     private boolean areInitialArmiesPlaced;
+    private boolean hasCurrentPlayerToActReceivedNewArmies;
 
     public Lobby(int lobbyID) {
         this.lobbyID = lobbyID;
@@ -65,9 +70,11 @@ public class Lobby {
      * Give all players a unique color
      */
     public void setupForGameStart() {
-        int curColorID = 0;
+        int curColorIDIndex = 0;
+        List<Integer> randomColorPermutation = Arrays.asList(COLOR_IDS);
+        Collections.shuffle(randomColorPermutation);
         for (Player p: players.values()) {
-            p.setColorID(curColorID++);
+            p.setColorID(randomColorPermutation.get(curColorIDIndex++));
             p.setArmyReserveCount(ArmyCountHelper.getStartCount(players.size()));
         }
     }
@@ -89,11 +96,17 @@ public class Lobby {
     }
 
     public boolean areInitialArmiesPlaced() {
+        // check if all players have 0 armies remaining and initial armies have not yet been placed
+        if (!areInitialArmiesPlaced) {
+            int sumRemainingArmies = 0;
+            for (Player p: players.values()) {
+                sumRemainingArmies += p.getArmyReserveCount();
+            }
+            if (sumRemainingArmies == 0) {
+                areInitialArmiesPlaced = true;
+            }
+        }
         return areInitialArmiesPlaced;
-    }
-
-    public void setInitialArmiesPlaced(boolean areInitialArmiesPlaced) {
-        this.areInitialArmiesPlaced = areInitialArmiesPlaced;
     }
 
     public List<Integer> getTurnOrder() {
@@ -109,21 +122,22 @@ public class Lobby {
         return players.get(turnOrder.get(currentTurnIndex));
     }
 
-    public void nextPlayerTurn() {
+    public void nextPlayersTurn() {
         this.currentTurnIndex++;
         this.currentTurnIndex %= getPlayers().size();
+        hasCurrentPlayerToActReceivedNewArmies = false;
     }
 
     private void initTerritories() {
         this.territories = new Territory[42];
         for (int i=0; i<42; i++) {
-            this.territories[i] = new Territory(i+1);
+            this.territories[i] = new Territory(i);
         }
     }
 
     public synchronized Territory getTerritoryByID(int territoryID) {
         try {
-            return territories[territoryID - 1];
+            return territories[territoryID];
         }
         catch (ArrayIndexOutOfBoundsException ex) {
             throw new IllegalArgumentException("no territory with id " + territoryID + " exists");
@@ -139,12 +153,17 @@ public class Lobby {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return "Lobby{" +
-                "lobbyID=" + lobbyID +
-                ", players=" + players +
-                ", host=" + host +
-                '}';
+    /**
+     * Calculate and set the number of new armies based on occupied territories
+     * @param playerID Player to give armies to.
+     */
+    public void giveNewArmiesToPlayer(int playerID) {
+        Player p = players.get(playerID);
+        p.setArmyReserveCount(ArmyCountHelper.getNewArmyCount(territories, playerID));
+        hasCurrentPlayerToActReceivedNewArmies = true;
+    }
+
+    public boolean hasCurrentPlayerToActReceivedNewArmies() {
+        return hasCurrentPlayerToActReceivedNewArmies;
     }
 }
