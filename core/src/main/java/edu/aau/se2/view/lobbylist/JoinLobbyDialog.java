@@ -1,6 +1,5 @@
 package edu.aau.se2.view.lobbylist;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
@@ -35,7 +34,7 @@ public class JoinLobbyDialog extends Dialog {
 
     @Override
     protected void result(Object object) {
-        if (object instanceof Boolean && (Boolean)object) {
+        if ((boolean)object) {
             Database.getInstance().joinLobby(lobbyID);
         }
     }

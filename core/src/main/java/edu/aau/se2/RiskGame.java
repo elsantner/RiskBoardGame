@@ -5,17 +5,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
-import edu.aau.se2.model.listener.OnLeftLobbyListener;
-import edu.aau.se2.model.listener.OnLobbyListChangedListener;
 import edu.aau.se2.server.data.Player;
-import edu.aau.se2.server.networking.dto.LobbyListMessage;
 import edu.aau.se2.view.game.GameScreen;
 import edu.aau.se2.view.lobby.LobbyScreen;
 import edu.aau.se2.view.lobbylist.LobbyListScreen;

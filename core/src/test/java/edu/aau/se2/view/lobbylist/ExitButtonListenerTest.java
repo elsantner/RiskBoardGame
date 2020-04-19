@@ -19,7 +19,7 @@ public class ExitButtonListenerTest {
 
     @Test
     public void touchDown() {
-        ExitButtonListener listener = new ExitButtonListener(game);
+        ExitButtonListener listener = new ExitButtonListener();
         listener.touchDown(null, 0, 0, 0, 0);
         // TODO fix test
         //verify(game).setScreen(any());

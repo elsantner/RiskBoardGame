@@ -27,7 +27,7 @@ public class NetworkClientKryo implements NetworkClient, KryoNetComponent {
     }
 
     @Override
-    public void registerClass(Class c) {
+    public void registerClass(Class<?> c) {
         client.getKryo().register(c);
     }
 

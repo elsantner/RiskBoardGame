@@ -29,7 +29,7 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
     }
 
     @Override
-    public void registerClass(Class c) {
+    public void registerClass(Class<?> c) {
         server.getKryo().register(c);
     }
 
@@ -81,6 +81,7 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
 
     @Override
     public void broadcastMessage(BaseMessage message) {
+        logBroadcast(message);
         for (Connection connection : server.getConnections())
             connection.sendTCP(message);
     }
@@ -90,6 +91,7 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
     }
 
     public void broadcastMessage(BaseMessage message, List<Player> recipients) {
+        logBroadcast(message);
         for (Player p: recipients) {
             if (p != null) {
                 Connection connection = connections.get(p.getUid());
@@ -98,5 +100,9 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
                 }
             }
         }
+    }
+
+    private void logBroadcast(BaseMessage message) {
+        Logger.getAnonymousLogger().info("Broadcasting " + message.getClass().getSimpleName());
     }
 }

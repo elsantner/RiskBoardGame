@@ -1,6 +1,5 @@
 package edu.aau.se2.view.lobbylist;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
@@ -18,11 +17,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import edu.aau.se2.model.Database;
-import edu.aau.se2.model.listener.OnLobbyListChangedListener;
 import edu.aau.se2.server.networking.dto.LobbyListMessage;
 
 public class LobbyListScreen extends ScreenAdapter {
@@ -35,8 +31,6 @@ public class LobbyListScreen extends ScreenAdapter {
     private SpriteBatch batch;
 
     private Stage stage;
-    private Table outerTable;
-    private Table lobbyListTable;
 
     private List<LobbyListMessage.LobbyData> lobbyData;
 
@@ -79,18 +73,16 @@ public class LobbyListScreen extends ScreenAdapter {
         final Skin skin = new Skin(Gdx.files.internal("lobbylistskin/uiskin.json"));
         skin.getFont("default-font").getData().setScale(0.5f);
 
-        lobbyListTable = new Table();
+        Table lobbyListTable = new Table();
         lobbyListTable.setBounds(0,0,1600, 1600);
 
         for (LobbyListMessage.LobbyData l: lobbyData) {
-            System.out.println(l);
             Label text = new Label(l.getHost().getNickname(), skin);
             Label text2 = new Label("Players: " + l.getPlayerCount(), skin);
             TextButton text3 = new TextButton("Beitreten", skin);
             text3.addListener(new ClickListener() {
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                    System.out.println("event = " + event + ", x = " + x + ", y = " + y + ", pointer = " + pointer + ", button = " + button);
                     new JoinLobbyDialog("Beitreten", skin, l.getLobbyID()).show(stage);
                     return true;
                 }
@@ -104,7 +96,7 @@ public class LobbyListScreen extends ScreenAdapter {
 
         final ScrollPane scroller = new ScrollPane(lobbyListTable);
 
-        outerTable = new Table();
+        Table outerTable = new Table();
         outerTable.setFillParent(true);
         outerTable.pad(120f);
 

@@ -87,7 +87,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private OnLeftLobbyListener onLeftLobbyListener;
     private OnErrorListener errorListener;
 
-    private List<LobbyListMessage.LobbyData> lobbyList;
     private Player thisPlayer;
     private TreeMap<Integer, Player> currentPlayers;
     private List<Integer> turnOrder;
@@ -203,7 +202,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleLobbyListMessage((LobbyListMessage) msg);
             }
             else if (msg instanceof LeftLobbyMessage) {
-                handleLeftLobbyMessage((LeftLobbyMessage) msg);
+                handleLeftLobbyMessage();
             }
             else if (msg instanceof NextTurnMessage) {
                 handleNextTurnMessage((NextTurnMessage) msg);
@@ -223,7 +222,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
-    private void handleLeftLobbyMessage(LeftLobbyMessage msg) {
+    private void handleLeftLobbyMessage() {
         resetLobby();
         if (onLeftLobbyListener != null) {
             onLeftLobbyListener.leftLobby();
@@ -231,7 +230,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private void handleLobbyListMessage(LobbyListMessage msg) {
-        this.lobbyList = msg.getLobbies();
+        List<LobbyListMessage.LobbyData> lobbyList = msg.getLobbies();
         if (lobbyListChangedListener != null) {
             lobbyListChangedListener.lobbyListChanged(lobbyList);
         }
@@ -439,7 +438,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         return initialArmyPlacementFinished;
     }
 
-    public List<Player> getCurrentPlayers() {
+    public synchronized List<Player> getCurrentPlayers() {
         return new ArrayList<>(currentPlayers.values());
     }
 

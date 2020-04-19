@@ -9,7 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.*;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -18,8 +18,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -81,7 +79,7 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
         TextButton ready = new TextButton("Bereit", skin);
         ready.addListener(new ReadyButtonListener());
         TextButton exit = new TextButton("Verlassen", skin);
-        exit.addListener(new ExitButtonListener(null));
+        exit.addListener(new ExitButtonListener());
 
         VerticalGroup buttonGroup = new VerticalGroup();
         buttonGroup.addActor(ready);
@@ -113,8 +111,8 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
 
     private void renderUsers() {
 
-        int xCord = (int)((width * 55) / 1080);
-        int yCord = (int)((height  * 760) / 1080);
+        int xCord = (width * 55) / 1080;
+        int yCord = (height  * 760) / 1080;
 
         batch.begin();
         for (Player us : users
@@ -130,7 +128,7 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
                 font.setColor(new Color(0.8f, 0, 0, 1));
                 font.draw(batch, "!ready", (xCord +(int)((width * 1200)/ 1920)), yCord);
             }
-            yCord -= (int)((height * 150) / 1080);
+            yCord -= (height * 150) / 1080;
         }
         batch.end();
 
@@ -164,9 +162,10 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
             line.dispose();
             font.dispose();
             lobbyText.dispose();
+            skin.dispose();
         }
         catch (Exception ex) {
-            Logger.getLogger("LobbyScreen").log(Level.WARNING, "Error disposing assets", ex);
+            Logger.getLogger(TAG).log(Level.WARNING, "Error disposing assets", ex);
         }
     }
 
