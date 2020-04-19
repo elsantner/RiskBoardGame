@@ -67,16 +67,16 @@ public class LobbyListScreen extends ScreenAdapter {
     @Override
     public void show() {
         Gdx.app.log(TAG, "Loading assets");
-        background = new Texture(Gdx.files.internal("lobby/lobbyScreen.png"));
-        lobbyText = new Texture(Gdx.files.internal("lobby/lobby2.png"));
-        lobbyOverlay = new Texture(Gdx.files.internal("lobby/lobbyMenuOverlay.png"));
-        line = new Texture(Gdx.files.internal("lobby/line.png"));
+        background = new Texture(Gdx.files.internal("lobbylist/lobbyScreen.png"));
+        lobbyText = new Texture(Gdx.files.internal("lobbylist/lobby2.png"));
+        lobbyOverlay = new Texture(Gdx.files.internal("lobbylist/lobbyMenuOverlay.png"));
+        line = new Texture(Gdx.files.internal("lobbylist/line.png"));
         batch = new SpriteBatch();
 
         this.stage = new Stage(new StretchViewport(1920,1080));
         stage.stageToScreenCoordinates(new Vector2(0,0));
         Gdx.input.setInputProcessor(this.stage);
-        final Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        final Skin skin = new Skin(Gdx.files.internal("lobbylistskin/uiskin.json"));
         skin.getFont("default-font").getData().setScale(0.5f);
 
         lobbyListTable = new Table();
@@ -85,7 +85,7 @@ public class LobbyListScreen extends ScreenAdapter {
         for (LobbyListMessage.LobbyData l: lobbyData) {
             System.out.println(l);
             Label text = new Label(l.getHost().getNickname(), skin);
-            Label text2 = new Label("Player Count: " + l.getPlayerCount(), skin);
+            Label text2 = new Label("Players: " + l.getPlayerCount(), skin);
             TextButton text3 = new TextButton("Beitreten", skin);
             text3.addListener(new ClickListener() {
                 @Override
@@ -96,9 +96,9 @@ public class LobbyListScreen extends ScreenAdapter {
                 }
             });
 
-            lobbyListTable.add(text).minHeight(80f).minWidth(180f);
-            lobbyListTable.add(text2).minHeight(30f).minWidth(180f);
-            lobbyListTable.add(text3).minHeight(30f).minWidth(180f);
+            lobbyListTable.add(text).minHeight(80f).minWidth(250f).pad(50f);
+            lobbyListTable.add(text2).minHeight(30f).minWidth(250f).pad(50f);
+            lobbyListTable.add(text3).minHeight(30f).minWidth(250f).pad(50f);
             lobbyListTable.row();
         }
 

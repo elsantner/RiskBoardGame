@@ -21,6 +21,8 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
@@ -40,7 +42,6 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
     private int height;
     private int width;
     private Stage stage;
-    private Table lobbyListTable;
     private Skin skin;
 
     private Database db;
@@ -157,11 +158,16 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
 
     @Override
     public void dispose() {
-        background.dispose();
-        lobbyOverlay.dispose();
-        line.dispose();
-        font.dispose();
-        lobbyText.dispose();
+        try {
+            background.dispose();
+            lobbyOverlay.dispose();
+            line.dispose();
+            font.dispose();
+            lobbyText.dispose();
+        }
+        catch (Exception ex) {
+            Logger.getLogger("LobbyScreen").log(Level.WARNING, "Error disposing assets", ex);
+        }
     }
 
     private void assets() {

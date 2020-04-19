@@ -48,8 +48,9 @@ public class RiskGame extends Game {
 		db.setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override
 			public void connected(Player thisPlayer) {
-				//db.hostLobby();
-				db.triggerLobbyListUpdate();
+				// TODO: Change whether you want the host or joiner varient (until main menu is here...)
+				db.hostLobby();
+				//db.triggerLobbyListUpdate();
 			}
 
 			@Override

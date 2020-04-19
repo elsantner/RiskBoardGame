@@ -16,7 +16,7 @@ public class ReadyButtonListener extends ClickListener {
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
         System.out.println("event = " + event + ", x = " + x + ", y = " + y + ", pointer = " + pointer + ", button = " + button);
         Gdx.app.log(TAG, "Bereit");
-        Database.getInstance().setPlayerReady(true);
+        Database.getInstance().togglePlayerReady();
         return true;
     }
 }

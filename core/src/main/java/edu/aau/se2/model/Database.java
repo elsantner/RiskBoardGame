@@ -364,7 +364,16 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public void setPlayerReady(boolean ready) {
         log.info("Sending ReadyMessage");
-        client.sendMessage(new ReadyMessage(0, thisPlayer.getUid(), ready));
+        client.sendMessage(new ReadyMessage(currentLobbyID, thisPlayer.getUid(), ready));
+    }
+
+    public void togglePlayerReady() {
+        log.info("Sending ReadyMessage");
+        Player player = currentPlayers.get(thisPlayer.getUid());
+        if (player != null) {
+            client.sendMessage(new ReadyMessage(currentLobbyID, thisPlayer.getUid(),
+                    !player.isReady()));
+        }
     }
 
     @Override
