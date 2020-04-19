@@ -44,8 +44,8 @@ public class RiskGame extends Game {
 			@Override
 			public void connected(Player thisPlayer) {
 				// TODO: Change whether you want the host or joiner varient (until main menu is here...)
-				db.hostLobby();
-				//db.triggerLobbyListUpdate();
+				//db.hostLobby();
+				db.triggerLobbyListUpdate();
 			}
 
 			@Override
@@ -66,8 +66,13 @@ public class RiskGame extends Game {
 	@Override
 	public void dispose () {
 		super.dispose();
-		gameScreen.dispose();
-		lobbyScreen.dispose();
+		try {
+			gameScreen.dispose();
+			lobbyScreen.dispose();
+		}
+		catch (Exception ex) {
+			Logger.getLogger("RiskGame").log(Level.WARNING, "Error: ", ex);
+		}
 	}
     @Override
     public void setScreen(Screen screen) {

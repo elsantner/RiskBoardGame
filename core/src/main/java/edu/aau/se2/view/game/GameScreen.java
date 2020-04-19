@@ -24,6 +24,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public GameScreen() {
         this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
+
     public GameScreen(int width, int height) {
         boardStage = new BoardStage(new FitViewport(width, height));
         tmpHUDStage = new Stage(new FitViewport(width, height));
@@ -33,7 +34,9 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         db.setNextTurnListener(this);
         // trigger player turn update because listener might not have been registered when
         // server message was received
-        isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());
+        if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
+            isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());
+        }
     }
 
     public void setListener(OnBoardInteractionListener l) {
@@ -47,7 +50,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     @Override
     public void show() {
         inputMultiplexer = new InputMultiplexer();
-        inputMultiplexer.addProcessor(new GestureDetector(boardStage));
+        inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
