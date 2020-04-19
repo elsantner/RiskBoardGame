@@ -7,6 +7,6 @@ public interface KryoNetComponent {
      *
      * @param c
      */
-    void registerClass(Class c);
+    void registerClass(Class<?> c);
 
 }

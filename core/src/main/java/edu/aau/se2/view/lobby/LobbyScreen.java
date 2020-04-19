@@ -9,15 +9,24 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.*;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 
-
-import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.view.lobbylist.ExitButtonListener;
+import edu.aau.se2.view.lobbylist.ReadyButtonListener;
 
 public class LobbyScreen implements Screen, OnPlayersChangedListener {
 
@@ -30,6 +39,8 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
     private BitmapFont font;
     private int height;
     private int width;
+    private Stage stage;
+    private Skin skin;
 
     private Database db;
     private List<Player> users;
@@ -38,7 +49,7 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
         db = Database.getInstance();
         db.setPlayersChangedListener(this);
 
-        users = new ArrayList<>();
+        users = db.getCurrentPlayers();
 
         height = Gdx.graphics.getHeight();
         width = Gdx.graphics.getWidth();
@@ -55,7 +66,27 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
 
     @Override
     public void show() {
-        // show
+        this.stage = new Stage(new StretchViewport(1920,1080));
+        stage.stageToScreenCoordinates(new Vector2(0,0));
+        Gdx.input.setInputProcessor(this.stage);
+        skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        skin.getFont("default-font").getData().setScale(0.5f);
+
+        Table outerTable = new Table();
+        outerTable.setFillParent(true);
+        outerTable.pad(120f);
+
+        TextButton ready = new TextButton("Bereit", skin);
+        ready.addListener(new ReadyButtonListener());
+        TextButton exit = new TextButton("Verlassen", skin);
+        exit.addListener(new ExitButtonListener());
+
+        VerticalGroup buttonGroup = new VerticalGroup();
+        buttonGroup.addActor(ready);
+        buttonGroup.addActor(exit);
+        outerTable.add(buttonGroup);
+
+        this.stage.addActor(outerTable);
     }
 
     @Override
@@ -74,12 +105,14 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
 
         batch.end();
         renderUsers();
+        stage.act();
+        stage.draw();
     }
 
     private void renderUsers() {
 
-        int xCord = (int)((width * 55) / 1080);
-        int yCord = (int)((height  * 760) / 1080);
+        int xCord = (width * 55) / 1080;
+        int yCord = (height  * 760) / 1080;
 
         batch.begin();
         for (Player us : users
@@ -95,7 +128,7 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
                 font.setColor(new Color(0.8f, 0, 0, 1));
                 font.draw(batch, "!ready", (xCord +(int)((width * 1200)/ 1920)), yCord);
             }
-            yCord -= (int)((height * 150) / 1080);
+            yCord -= (height * 150) / 1080;
         }
         batch.end();
 
@@ -123,11 +156,17 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
 
     @Override
     public void dispose() {
-        background.dispose();
-        lobbyOverlay.dispose();
-        line.dispose();
-        font.dispose();
-        lobbyText.dispose();
+        try {
+            background.dispose();
+            lobbyOverlay.dispose();
+            line.dispose();
+            font.dispose();
+            lobbyText.dispose();
+            skin.dispose();
+        }
+        catch (Exception ex) {
+            Logger.getLogger(TAG).log(Level.WARNING, "Error disposing assets", ex);
+        }
     }
 
     private void assets() {

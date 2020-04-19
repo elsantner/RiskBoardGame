@@ -40,7 +40,7 @@ public class HostLobbyTest {
     }
 
     private void startServer() throws IOException {
-        server = new MainServer(true);
+        server = new MainServer();
         server.start();
     }
 

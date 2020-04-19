@@ -166,4 +166,35 @@ public class Lobby {
     public boolean hasCurrentPlayerToActReceivedNewArmies() {
         return hasCurrentPlayerToActReceivedNewArmies;
     }
+
+    public boolean isJoinable() {
+        return !isStarted && players.size() < 6;
+    }
+
+    public void join(Player p) {
+        if (p == null) {
+            throw new NullPointerException("player must not be null");
+        }
+        if (players.containsKey(p.getUid())) {
+            throw new IllegalStateException("player already joined");
+        }
+        if (!isJoinable()) {
+            throw new IllegalStateException("lobby not joinable");
+        }
+        players.put(p.getUid(), p);
+    }
+
+    public void leave(Player p) {
+        if (p.getUid() == host.getUid()) {
+            throw new IllegalArgumentException("host cannot leave lobby");
+        }
+        else if (isStarted) {
+            throw new IllegalArgumentException("cannot leave started lobby");
+        }
+        players.remove(p.getUid());
+    }
+
+    public boolean isPlayerJoined(int playerID) {
+        return players.containsKey(playerID);
+    }
 }
