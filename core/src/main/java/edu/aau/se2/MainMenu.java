@@ -4,15 +4,21 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+
+import edu.aau.se2.model.Database;
 
 public class MainMenu implements Screen {
     private RiskGame riskGame;
@@ -29,7 +35,7 @@ public class MainMenu implements Screen {
 
     public MainMenu(RiskGame riskGame){
         this.riskGame = riskGame;
-        mySkin = new Skin(Gdx.files.internal("skin/star-soldier-ui.json"));
+        mySkin = new Skin(Gdx.files.internal("skinMainMenu/star-soldier-ui.json"));
         gamePort = new ScreenViewport();
         stage = new Stage(gamePort);
         gameTitle = new Label("GAME MENU", mySkin);
@@ -60,7 +66,43 @@ public class MainMenu implements Screen {
         stage.addActor(settings);
         stage.addActor(exit);
 
+        onClickButtons();
+        Gdx.input.setInputProcessor(stage);
     }
+
+   public void onClickButtons(){
+       create.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Database.getInstance().hostLobby();
+            }
+        });
+
+
+        join.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Database.getInstance().triggerLobbyListUpdate();
+            }
+        });
+
+        settings.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                //ToDo Implement the Settings Screen
+            }
+        });
+
+        exit.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Gdx.app.exit();
+            }
+        });
+
+
+    }
+
 
 
     @Override
