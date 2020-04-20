@@ -2,21 +2,14 @@
 package edu.aau.se2.view.game;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
-
 import java.util.Locale;
-
-import edu.aau.se2.RiskGame;
-
 
 public class HudStage extends Stage implements Disposable {
     private Integer scoreOwn;
@@ -39,7 +32,6 @@ public class HudStage extends Stage implements Disposable {
     private Label attacksMadeLabel;
     private Label attacksGotLabel;
     private Label scoreOwnLabel;
-    private Label colorOwn;
     private Label scoreOpponentOneLabel;
     private Label scoreOpponentTwoLabel;
     private Label scoreOpponentThreeLabel;
@@ -101,7 +93,7 @@ public class HudStage extends Stage implements Disposable {
         table.add(scoreOpponentTwoLabel).expandX();
         table.row();
         //row 4
-        table.add().expandX();
+        table.add(attacksGotLabel).expandX();
         table.add().expandX();
         table.add(scoreOpponentThreeLabel).expandX();
 
