@@ -18,6 +18,7 @@ import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener {
     private BoardStage boardStage;
     private Stage tmpHUDStage;
+    private HudStage hudStage;
     private Database db;
     private InputMultiplexer inputMultiplexer;
 
@@ -28,6 +29,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public GameScreen(int width, int height) {
         boardStage = new BoardStage(new FitViewport(width, height));
         tmpHUDStage = new Stage(new FitViewport(width, height));
+        hudStage = new HudStage(new FitViewport(width, height));
         db = Database.getInstance();
         boardStage.setListener(db);
         db.setTerritoryUpdateListener(this);
@@ -60,8 +62,12 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         Gdx.gl.glClearColor(1, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        //boardStage.draw();
+        //tmpHUDStage.draw();
+        boardStage.getViewport().apply();
         boardStage.draw();
-        tmpHUDStage.draw();
+        hudStage.getViewport().apply();
+        hudStage.draw();
     }
 
     @Override
@@ -87,6 +93,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     @Override
     public void dispose() {
         boardStage.dispose();
+        hudStage.dispose();
     }
 
     @Override
