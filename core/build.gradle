@@ -1,19 +1,30 @@
 apply plugin: "java"
 apply plugin: "jacoco"
 
-sourceCompatibility = 1.7
+sourceCompatibility = 1.8
 dependencies {
     implementation 'junit:junit:4.12'
+    implementation 'com.esotericsoftware:kryonet:2.22.0-RC1'
+    implementation project(path: ':server', configuration: 'default')
+    implementation 'org.mockito:mockito-core:3.3.3'
+    implementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+    implementation 'com.badlogicgames.gdx:gdx-freetype:1.9.10'
 }
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 sourceSets.main.java.srcDirs = [ "src/main/java", "src/test/java" ]
+sourceSets.main.resources.srcDirs = [ "../android/src/main/assets/" ]
 
 eclipse.project.name = appName + "-core"
 
 jacoco {
     toolVersion = "0.7.1.201405082137"
 }
+
 
 repositories {
     mavenCentral()
@@ -23,6 +34,10 @@ test {
     jacoco {
         append = false
     }
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+    }
 }
 
 jacocoTestReport {
@@ -31,3 +46,4 @@ jacocoTestReport {
         csv.enabled false
     }
 }
+

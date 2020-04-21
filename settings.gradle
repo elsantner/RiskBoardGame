@@ -1,2 +1,3 @@
 rootProject.name='RiskBoardGame'
-include 'android', 'core'
+include 'android', 'core', 'desktop'
+include ':server'
