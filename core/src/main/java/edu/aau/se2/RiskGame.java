@@ -19,9 +19,11 @@ public class RiskGame extends Game {
 	private GameScreen gameScreen;
 	private LobbyScreen lobbyScreen;
 	private LobbyListScreen lobbyListScreen;
+	private MainMenu mainMenuScreen;
 
 	@Override
 	public void create () {
+
         Database db = Database.getInstance();
 		db.setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
             gameScreen = new GameScreen();
@@ -40,12 +42,15 @@ public class RiskGame extends Game {
 			setScreen(lobbyListScreen);
 		}));
 
+		mainMenuScreen = new MainMenu(this);
+		setScreen(mainMenuScreen);
+
 		db.setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override
 			public void connected(Player thisPlayer) {
-				// TODO: Change whether you want the host or joiner varient (until main menu is here...)
+				/*// TODO: Change whether you want the host or joiner varient (until main menu is here...)
 				//db.hostLobby();
-				db.triggerLobbyListUpdate();
+				db.triggerLobbyListUpdate();*/
 			}
 
 			@Override
