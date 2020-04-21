@@ -95,7 +95,8 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         boardStage.setArmyColor(territoryID, colorID);
 
         if (db.isInitialArmyPlacementFinished() && db.isThisPlayersTurn() && db.getCurrentArmyReserve() == 0) {
-            showFinishTurnDialog();
+            //showFinishTurnDialog();
+            db.finishTurn();
         }
     }
 

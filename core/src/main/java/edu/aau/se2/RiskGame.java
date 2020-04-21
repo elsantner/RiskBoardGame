@@ -29,10 +29,10 @@ public class RiskGame extends Game {
             gameScreen = new GameScreen();
             setScreen(gameScreen);
         }));
-		db.setLeftLobbyListener(() -> {
-			// TODO: Go to Main Menu when implemented
-			System.exit(1);
-		});
+		db.setLeftLobbyListener(() -> Gdx.app.postRunnable(() -> {
+			mainMenuScreen = new MainMenu(this);
+			setScreen(mainMenuScreen);
+		}));
 		db.setJoinedLobbyListener((lobbyID, host, players) -> Gdx.app.postRunnable(() -> {
 			lobbyScreen = new LobbyScreen();
 			setScreen(lobbyScreen);
@@ -48,9 +48,6 @@ public class RiskGame extends Game {
 		db.setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override
 			public void connected(Player thisPlayer) {
-				/*// TODO: Change whether you want the host or joiner varient (until main menu is here...)
-				//db.hostLobby();
-				db.triggerLobbyListUpdate();*/
 			}
 
 			@Override

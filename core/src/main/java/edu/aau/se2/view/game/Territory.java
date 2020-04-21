@@ -164,7 +164,7 @@ public class Territory extends Actor {
         this.polygonHitbox = hitbox;
         this.name = name;
         this.armyPosition = armyPosition;
-        this.armyColor = null;
+        this.armyColor = Color.CLEAR;
         this.armyCount = 0;
         this.font = new BitmapFont();
         this.armyCirlce = new Texture(AssetName.ARMY_DISPLAY_CIRCLE);
