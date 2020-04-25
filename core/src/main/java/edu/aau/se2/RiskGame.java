@@ -26,7 +26,10 @@ public class RiskGame extends Game {
 	public void create () {
 
         Database db = Database.getInstance();
-		db.setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
+
+		gameScreen = new GameScreen();
+		setScreen(gameScreen);
+		/*db.setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
             gameScreen = new GameScreen();
             setScreen(gameScreen);
         }));
@@ -57,7 +60,7 @@ public class RiskGame extends Game {
 				System.exit(-1);
 			}
 		});
-
+		*/
 		try {
 			db.connectIfNotConnected();
 		} catch (IOException e) {

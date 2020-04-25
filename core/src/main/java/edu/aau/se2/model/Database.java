@@ -17,6 +17,7 @@ import edu.aau.se2.model.listener.OnJoinedLobbyListener;
 import edu.aau.se2.model.listener.OnLeftLobbyListener;
 import edu.aau.se2.model.listener.OnLobbyListChangedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
+import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.server.data.Player;
@@ -86,6 +87,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private OnLobbyListChangedListener lobbyListChangedListener;
     private OnLeftLobbyListener onLeftLobbyListener;
     private OnErrorListener errorListener;
+    private OnPhaseChangedListener phaseChangedListener;
 
     private Player thisPlayer;
     private TreeMap<Integer, Player> currentPlayers;
@@ -97,7 +99,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private int currentTurnPlayerID;
     private boolean hasPlayerReceivedArmiesThisTurn;
 
-    private int currentArmyReserve = 0;
+    private int currentArmyReserve;
+    private Phase currentPhase;
 
     protected Database() {
         resetLobby();
@@ -108,6 +111,10 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         SerializationRegister.registerClassesForComponent(client);
         registerClientCallback();
         setupLogger();
+    }
+
+    public enum Phase {
+        PLACING, ATTACKING, MOVING, NONE
     }
 
     private void setupLogger() {
@@ -140,6 +147,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         currentTurnIndex = 0;
         initialArmyPlacementFinished = false;
         currentLobbyID = -1;
+        currentPhase = Phase.NONE;
+        currentArmyReserve = 0;
         initTerritoryData();
     }
 
@@ -150,18 +159,15 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
+    public void setPhaseChangedListener(OnPhaseChangedListener l) { this.phaseChangedListener = l; }
     public void setErrorListener(OnErrorListener l) {
         this.errorListener = l;
     }
     public void setLeftLobbyListener(OnLeftLobbyListener l) {
         this.onLeftLobbyListener = l;
     }
-    public void setLobbyListChangedListener(OnLobbyListChangedListener l) {
-        this.lobbyListChangedListener = l;
-    }
-    public void setConnectionChangedListener(OnConnectionChangedListener l) {
-        this.connectionChangedListener = l;
-    }
+    public void setLobbyListChangedListener(OnLobbyListChangedListener l) { this.lobbyListChangedListener = l; }
+    public void setConnectionChangedListener(OnConnectionChangedListener l) { this.connectionChangedListener = l; }
     public void setGameStartListener(OnGameStartListener l) {
         this.gameStartListener = l;
     }
@@ -247,6 +253,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
         initialArmyPlacementFinished = true;
         currentTurnPlayerID = msg.getPlayerToActID();
+        setCurrentPhase(Phase.PLACING);
+
         if (nextTurnListener != null) {
             nextTurnListener.isPlayersTurnNow(currentTurnPlayerID,
                     thisPlayer.getUid() == currentTurnPlayerID);
@@ -311,6 +319,10 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                     territoryData[msg.getOnTerritoryID()].getArmyCount(),
                     currentPlayers.get(msg.getFromPlayerID()).getColorID());
         }
+        if (msg.getArmyCountRemaining() == 0) {
+            setCurrentPhase(Phase.ATTACKING);
+        }
+
         // if this message is part of initial army placement, initiate next turn
         if (!initialArmyPlacementFinished) {
             nextPlayersTurn();
@@ -458,5 +470,20 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public int getCurrentLobbyID() {
         return currentLobbyID;
+    }
+
+    public void finishAttackingPhase() {
+        setCurrentPhase(Phase.MOVING);
+    }
+
+    private void setCurrentPhase(Phase phase) {
+        this.currentPhase = phase;
+        if (phaseChangedListener != null) {
+            phaseChangedListener.phaseChanged(phase);
+        }
+    }
+
+    public Phase getCurrentPhase() {
+        return currentPhase;
     }
 }
