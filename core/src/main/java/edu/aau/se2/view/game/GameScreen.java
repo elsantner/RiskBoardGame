@@ -3,9 +3,11 @@ package edu.aau.se2.view.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 import edu.aau.se2.model.Database;
@@ -15,19 +17,21 @@ import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 /**
  * @author Elias
  */
-public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener {
+public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener, OnHUDInteractionListener {
     private BoardStage boardStage;
-    private Stage tmpHUDStage;
+    private TempHUDStage tmpHUDStage;
     private Database db;
     private InputMultiplexer inputMultiplexer;
+    private AssetManager assetManager;
 
-    public GameScreen() {
-        this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+    public GameScreen(AssetManager assetManager) {
+        this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), assetManager);
     }
 
-    public GameScreen(int width, int height) {
+    public GameScreen(int width, int height, AssetManager assetManager) {
+        this.assetManager = assetManager;
         boardStage = new BoardStage(new FitViewport(width, height));
-        tmpHUDStage = new Stage(new FitViewport(width, height));
+        tmpHUDStage = new TempHUDStage(new FitViewport(width, height), assetManager, this);
         db = Database.getInstance();
         boardStage.setListener(db);
         db.setTerritoryUpdateListener(this);
@@ -51,7 +55,9 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public void show() {
         inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
+        inputMultiplexer.addProcessor(tmpHUDStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
+        showFinishTurnDialog();
     }
 
     @Override
@@ -101,19 +107,45 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     }
 
     private void showFinishTurnDialog() {
-        inputMultiplexer.addProcessor(tmpHUDStage);
+        boardStage.setInteractable(false);
         ConfirmDialog dialog = new ConfirmDialog("Zug beenden",
-                "Möchten Sie Ihren Zug beenden?", "Ja", "Nein",
+                "Moechten Sie Ihren Zug beenden?", "Ja", "Nein",
                 result -> {
-                    inputMultiplexer.removeProcessor(tmpHUDStage);
-                    db.finishTurn();
+                    if (result) {
+                        db.finishTurn();
+                    }
+                    boardStage.setInteractable(true);
+                    tmpHUDStage.setPhase(Database.Phase.ATTACKING);
                 });
+        showDialog(dialog);
+    }
+
+    private void showSkipAttackingPhaseDialog() {
+        boardStage.setInteractable(false);
+        ConfirmDialog dialog = new ConfirmDialog("Phase beenden",
+                "Moechten Sie die Angriffsphase beenden?", "Ja", "Nein",
+                result -> {
+                    boardStage.setInteractable(true);
+                    if (result) {
+                        tmpHUDStage.setPhase(Database.Phase.MOVING);
+                    }
+                });
+        showDialog(dialog);
+    }
+
+    private void showDialog(ConfirmDialog dialog) {
         dialog.show(tmpHUDStage);
-        dialog.setMovable(false);
+        dialog.scaleBy(3);
+        dialog.setOrigin(Align.center);
     }
 
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
         boardStage.setArmiesPlacable(isThisPlayer);
+    }
+
+    @Override
+    public void stageSkipButtonClicked() {
+        showSkipAttackingPhaseDialog();
     }
 }

@@ -14,7 +14,6 @@ public class ConfirmDialog extends Dialog {
         this.button(textYes, true); //send "true" as the result
         this.button(textNo, false); //send "false" as the result
         this.setMovable(false);
-        this.setScale(4);
         this.listener = listener;
     }
 
