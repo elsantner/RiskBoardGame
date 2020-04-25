@@ -9,6 +9,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import edu.aau.se2.model.listener.OnArmiesMovedListener;
 import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.model.listener.OnErrorListener;
@@ -24,6 +25,7 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
+import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
@@ -88,6 +90,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private OnLeftLobbyListener onLeftLobbyListener;
     private OnErrorListener errorListener;
     private OnPhaseChangedListener phaseChangedListener;
+    private OnArmiesMovedListener armiesMovedListener;
 
     private Player thisPlayer;
     private TreeMap<Integer, Player> currentPlayers;
@@ -159,6 +162,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
+    public void setArmiesMovedListener(OnArmiesMovedListener l) { this.armiesMovedListener = l; }
     public void setPhaseChangedListener(OnPhaseChangedListener l) { this.phaseChangedListener = l; }
     public void setErrorListener(OnErrorListener l) {
         this.errorListener = l;
@@ -185,7 +189,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private void registerClientCallback() {
         this.client.registerCallback(msg -> {
-            log.info("Received " + msg.getClass().getSimpleName());
+            log.info("[Client] Received " + msg.getClass().getSimpleName());
             if (msg instanceof ConnectedMessage) {
                 handleConnectedMessage((ConnectedMessage) msg);
             }
@@ -216,10 +220,34 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             else if (msg instanceof NewArmiesMessage) {
                 handleNewArmiesMessage((NewArmiesMessage) msg);
             }
+            else if (msg instanceof ArmyMovedMessage) {
+                handleArmyMovedMessage((ArmyMovedMessage) msg);
+            }
             else if (msg instanceof ErrorMessage) {
                 handleErrorMessage((ErrorMessage) msg);
             }
         });
+    }
+
+    private void handleArmyMovedMessage(ArmyMovedMessage msg) {
+        // update territory state
+        territoryData[msg.getFromTerritoryID()].subFromArmyCount(msg.getArmyCountMoved());
+        territoryData[msg.getToTerritoryID()].addToArmyCount(msg.getArmyCountMoved());
+
+        if (armiesMovedListener != null) {
+            armiesMovedListener.armiesMoved(msg.getFromPlayerID(), msg.getFromTerritoryID(),
+                    msg.getToTerritoryID(), msg.getArmyCountMoved());
+        }
+        notifyTerritoryUpdateListener(territoryData[msg.getFromTerritoryID()]);
+        notifyTerritoryUpdateListener(territoryData[msg.getToTerritoryID()]);
+    }
+
+    private void notifyTerritoryUpdateListener(Territory t) {
+        if (territoryUpdateListener != null) {
+            territoryUpdateListener.territoryUpdated(t.getId(),
+                    t.getArmyCount(),
+                    currentPlayers.get(t.getOccupierPlayerID()).getColorID());
+        }
     }
 
     private void handleErrorMessage(ErrorMessage msg) {
@@ -314,14 +342,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         territoryData[msg.getOnTerritoryID()].addToArmyCount(msg.getArmyCountPlaced());
         territoryData[msg.getOnTerritoryID()].setOccupierPlayerID(msg.getFromPlayerID());
 
-        if (territoryUpdateListener != null) {
-            territoryUpdateListener.territoryUpdated(msg.getOnTerritoryID(),
-                    territoryData[msg.getOnTerritoryID()].getArmyCount(),
-                    currentPlayers.get(msg.getFromPlayerID()).getColorID());
-        }
-        if (msg.getArmyCountRemaining() == 0) {
-            setCurrentPhase(Phase.ATTACKING);
-        }
+        notifyTerritoryUpdateListener(territoryData[msg.getOnTerritoryID()]);
 
         // if this message is part of initial army placement, initiate next turn
         if (!initialArmyPlacementFinished) {
@@ -329,6 +350,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             if (nextTurnListener != null) {
                 nextTurnListener.isPlayersTurnNow(currentTurnPlayerID,
                         thisPlayer.getUid() == currentTurnPlayerID);
+            }
+        }
+        else {
+            if (msg.getArmyCountRemaining() == 0) {
+                setCurrentPhase(Phase.ATTACKING);
             }
         }
     }
@@ -389,18 +415,26 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     @Override
     public void armyPlaced(int territoryID, int count) {
-        log.info("Sending ArmyPlacedMessage");
-        client.sendMessage(new ArmyPlacedMessage(currentLobbyID, thisPlayer.getUid(), territoryID, count));
+        if (!isInitialArmyPlacementFinished() || currentPhase == Phase.PLACING) {
+            log.info("Sending ArmyPlacedMessage");
+            client.sendMessage(new ArmyPlacedMessage(currentLobbyID, thisPlayer.getUid(), territoryID, count));
+        }
     }
 
     @Override
     public void armyMoved(int fromTerritoryID, int toTerritoryID, int count) {
-        // currently unused as feature is not yet implemented
+        if (currentPhase == Phase.MOVING) {
+            log.info("Sending ArmyMovedMessage");
+            client.sendMessage(new ArmyMovedMessage(currentLobbyID, thisPlayer.getUid(),
+                    fromTerritoryID, toTerritoryID, count));
+        }
     }
 
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID) {
-        // currently unused as feature is not yet implemented
+        if (currentPhase == Phase.ATTACKING) {
+            // currently unused as feature is not yet implemented
+        }
     }
 
     public void hostLobby() {
@@ -485,5 +519,14 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public Phase getCurrentPhase() {
         return currentPhase;
+    }
+
+    public Territory getTerritoryByID(int territoryID) {
+        try {
+            return territoryData[territoryID];
+        }
+        catch (ArrayIndexOutOfBoundsException ex) {
+            throw new IllegalArgumentException("territory with id " + territoryID + " does not exist");
+        }
     }
 }

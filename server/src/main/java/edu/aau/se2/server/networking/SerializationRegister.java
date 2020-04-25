@@ -2,6 +2,7 @@ package edu.aau.se2.server.networking;
 
 import java.util.ArrayList;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
@@ -49,5 +50,6 @@ public interface SerializationRegister {
         component.registerClass(RequestLeaveLobby.class);
         component.registerClass(LeftLobbyMessage.class);
         component.registerClass(PlayersChangedMessage.class);
+        component.registerClass(ArmyMovedMessage.class);
     }
 }

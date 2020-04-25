@@ -13,6 +13,9 @@ public class ArmyMovedMessage extends InLobbyMessage {
 
     public ArmyMovedMessage(int lobbyID, int fromPlayerID, int fromTerritoryID, int toTerritoryID, int armyCountMoved) {
         super(lobbyID, fromPlayerID);
+        this.fromTerritoryID = fromTerritoryID;
+        this.toTerritoryID = toTerritoryID;
+        this.armyCountMoved = armyCountMoved;
     }
 
     public int getFromTerritoryID() {
