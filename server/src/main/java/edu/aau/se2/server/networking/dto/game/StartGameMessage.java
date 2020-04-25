@@ -1,8 +1,9 @@
-package edu.aau.se2.server.networking.dto;
+package edu.aau.se2.server.networking.dto.game;
 
 import java.util.List;
 
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.server.networking.dto.InLobbyMessage;
 
 public class StartGameMessage extends InLobbyMessage {
     private List<Player> players;

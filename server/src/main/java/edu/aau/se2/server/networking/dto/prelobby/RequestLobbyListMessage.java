@@ -1,4 +1,6 @@
-package edu.aau.se2.server.networking.dto;
+package edu.aau.se2.server.networking.dto.prelobby;
+
+import edu.aau.se2.server.networking.dto.BaseMessage;
 
 public class RequestLobbyListMessage extends BaseMessage {
     private int fromPlayerID;

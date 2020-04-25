@@ -1,6 +1,7 @@
-package edu.aau.se2.server.networking.dto;
+package edu.aau.se2.server.networking.dto.prelobby;
 
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.server.networking.dto.BaseMessage;
 
 public class ConnectedMessage extends BaseMessage {
     private Player player;

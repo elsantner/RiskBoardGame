@@ -1,4 +1,6 @@
-package edu.aau.se2.server.networking.dto;
+package edu.aau.se2.server.networking.dto.lobby;
+
+import edu.aau.se2.server.networking.dto.BaseMessage;
 
 public class CreateLobbyMessage extends BaseMessage {
     private int playerID;

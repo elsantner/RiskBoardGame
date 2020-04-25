@@ -18,15 +18,15 @@ import edu.aau.se2.server.MainServer;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.ArmyCountHelper;
-import edu.aau.se2.server.networking.dto.ArmyPlacedMessage;
-import edu.aau.se2.server.networking.dto.ConnectedMessage;
-import edu.aau.se2.server.networking.dto.CreateLobbyMessage;
-import edu.aau.se2.server.networking.dto.InitialArmyPlacingMessage;
-import edu.aau.se2.server.networking.dto.JoinedLobbyMessage;
-import edu.aau.se2.server.networking.dto.NextTurnMessage;
-import edu.aau.se2.server.networking.dto.ReadyMessage;
-import edu.aau.se2.server.networking.dto.RequestJoinLobbyMessage;
-import edu.aau.se2.server.networking.dto.StartGameMessage;
+import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
+import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
+import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
+import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
+import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 
 public class StartGameTest {
