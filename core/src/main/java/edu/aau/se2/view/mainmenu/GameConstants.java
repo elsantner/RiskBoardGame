@@ -1,4 +1,4 @@
-package edu.aau.se2;
+package edu.aau.se2.view.mainmenu;
 
 import com.badlogic.gdx.Gdx;
 

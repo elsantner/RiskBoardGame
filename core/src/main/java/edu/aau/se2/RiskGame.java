@@ -14,12 +14,13 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.game.GameScreen;
 import edu.aau.se2.view.lobby.LobbyScreen;
 import edu.aau.se2.view.lobbylist.LobbyListScreen;
+import edu.aau.se2.view.mainmenu.MainMenu;
 
 public class RiskGame extends Game {
 	private GameScreen gameScreen;
 	private LobbyScreen lobbyScreen;
 	private LobbyListScreen lobbyListScreen;
-	private MainMenu mainMenuScreen;
+	private edu.aau.se2.view.mainmenu.MainMenu mainMenuScreen;
 
 	@Override
 	public void create () {
@@ -30,7 +31,7 @@ public class RiskGame extends Game {
             setScreen(gameScreen);
         }));
 		db.setLeftLobbyListener(() -> Gdx.app.postRunnable(() -> {
-			mainMenuScreen = new MainMenu(this);
+			mainMenuScreen = new edu.aau.se2.view.mainmenu.MainMenu(this);
 			setScreen(mainMenuScreen);
 		}));
 		db.setJoinedLobbyListener((lobbyID, host, players) -> Gdx.app.postRunnable(() -> {
