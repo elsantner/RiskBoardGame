@@ -167,6 +167,11 @@ public class Lobby {
         return hasCurrentPlayerToActReceivedNewArmies;
     }
 
+    public boolean hasCurrentPlayerToActPlacedNewArmies() {
+        return hasCurrentPlayerToActReceivedNewArmies &&
+                this.getPlayerToAct().getArmyReserveCount() == 0;
+    }
+
     public boolean isJoinable() {
         return !isStarted && players.size() < 6;
     }

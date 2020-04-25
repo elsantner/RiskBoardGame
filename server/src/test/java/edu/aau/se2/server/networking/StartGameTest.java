@@ -139,7 +139,7 @@ public class StartGameTest {
                     handleArmyPlacedMessage((ArmyPlacedMessage) argument, finalI);
                 }
                 else if (argument instanceof NextTurnMessage) {
-                    handleNextTurnMessage((NextTurnMessage) argument, finalI);
+                    handleNextTurnMessage((NextTurnMessage) argument);
                 }
                 else if (argument instanceof JoinedLobbyMessage) {
                     joinedLobbyMessage = (JoinedLobbyMessage) argument;
@@ -149,7 +149,7 @@ public class StartGameTest {
         }
     }
 
-    private synchronized void handleNextTurnMessage(NextTurnMessage msg, int clientIndex) {
+    private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
         firstTurnPlayerID.set(msg.getPlayerToActID());
     }
 
