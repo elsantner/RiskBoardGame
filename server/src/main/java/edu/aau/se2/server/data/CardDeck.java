@@ -84,7 +84,7 @@ public class CardDeck {
         ) {
             if (c.getOwnerID() == -1) cards.add(c);
         }
-        return (Card[]) cards.toArray();
+        return cards.toArray(new Card[0]);
     }
 
     public Card getRandomCard(int ownerID) {
