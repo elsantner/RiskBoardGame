@@ -38,7 +38,7 @@ public class Lobby {
     }
 
     public boolean removePlayer(int uid) {
-        return this.players.remove(uid) == null;
+        return this.players.remove(uid) != null;
     }
 
     public int getLobbyID() {

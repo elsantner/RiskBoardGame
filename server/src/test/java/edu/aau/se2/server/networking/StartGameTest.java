@@ -18,7 +18,10 @@ import edu.aau.se2.server.MainServer;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.ArmyCountHelper;
+import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
+import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
@@ -31,6 +34,8 @@ import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 
 public class StartGameTest {
     private static final int NUM_CLIENTS = 4;
+    private static final int TURNS_TO_PLAY = 8;
+    private static final int MOVE_EVERY_NTH_TURN = 2;
 
     private ArrayList<NetworkClientKryo> clients;
     private MainServer server;
@@ -39,10 +44,12 @@ public class StartGameTest {
     private ArrayList<AtomicBoolean> clientsConnectedMsgReceived;
     private ArrayList<AtomicBoolean> clientsInitialArmyPlacingMsgReceived;
     private AtomicInteger armiesPlaced;
-    private AtomicInteger firstTurnPlayerID;
+    private AtomicInteger turnsPlayed;
+    private AtomicBoolean initialArmyPlacingDone;
 
     private List<Integer> turnOrder;
     private int currentTurnIndex;
+    private int currentTurnPlayerID;
     private ArrayList<Integer> clientArmyCount;
     private ArrayList<Territory> unoccupiedTerritories;
     private Map<Integer, ArrayList<Territory>> playerOccupiedTerritories;
@@ -66,7 +73,8 @@ public class StartGameTest {
 
         playerOccupiedTerritories = new HashMap<>();
         armiesPlaced = new AtomicInteger(0);
-        firstTurnPlayerID = new AtomicInteger(-1);
+        turnsPlayed = new AtomicInteger(0);
+        initialArmyPlacingDone = new AtomicBoolean(false);
 
         for (int i=0; i<42; i++) {
             unoccupiedTerritories.add(new Territory(i));
@@ -97,7 +105,7 @@ public class StartGameTest {
         }
         // check if all armies were placed
         Assert.assertEquals(ArmyCountHelper.getStartCount(NUM_CLIENTS)*NUM_CLIENTS, armiesPlaced.get());
-        Assert.assertEquals((int)turnOrder.get(0), firstTurnPlayerID.get());
+        Assert.assertEquals(TURNS_TO_PLAY, turnsPlayed.get());
     }
 
     private void startGame() {
@@ -139,18 +147,61 @@ public class StartGameTest {
                     handleArmyPlacedMessage((ArmyPlacedMessage) argument, finalI);
                 }
                 else if (argument instanceof NextTurnMessage) {
-                    handleNextTurnMessage((NextTurnMessage) argument);
+                    handleNextTurnMessage((NextTurnMessage) argument, finalI);
                 }
                 else if (argument instanceof JoinedLobbyMessage) {
                     joinedLobbyMessage = (JoinedLobbyMessage) argument;
+                }
+                else if (argument instanceof NewArmiesMessage) {
+                    handleNewArmiesMessage((NewArmiesMessage) argument, finalI);
                 }
             });
             client.connect("localhost");
         }
     }
 
-    private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
-        firstTurnPlayerID.set(msg.getPlayerToActID());
+    private synchronized void handleNewArmiesMessage(NewArmiesMessage msg, int clientIndex) {
+        if (clientPlayers[clientIndex].getUid() == currentTurnPlayerID) {
+            placeArmies(msg.getNewArmyCount());
+            finishTurn();
+        }
+    }
+
+    private synchronized void finishTurn() {
+        NetworkClientKryo c = clients.get(currentTurnIndex);
+        if (turnsPlayed.get() % MOVE_EVERY_NTH_TURN == 0) {
+            int fromTerritoryID = getNextTerritoryToPlaceArmy(currentTurnPlayerID);
+            int armyCountToMove = 0;
+            for (Territory t: playerOccupiedTerritories.get(currentTurnPlayerID)) {
+                if (t.getId() == fromTerritoryID) {
+                    armyCountToMove = t.getArmyCount() - 1;
+                }
+            }
+            c.sendMessage(new ArmyMovedMessage(joinedLobbyMessage.getLobbyID(), currentTurnPlayerID,
+                    fromTerritoryID, getNextTerritoryToPlaceArmy(currentTurnPlayerID), armyCountToMove));
+        }
+        else {
+            c.sendMessage(new NextTurnMessage(joinedLobbyMessage.getLobbyID(), currentTurnPlayerID));
+        }
+        turnsPlayed.addAndGet(1);
+    }
+
+    private synchronized void handleNextTurnMessage(NextTurnMessage msg, int clientIndex) {
+        initialArmyPlacingDone.set(true);
+        if (turnsPlayed.get() < TURNS_TO_PLAY && clientPlayers[clientIndex].getUid() == msg.getPlayerToActID()) {
+            currentTurnPlayerID = msg.getPlayerToActID();
+            NetworkClientKryo c = clients.get(clientIndex);
+            Player p = clientPlayers[clientIndex];
+            c.sendMessage(new CardExchangeMessage(joinedLobbyMessage.getLobbyID(), p.getUid()));
+        }
+    }
+
+    private synchronized void placeArmies(int count) {
+        NetworkClientKryo c = clients.get(currentTurnIndex);
+        for (int i=0; i<count; i++) {
+            c.sendMessage(new ArmyPlacedMessage(joinedLobbyMessage.getLobbyID(), currentTurnPlayerID,
+                    getNextTerritoryToPlaceArmy(currentTurnPlayerID), 1));
+        }
     }
 
     private synchronized void handleConnectedMessage(ConnectedMessage msg, int clientIndex) {
@@ -179,7 +230,7 @@ public class StartGameTest {
 
     private synchronized void handleArmyPlacedMessage(ArmyPlacedMessage msg, int clientIndex) {
         // do once per ArmyPlacedMessage
-        if (msg.getFromPlayerID() == clientPlayers[clientIndex].getUid()) {
+        if (!initialArmyPlacingDone.get() && msg.getFromPlayerID() == clientPlayers[clientIndex].getUid()) {
             // increment armies placed count
             armiesPlaced.getAndAdd(1);
             // check if remaining army count is successfully calculated and returned by the server

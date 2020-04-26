@@ -14,5 +14,8 @@ public class AssetLoadTest {
     public void testLoadAssets() {
         assertTrue(Gdx.files.internal(AssetName.RISK_BOARD).exists());
         assertTrue(Gdx.files.internal(AssetName.ARMY_DISPLAY_CIRCLE).exists());
+        assertTrue(Gdx.files.internal(AssetName.PHASE_DISPLAY_BG).exists());
+        assertTrue(Gdx.files.internal(AssetName.UI_SKIN).exists());
+        assertTrue(Gdx.files.internal(AssetName.FONT_1).exists());
     }
 }

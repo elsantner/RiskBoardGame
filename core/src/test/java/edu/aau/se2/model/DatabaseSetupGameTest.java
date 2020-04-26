@@ -7,16 +7,11 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import edu.aau.se2.model.listener.OnArmiesMovedListener;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
-import edu.aau.se2.model.listener.OnJoinedLobbyListener;
-import edu.aau.se2.model.listener.OnPhaseChangedListener;
-import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.server.MainServer;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
@@ -162,6 +157,9 @@ public class DatabaseSetupGameTest {
             db.setPlayersChangedListener(newPlayers -> {
                 if (newPlayers.size() == NUM_CLIENTS && !setReady.get()) {
                     setReady.set(true);
+
+                    clients.get(0).togglePlayerReady();
+
                     for (Database c: clients) {
                         c.setPlayerReady(true);
                     }
