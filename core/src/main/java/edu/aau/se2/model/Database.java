@@ -216,12 +216,12 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             } else if (msg instanceof ErrorMessage) {
                 handleErrorMessage((ErrorMessage) msg);
             } else if (msg instanceof AttackingPhaseFinishedMessage) {
-                handleAttackingPhaseFinishedMessage((AttackingPhaseFinishedMessage) msg);
+                handleAttackingPhaseFinishedMessage();
             }
         });
     }
 
-    private void handleAttackingPhaseFinishedMessage(AttackingPhaseFinishedMessage msg) {
+    private void handleAttackingPhaseFinishedMessage() {
         if (currentPhase != Phase.MOVING) {
             setCurrentPhase(Phase.MOVING);
         }

@@ -5,8 +5,6 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -19,11 +17,11 @@ import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 /**
  * @author Elias
  */
-public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener, OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
+public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener,
+        OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
     private BoardStage boardStage;
     private TempHUDStage tmpHUDStage;
     private Database db;
-    private InputMultiplexer inputMultiplexer;
 
     public GameScreen(AssetManager assetManager) {
         this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), assetManager);
@@ -54,7 +52,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
 
     @Override
     public void show() {
-        inputMultiplexer = new InputMultiplexer();
+        InputMultiplexer inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
         inputMultiplexer.addProcessor(tmpHUDStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
@@ -179,6 +177,6 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
 
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID) {
-
+        // TODO: implement attacking
     }
 }
