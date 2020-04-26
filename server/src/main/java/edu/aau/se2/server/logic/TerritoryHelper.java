@@ -89,8 +89,8 @@ public abstract class TerritoryHelper {
             {ID.SOUTHEAST_ASIA, ID.INDIA, ID.AFGHANISTAN, ID.URAL, ID.SIBERIA, ID.MONGOLIA}, // China
             {ID.MIDDLE_EAST, ID.AFGHANISTAN, ID.CHINA, ID.INDIA}, // India
             {ID.MONGOLIA, ID.SIBERIA, ID.YAKUTSK, ID.KAMCHATKA}, // Irkutsk
-            {ID.ALASKA, ID.JAPAN, ID.MONGOLIA, ID.IRKUTSK, ID.YAKUTSK}, // Kamchatka
             {ID.KAMCHATKA, ID.MONGOLIA}, // Japan
+            {ID.ALASKA, ID.JAPAN, ID.MONGOLIA, ID.IRKUTSK, ID.YAKUTSK}, // Kamchatka
             {ID.EAST_AFRICA, ID.EGYPT, ID.SOUTHERN_EUROPE, ID.UKRAINE, ID.AFGHANISTAN, ID.INDIA}, // MiddleEast
             {ID.CHINA, ID.SIBERIA, ID.IRKUTSK, ID.KAMCHATKA, ID.JAPAN}, // Mongolia
             {ID.INDONESIA, ID.INDIA, ID.CHINA}, // SoutheastAsia

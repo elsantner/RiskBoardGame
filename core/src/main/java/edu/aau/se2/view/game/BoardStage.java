@@ -12,6 +12,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import edu.aau.se2.model.Database;
+import edu.aau.se2.server.logic.TerritoryHelper;
 import edu.aau.se2.view.asset.AssetName;
 
 /**
@@ -22,13 +24,14 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
     private static final float MIN_ZOOM_FACTOR = 0.25f;
     private float prevZoomFactor = 1;
 
+    private Database db;
     private Image imgRiskBoard;
     private OrthographicCamera cam;
     private OnBoardInteractionListener boardListener;
     private boolean interactable = true;
-    private boolean armiesPlacable = false;
-    private boolean attackAllowed = false;
     private Color[] playerColors;
+    private Database.Phase phase;
+    private Territory selectedTerritory;
 
     public BoardStage(Viewport vp) {
         this(vp, new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE});
@@ -39,6 +42,7 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
         if (playerColors.length != 6) {
             throw new IllegalArgumentException("player colors must contain exactly 6 colors");
         }
+        this.db = Database.getInstance();
         this.playerColors = playerColors;
         cam = (OrthographicCamera) this.getCamera();
         // init territories (relevant for scaling to current resolution)
@@ -48,6 +52,7 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
         loadAssets();
         setupBoardImage(vp.getScreenWidth(), vp.getScreenHeight());
         setupTerritories();
+        this.phase = Database.Phase.NONE;
     }
 
     public void setListener(OnBoardInteractionListener l) {
@@ -135,18 +140,58 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
 
     @Override
     public boolean tap(float x, float y, int count, int button) {
-        // place 1 army if
         if (interactable) {
             Vector3 inWorldPos = cam.unproject(new Vector3(x, y, 0));
             Territory t = Territory.getByPosition(inWorldPos.x, inWorldPos.y);
-            if (t != null && armiesPlacable && boardListener != null) {
-                boardListener.armyPlaced(t.getID(), 1);
-            } else if (count == 2) {
+
+            if (t != null && boardListener != null) {
+                // place army if in game setup or army placing phase
+                if (phase == Database.Phase.NONE || phase == Database.Phase.PLACING) {
+                    boardListener.armyPlaced(t.getID(), 1);
+                }
+                // if in moving phase ...
+                else if (phase == Database.Phase.MOVING) {
+                    // remember first clicked territory
+                    if (selectedTerritory == null) {
+                        if (db.getTerritoryByID(t.getID()).getOccupierPlayerID() == db.getThisPlayer().getUid()) {
+                            selectedTerritory = t;
+                            highlightMovableTerritories(t);
+                        }
+                    }
+                    // move to second clicked territory if it is a neighbour of first clicked
+                    else if (TerritoryHelper.areNeighbouring(selectedTerritory.getID(), t.getID())) {
+                        boardListener.armyMoved(selectedTerritory.getID(), t.getID(), -1);
+                        clearTerritoryHighlights();
+                        selectedTerritory = null;
+                    }
+                }
+            }
+            else if (t == null && selectedTerritory != null && count == 1) {
+                clearTerritoryHighlights();
+                selectedTerritory = null;
+            }
+
+            else if (count == 2) {
                 toggleZoom(x, y);
             }
         }
 
         return false;
+    }
+
+    private void highlightMovableTerritories(Territory t) {
+        for (int territoryID: TerritoryHelper.getNeighbouringTerritories(t.getID())) {
+            Territory neighbour = Territory.getByID(territoryID);
+            if (db.getTerritoryByID(territoryID).getOccupierPlayerID() == db.getThisPlayer().getUid()) {
+                neighbour.setHighlighted(true);
+            }
+        }
+    }
+
+    private void clearTerritoryHighlights() {
+        for (Territory t: Territory.getAll()) {
+            t.setHighlighted(false);
+        }
     }
 
     @Override
@@ -161,7 +206,9 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
 
     @Override
     public boolean pan(float x, float y, float deltaX, float deltaY) {
-        moveCameraWithinBoardBounds(deltaX, deltaY);
+        if (interactable) {
+            moveCameraWithinBoardBounds(deltaX, deltaY);
+        }
         return false;
     }
 
@@ -210,26 +257,6 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
     }
 
     @Override
-    public void setArmiesPlacable(boolean armiesPlacable) {
-        this.armiesPlacable = armiesPlacable;
-    }
-
-    @Override
-    public boolean isArmiesPlacable() {
-        return armiesPlacable;
-    }
-
-    @Override
-    public void setAttackAllowed(boolean attackAllowed) {
-        this.attackAllowed = attackAllowed;
-    }
-
-    @Override
-    public boolean isAttackAllowed() {
-        return attackAllowed;
-    }
-
-    @Override
     public void setArmyCount(int territoryID, int count) {
         Territory.getByID(territoryID).setArmyCount(count);
     }
@@ -237,5 +264,9 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
     @Override
     public void setArmyColor(int territoryID, int colorID) {
         Territory.getByID(territoryID).setArmyColor(playerColors[colorID]);
+    }
+
+    public void setPhase(Database.Phase newPhase) {
+        this.phase = newPhase;
     }
 }

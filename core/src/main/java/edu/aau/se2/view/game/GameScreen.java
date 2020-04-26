@@ -7,17 +7,19 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
+import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 
 /**
  * @author Elias
  */
-public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener, OnHUDInteractionListener {
+public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener, OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
     private BoardStage boardStage;
     private TempHUDStage tmpHUDStage;
     private Database db;
@@ -33,9 +35,10 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         boardStage = new BoardStage(new FitViewport(width, height));
         tmpHUDStage = new TempHUDStage(new FitViewport(width, height), assetManager, this);
         db = Database.getInstance();
-        boardStage.setListener(db);
+        boardStage.setListener(this);
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
+        db.setPhaseChangedListener(this);
         // trigger player turn update because listener might not have been registered when
         // server message was received
         if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
@@ -57,7 +60,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
         inputMultiplexer.addProcessor(tmpHUDStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
-        showFinishTurnDialog();
+        showSelectCountDialog(0, 0);
     }
 
     @Override
@@ -99,11 +102,6 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public void territoryUpdated(int territoryID, int armyCount, int colorID) {
         boardStage.setArmyCount(territoryID, armyCount);
         boardStage.setArmyColor(territoryID, colorID);
-
-        if (db.isInitialArmyPlacementFinished() && db.isThisPlayersTurn() && db.getCurrentArmyReserve() == 0) {
-            //showFinishTurnDialog();
-            db.finishTurn();
-        }
     }
 
     private void showFinishTurnDialog() {
@@ -115,7 +113,6 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
                         db.finishTurn();
                     }
                     boardStage.setInteractable(true);
-                    tmpHUDStage.setPhase(Database.Phase.ATTACKING);
                 });
         showDialog(dialog);
     }
@@ -125,15 +122,28 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         ConfirmDialog dialog = new ConfirmDialog("Phase beenden",
                 "Moechten Sie die Angriffsphase beenden?", "Ja", "Nein",
                 result -> {
-                    boardStage.setInteractable(true);
                     if (result) {
-                        tmpHUDStage.setPhase(Database.Phase.MOVING);
+                        db.finishAttackingPhase();
                     }
+                    boardStage.setInteractable(true);
                 });
         showDialog(dialog);
     }
 
-    private void showDialog(ConfirmDialog dialog) {
+    private void showSelectCountDialog(int fromTerritoryID, int toTerritoryID) {
+        boardStage.setInteractable(false);
+        SelectCountDialog dialog = new SelectCountDialog("Einheitenanzahl", 1,
+                db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
+                result -> {
+                    if (result > 0) {
+                        db.armyMoved(fromTerritoryID, toTerritoryID, result);
+                    }
+                    boardStage.setInteractable(true);
+                });
+        showDialog(dialog);
+    }
+
+    private void showDialog(Dialog dialog) {
         dialog.show(tmpHUDStage);
         dialog.scaleBy(3);
         dialog.setOrigin(Align.center);
@@ -141,11 +151,37 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
 
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
-        boardStage.setArmiesPlacable(isThisPlayer);
+        // currently unused
     }
 
     @Override
     public void stageSkipButtonClicked() {
-        showSkipAttackingPhaseDialog();
+        if (db.getCurrentPhase() == Database.Phase.ATTACKING) {
+            showSkipAttackingPhaseDialog();
+        }
+        else if (db.getCurrentPhase() == Database.Phase.MOVING) {
+            showFinishTurnDialog();
+        }
+    }
+
+    @Override
+    public void phaseChanged(Database.Phase newPhase) {
+        tmpHUDStage.setPhase(newPhase);
+        boardStage.setPhase(newPhase);
+    }
+
+    @Override
+    public void armyPlaced(int territoryID, int count) {
+        db.armyPlaced(territoryID, count);
+    }
+
+    @Override
+    public void armyMoved(int fromTerritoryID, int toTerritoryID, int count) {
+        showSelectCountDialog(fromTerritoryID, toTerritoryID);
+    }
+
+    @Override
+    public void attackStarted(int fromTerritoryID, int onTerritoryID) {
+
     }
 }

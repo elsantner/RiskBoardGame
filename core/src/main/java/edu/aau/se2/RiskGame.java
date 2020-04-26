@@ -33,21 +33,19 @@ public class RiskGame extends Game {
 	private GameScreen gameScreen;
 	private LobbyScreen lobbyScreen;
 	private LobbyListScreen lobbyListScreen;
-	private edu.aau.se2.view.mainmenu.MainMenu mainMenuScreen;
+	private MainMenu mainMenuScreen;
 
 	@Override
 	public void create () {
 		setupAssetManager();
         Database db = Database.getInstance();
 
-		gameScreen = new GameScreen(assetManager);
-		setScreen(gameScreen);
-		/*db.setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
-            gameScreen = new GameScreen();
+		db.setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
+            gameScreen = new GameScreen(assetManager);
             setScreen(gameScreen);
         }));
 		db.setLeftLobbyListener(() -> Gdx.app.postRunnable(() -> {
-			mainMenuScreen = new edu.aau.se2.view.mainmenu.MainMenu(this);
+			mainMenuScreen = new MainMenu(this);
 			setScreen(mainMenuScreen);
 		}));
 		db.setJoinedLobbyListener((lobbyID, host, players) -> Gdx.app.postRunnable(() -> {
@@ -59,8 +57,10 @@ public class RiskGame extends Game {
 			setScreen(lobbyListScreen);
 		}));
 
-		mainMenuScreen = new MainMenu(this);
-		setScreen(mainMenuScreen);
+		/*mainMenuScreen = new MainMenu(this);
+		setScreen(mainMenuScreen);*/
+		gameScreen = new GameScreen(assetManager);
+		setScreen(gameScreen);
 
 		db.setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override
@@ -73,7 +73,6 @@ public class RiskGame extends Game {
 				System.exit(-1);
 			}
 		});
-		*/
 		try {
 			db.connectIfNotConnected();
 		} catch (IOException e) {

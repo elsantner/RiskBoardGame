@@ -14,9 +14,11 @@ public class TempHUDStage extends Stage {
     private PhaseDisplay phaseDisplay;
     private AssetManager assetManager;
     private OnHUDInteractionListener hudInteractionListener;
+    private Database db;
 
     public TempHUDStage(Viewport vp, AssetManager assetManager, OnHUDInteractionListener l) {
         super(vp);
+        this.db = Database.getInstance();
         this.assetManager = assetManager;
         this.hudInteractionListener = l;
         setupPhaseDisplay();
@@ -32,7 +34,9 @@ public class TempHUDStage extends Stage {
 
     public void setPhase(Database.Phase phase) {
         phaseDisplay.setPhase(phase);
-        if (phase == Database.Phase.ATTACKING) {
+        if ((phase == Database.Phase.ATTACKING || phase == Database.Phase.MOVING) &&
+                db.isThisPlayersTurn()) {
+
             phaseDisplay.setSkipButtonVisible(true);
             phaseDisplay.setSkipButtonListener(new ClickListener() {
                 @Override
