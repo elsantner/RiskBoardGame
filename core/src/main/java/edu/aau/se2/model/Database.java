@@ -27,6 +27,7 @@ import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
@@ -192,41 +193,38 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             log.info("[Client] Received " + msg.getClass().getSimpleName());
             if (msg instanceof ConnectedMessage) {
                 handleConnectedMessage((ConnectedMessage) msg);
-            }
-            else if (msg instanceof StartGameMessage) {
+            } else if (msg instanceof StartGameMessage) {
                 handleStartGameMessage((StartGameMessage) msg);
-            }
-            else if (msg instanceof InitialArmyPlacingMessage) {
+            } else if (msg instanceof InitialArmyPlacingMessage) {
                 handleInitialArmyPlacingMessage((InitialArmyPlacingMessage) msg);
-            }
-            else if (msg instanceof ArmyPlacedMessage) {
+            } else if (msg instanceof ArmyPlacedMessage) {
                 handleArmyPlacedMessage((ArmyPlacedMessage) msg);
-            }
-            else if (msg instanceof PlayersChangedMessage) {
+            } else if (msg instanceof PlayersChangedMessage) {
                 handlePlayersChangedMessage((PlayersChangedMessage) msg);
-            }
-            else if (msg instanceof JoinedLobbyMessage) {
+            } else if (msg instanceof JoinedLobbyMessage) {
                 handleJoinedLobbyMessage((JoinedLobbyMessage) msg);
-            }
-            else if (msg instanceof LobbyListMessage) {
+            } else if (msg instanceof LobbyListMessage) {
                 handleLobbyListMessage((LobbyListMessage) msg);
-            }
-            else if (msg instanceof LeftLobbyMessage) {
+            } else if (msg instanceof LeftLobbyMessage) {
                 handleLeftLobbyMessage();
-            }
-            else if (msg instanceof NextTurnMessage) {
+            } else if (msg instanceof NextTurnMessage) {
                 handleNextTurnMessage((NextTurnMessage) msg);
-            }
-            else if (msg instanceof NewArmiesMessage) {
+            } else if (msg instanceof NewArmiesMessage) {
                 handleNewArmiesMessage((NewArmiesMessage) msg);
-            }
-            else if (msg instanceof ArmyMovedMessage) {
+            } else if (msg instanceof ArmyMovedMessage) {
                 handleArmyMovedMessage((ArmyMovedMessage) msg);
-            }
-            else if (msg instanceof ErrorMessage) {
+            } else if (msg instanceof ErrorMessage) {
                 handleErrorMessage((ErrorMessage) msg);
+            } else if (msg instanceof AttackingPhaseFinishedMessage) {
+                handleAttackingPhaseFinishedMessage((AttackingPhaseFinishedMessage) msg);
             }
         });
+    }
+
+    private void handleAttackingPhaseFinishedMessage(AttackingPhaseFinishedMessage msg) {
+        if (currentPhase != Phase.MOVING) {
+            setCurrentPhase(Phase.MOVING);
+        }
     }
 
     private void handleArmyMovedMessage(ArmyMovedMessage msg) {
@@ -507,7 +505,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public void finishAttackingPhase() {
-        setCurrentPhase(Phase.MOVING);
+        client.sendMessage(new AttackingPhaseFinishedMessage(currentLobbyID, thisPlayer.getUid()));
     }
 
     private void setCurrentPhase(Phase phase) {

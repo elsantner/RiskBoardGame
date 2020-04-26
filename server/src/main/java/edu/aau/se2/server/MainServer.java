@@ -17,6 +17,7 @@ import edu.aau.se2.server.logic.DiceHelper;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
@@ -94,12 +95,22 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleRequestLeaveLobby((RequestLeaveLobby) arg);
                 } else if (arg instanceof ArmyMovedMessage) {
                     handleArmyMovedMessage((ArmyMovedMessage) arg);
+                } else if (arg instanceof AttackingPhaseFinishedMessage) {
+                    handleAttackingPhaseFinishedMessage((AttackingPhaseFinishedMessage) arg);
                 }
             }
             catch (Exception ex) {
                 log.log(Level.SEVERE, "Exception: " + ex.getMessage(), ex);
             }
         });
+    }
+
+    private void handleAttackingPhaseFinishedMessage(AttackingPhaseFinishedMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+        // if it's players turn, broadcast message to lobby
+        if (l.getPlayerToAct().getUid() == msg.getFromPlayerID()) {
+            server.broadcastMessage(msg, l.getPlayers());
+        }
     }
 
     private synchronized void handleArmyMovedMessage(ArmyMovedMessage msg) {

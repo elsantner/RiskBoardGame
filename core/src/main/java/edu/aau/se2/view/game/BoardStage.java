@@ -144,31 +144,18 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
             Vector3 inWorldPos = cam.unproject(new Vector3(x, y, 0));
             Territory t = Territory.getByPosition(inWorldPos.x, inWorldPos.y);
 
-            if (t != null && boardListener != null) {
+            if (t != null && boardListener != null && db.isThisPlayersTurn()) {
                 // place army if in game setup or army placing phase
                 if (phase == Database.Phase.NONE || phase == Database.Phase.PLACING) {
                     boardListener.armyPlaced(t.getID(), 1);
                 }
                 // if in moving phase ...
                 else if (phase == Database.Phase.MOVING) {
-                    // remember first clicked territory
-                    if (selectedTerritory == null) {
-                        if (db.getTerritoryByID(t.getID()).getOccupierPlayerID() == db.getThisPlayer().getUid()) {
-                            selectedTerritory = t;
-                            highlightMovableTerritories(t);
-                        }
-                    }
-                    // move to second clicked territory if it is a neighbour of first clicked
-                    else if (TerritoryHelper.areNeighbouring(selectedTerritory.getID(), t.getID())) {
-                        boardListener.armyMoved(selectedTerritory.getID(), t.getID(), -1);
-                        clearTerritoryHighlights();
-                        selectedTerritory = null;
-                    }
+                    handleMoveArmies(t);
                 }
             }
             else if (t == null && selectedTerritory != null && count == 1) {
-                clearTerritoryHighlights();
-                selectedTerritory = null;
+                clearTerritorySelection();
             }
 
             else if (count == 2) {
@@ -179,13 +166,41 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
         return false;
     }
 
-    private void highlightMovableTerritories(Territory t) {
+    private void handleMoveArmies(Territory t) {
+        // remember first clicked territory
+        if (selectedTerritory == null) {
+            edu.aau.se2.server.data.Territory clickedTerritory = db.getTerritoryByID(t.getID());
+            if (clickedTerritory.getOccupierPlayerID() == db.getThisPlayer().getUid() &&
+                    clickedTerritory.getArmyCount() > 1) {
+
+                selectedTerritory = t;
+                if (highlightMovableTerritories(t) == 0) {
+                    clearTerritorySelection();
+                }
+            }
+        }
+        // move to second clicked territory if it is a neighbour of first clicked
+        else if (TerritoryHelper.areNeighbouring(selectedTerritory.getID(), t.getID())) {
+            boardListener.armyMoved(selectedTerritory.getID(), t.getID(), -1);
+            clearTerritorySelection();
+        }
+    }
+
+    private void clearTerritorySelection() {
+        clearTerritoryHighlights();
+        selectedTerritory = null;
+    }
+
+    private int highlightMovableTerritories(Territory t) {
+        int highlightedCount = 0;
         for (int territoryID: TerritoryHelper.getNeighbouringTerritories(t.getID())) {
             Territory neighbour = Territory.getByID(territoryID);
             if (db.getTerritoryByID(territoryID).getOccupierPlayerID() == db.getThisPlayer().getUid()) {
                 neighbour.setHighlighted(true);
+                highlightedCount++;
             }
         }
+        return highlightedCount;
     }
 
     private void clearTerritoryHighlights() {

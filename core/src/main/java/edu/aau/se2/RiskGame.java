@@ -57,10 +57,8 @@ public class RiskGame extends Game {
 			setScreen(lobbyListScreen);
 		}));
 
-		/*mainMenuScreen = new MainMenu(this);
-		setScreen(mainMenuScreen);*/
-		gameScreen = new GameScreen(assetManager);
-		setScreen(gameScreen);
+		mainMenuScreen = new MainMenu(this);
+		setScreen(mainMenuScreen);
 
 		db.setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override

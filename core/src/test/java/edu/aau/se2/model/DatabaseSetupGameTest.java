@@ -127,7 +127,6 @@ public class DatabaseSetupGameTest {
                 if (newPhase == Database.Phase.ATTACKING && curDB.isThisPlayersTurn()) {
                     Assert.assertEquals(0, curDB.getCurrentArmyReserve());
                     curDB.finishAttackingPhase();
-                    Assert.assertEquals(Database.Phase.MOVING, curDB.getCurrentPhase());
                 }
                 else if (newPhase == Database.Phase.MOVING && curDB.isThisPlayersTurn()) {
                     if (turnsPlayed.get() % MOVE_EVERY_NTH_TURN == 0) {

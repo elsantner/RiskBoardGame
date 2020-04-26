@@ -24,14 +24,12 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     private TempHUDStage tmpHUDStage;
     private Database db;
     private InputMultiplexer inputMultiplexer;
-    private AssetManager assetManager;
 
     public GameScreen(AssetManager assetManager) {
         this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), assetManager);
     }
 
     public GameScreen(int width, int height, AssetManager assetManager) {
-        this.assetManager = assetManager;
         boardStage = new BoardStage(new FitViewport(width, height));
         tmpHUDStage = new TempHUDStage(new FitViewport(width, height), assetManager, this);
         db = Database.getInstance();
@@ -60,7 +58,6 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
         inputMultiplexer.addProcessor(tmpHUDStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
-        showSelectCountDialog(0, 0);
     }
 
     @Override

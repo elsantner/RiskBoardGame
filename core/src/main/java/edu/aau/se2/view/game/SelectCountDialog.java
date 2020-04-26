@@ -28,9 +28,8 @@ public class SelectCountDialog extends Dialog {
     }
 
     private void setupUI() {
-        getContentTable().row();
         lblCurrentCount = new Label(Integer.toString(currentCount), uiSkin);
-        this.text(lblCurrentCount);
+        this.text(lblCurrentCount).center();
         getContentTable().row().center();
         TextButton btnPlus = new TextButton ("+", uiSkin);
         TextButton btnMinus = new TextButton ("-", uiSkin);
