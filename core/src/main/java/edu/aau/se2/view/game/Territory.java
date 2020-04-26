@@ -158,6 +158,7 @@ public class Territory extends Actor {
     private int armyCount;
     private BitmapFont font;
     private Texture armyCirlce;
+    private boolean isHighlighted;
 
     private Territory(int id, String name, Array<Vector2> hitbox, Vector2 armyPosition) {
         this.id = id;
@@ -168,6 +169,7 @@ public class Territory extends Actor {
         this.armyCount = 0;
         this.font = new BitmapFont();
         this.armyCirlce = new Texture(AssetName.ARMY_DISPLAY_CIRCLE);
+        this.isHighlighted = false;
     }
 
     public int getID() {
@@ -206,6 +208,12 @@ public class Territory extends Actor {
     public void draw(Batch batch, float parentAlpha) {
         // draw army counter
         if (armyCount > 0 && armyCirlce != null) {
+
+            // if highlighted draw white border
+            if (isHighlighted) {
+                batch.setColor(Color.WHITE);
+                batch.draw(armyCirlce, armyPosition.x - 24, armyPosition.y - 24, 48, 48);
+            }
             batch.setColor(armyColor);
             batch.draw(armyCirlce, armyPosition.x - 16, armyPosition.y - 16);
             // center text in armyCircle (NOTE: These constants are dependent on the text and texture size)
@@ -215,5 +223,13 @@ public class Territory extends Actor {
             }
             font.draw(batch, Integer.toString(armyCount), armyPosition.x - xOffsetText, armyPosition.y + 5);
         }
+    }
+
+    public boolean isHighlighted() {
+        return isHighlighted;
+    }
+
+    public void setHighlighted(boolean highlighted) {
+        isHighlighted = highlighted;
     }
 }

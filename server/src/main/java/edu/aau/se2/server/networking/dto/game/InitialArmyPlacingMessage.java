@@ -1,6 +1,8 @@
-package edu.aau.se2.server.networking.dto;
+package edu.aau.se2.server.networking.dto.game;
 
 import java.util.List;
+
+import edu.aau.se2.server.networking.dto.InLobbyMessage;
 
 public class InitialArmyPlacingMessage extends InLobbyMessage {
     private List<Integer> playerOrder;
