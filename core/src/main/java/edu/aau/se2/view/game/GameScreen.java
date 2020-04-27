@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
@@ -18,8 +19,10 @@ import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener {
     private BoardStage boardStage;
     private Stage tmpHUDStage;
+    private CardStage cardStage;
     private Database db;
     private InputMultiplexer inputMultiplexer;
+
 
     public GameScreen() {
         this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -28,6 +31,8 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public GameScreen(int width, int height) {
         boardStage = new BoardStage(new FitViewport(width, height));
         tmpHUDStage = new Stage(new FitViewport(width, height));
+        cardStage = new CardStage(new StretchViewport(width,height));
+
         db = Database.getInstance();
         boardStage.setListener(db);
         db.setTerritoryUpdateListener(this);
@@ -51,6 +56,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public void show() {
         inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
+        inputMultiplexer.addProcessor(cardStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
@@ -60,8 +66,14 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         Gdx.gl.glClearColor(1, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+
         boardStage.draw();
         tmpHUDStage.draw();
+
+        //only for testing
+        cardStage.act();
+        cardStage.draw();
+
     }
 
     @Override
