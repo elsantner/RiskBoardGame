@@ -67,6 +67,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         boardStage.getViewport().apply();
         boardStage.draw();
         hudStage.getViewport().apply();
+        hudStage.update();
         hudStage.draw();
     }
 

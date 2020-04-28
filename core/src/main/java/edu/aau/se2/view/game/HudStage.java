@@ -48,12 +48,6 @@ public class HudStage extends Stage implements IGameBoard {
         //TODO: values from server
         super(vp);
 
-        if(this.armiesPlacable){
-            yourTurn = "Your turn";
-        } else {
-            yourTurn = "";
-        }
-
         scoreOwn = 544;
         scoreOpponentOne = 412;
         scoreOpponentTwo = 568;
@@ -83,7 +77,7 @@ public class HudStage extends Stage implements IGameBoard {
         scoreOwnLabel = new Label("Score: " + String.format(Locale.US,"%4d", scoreOwn), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         attacksMadeLabel= new Label("Attacks made: " +  String.format(Locale.US,"%2d", attacksMadeAmount) + " / " +  String.format(Locale.US,"%2d", attacksMadeSucceededAmount), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         attacksGotLabel= new Label("Attacks got: " +  String.format(Locale.US,"%2d", attacksGotAmount) + " / " + String.format(Locale.US,"%2d", attacksGotSucceededAmount), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        yourTurnLabel= new Label(yourTurn, new Label.LabelStyle(new BitmapFont(), Color.WHITE));
+        yourTurnLabel= new Label("TEST: " + yourTurn, new Label.LabelStyle(new BitmapFont(), Color.WHITE));
 
         //Opponent data
         statisticsOpponentsLabel = new Label("Opponents", new Label.LabelStyle(new BitmapFont(), Color.GOLD));
@@ -122,6 +116,7 @@ public class HudStage extends Stage implements IGameBoard {
     public void setArmiesPlacable(boolean armiesPlacable) {
         System.out.println("####this.armiesPlacable" + this.armiesPlacable + armiesPlacable );
         this.armiesPlacable = armiesPlacable;
+        this.setMessage(armiesPlacable);
     }
 
     @Override
@@ -155,5 +150,17 @@ public class HudStage extends Stage implements IGameBoard {
     public void setArmyColor(int territoryID, int colorID) {
     }
 
+    private void setMessage(boolean isPlayersTurn) {
+        if(isPlayersTurn){
+            this.yourTurn = "Your turn";
+        } else {
+            this.yourTurn = "";
+        }
+        System.out.println("#####this.yourTurn" + this.yourTurn);
+    }
+
+    public void update() {
+        yourTurnLabel.setText(this.yourTurn);
+    }
 }
 
