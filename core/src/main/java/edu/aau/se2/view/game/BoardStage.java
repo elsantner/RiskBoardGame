@@ -211,6 +211,7 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
 
     @Override
     public void setArmiesPlacable(boolean armiesPlacable) {
+        System.out.println("####this.armiesPlacable" + this.armiesPlacable + armiesPlacable );
         this.armiesPlacable = armiesPlacable;
     }
 

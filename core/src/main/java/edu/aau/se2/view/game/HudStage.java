@@ -11,7 +11,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 import java.util.Locale;
 
-public class HudStage extends Stage implements Disposable {
+import edu.aau.se2.model.Database;
+
+public class HudStage extends Stage implements IGameBoard {
+    private boolean armiesPlacable = false;
+
     private Integer scoreOwn;
     private Integer scoreOpponentOne;
     private Integer scoreOpponentTwo;
@@ -35,11 +39,21 @@ public class HudStage extends Stage implements Disposable {
     private Label scoreOpponentOneLabel;
     private Label scoreOpponentTwoLabel;
     private Label scoreOpponentThreeLabel;
+    private String yourTurn;
+    private Label yourTurnLabel;
+
 
 
     public HudStage(Viewport vp){
         //TODO: values from server
         super(vp);
+
+        if(this.armiesPlacable){
+            yourTurn = "Your turn";
+        } else {
+            yourTurn = "";
+        }
+
         scoreOwn = 544;
         scoreOpponentOne = 412;
         scoreOpponentTwo = 568;
@@ -55,7 +69,6 @@ public class HudStage extends Stage implements Disposable {
         nameOpponentTwo = "Player 2";
         nameOpponentThree = "Player 3";
 
-
         //this viewport will be most likely different from the viewport od the risk-world-map-viewport, since not zoomable
         //viewport = new FitViewport(RiskGame.V_WIDTH, RiskGame.V_HEIGHT, new OrthographicCamera());
         //create the hudStage with the hud-spec-viewport
@@ -70,6 +83,7 @@ public class HudStage extends Stage implements Disposable {
         scoreOwnLabel = new Label("Score: " + String.format(Locale.US,"%4d", scoreOwn), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         attacksMadeLabel= new Label("Attacks made: " +  String.format(Locale.US,"%2d", attacksMadeAmount) + " / " +  String.format(Locale.US,"%2d", attacksMadeSucceededAmount), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         attacksGotLabel= new Label("Attacks got: " +  String.format(Locale.US,"%2d", attacksGotAmount) + " / " + String.format(Locale.US,"%2d", attacksGotSucceededAmount), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
+        yourTurnLabel= new Label(yourTurn, new Label.LabelStyle(new BitmapFont(), Color.WHITE));
 
         //Opponent data
         statisticsOpponentsLabel = new Label("Opponents", new Label.LabelStyle(new BitmapFont(), Color.GOLD));
@@ -79,7 +93,7 @@ public class HudStage extends Stage implements Disposable {
 
         //row 1
         table.add(statisticsOwnLabel).expandX().padTop(5);
-        table.add().expandX().padTop(5);
+        table.add(yourTurnLabel).expandX().padTop(5);
         table.add(statisticsOpponentsLabel).expandX().padTop(5);
         table.row();
         //row2
@@ -102,6 +116,44 @@ public class HudStage extends Stage implements Disposable {
     }
 
     @Override
-    public void dispose() { this.dispose(); }
+    public void dispose() { super.dispose(); }
+
+    @Override
+    public void setArmiesPlacable(boolean armiesPlacable) {
+        System.out.println("####this.armiesPlacable" + this.armiesPlacable + armiesPlacable );
+        this.armiesPlacable = armiesPlacable;
+    }
+
+    @Override
+    public void setInteractable(boolean interactable) {
+    }
+
+    @Override
+    public boolean isInteractable() {
+        return true;
+    }
+
+    @Override
+    public boolean isArmiesPlacable() {
+        return true;
+    }
+
+    @Override
+    public void setAttackAllowed(boolean attackAllowed) {
+    }
+
+    @Override
+    public boolean isAttackAllowed() {
+        return true;
+    }
+
+    @Override
+    public void setArmyCount(int territoryID, int count) {
+    }
+
+    @Override
+    public void setArmyColor(int territoryID, int colorID) {
+    }
+
 }
 

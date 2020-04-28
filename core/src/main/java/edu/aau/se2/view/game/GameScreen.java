@@ -100,7 +100,6 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public void territoryUpdated(int territoryID, int armyCount, int colorID) {
         boardStage.setArmyCount(territoryID, armyCount);
         boardStage.setArmyColor(territoryID, colorID);
-
         if (db.isInitialArmyPlacementFinished() && db.isThisPlayersTurn() && db.getCurrentArmyReserve() == 0) {
             showFinishTurnDialog();
         }
@@ -121,5 +120,6 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
         boardStage.setArmiesPlacable(isThisPlayer);
+        hudStage.setArmiesPlacable(isThisPlayer);
     }
 }
