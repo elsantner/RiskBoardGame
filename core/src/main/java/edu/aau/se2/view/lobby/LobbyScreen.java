@@ -27,6 +27,7 @@ import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.AbstractScreen;
+import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.lobbylist.ExitButtonListener;
 import edu.aau.se2.view.lobbylist.ReadyButtonListener;
 
@@ -72,7 +73,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
         this.stage = new Stage(new StretchViewport(1920,1080));
         stage.stageToScreenCoordinates(new Vector2(0,0));
         Gdx.input.setInputProcessor(this.stage);
-        skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        skin = getGame().getAssetManager().get(AssetName.UI_SKIN_2);
         skin.getFont("default-font").getData().setScale(0.5f);
 
         Table outerTable = new Table();
@@ -160,12 +161,12 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     @Override
     public void dispose() {
         try {
-            background.dispose();
-            lobbyOverlay.dispose();
-            line.dispose();
-            font.dispose();
-            lobbyText.dispose();
-            skin.dispose();
+            background = null;
+            lobbyOverlay = null;
+            line = null;
+            font = null;
+            lobbyText = null;
+            skin = null;
         }
         catch (Exception ex) {
             Logger.getLogger(TAG).log(Level.WARNING, "Error disposing assets", ex);
@@ -175,25 +176,16 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     private void assets() {
         Gdx.app.log(TAG, "Loading assets" + Gdx.graphics.getDensity() + "  "+ height);
 
-        background = scaleToScreen("lobby/lobbyScreen.png");
-        lobbyText = scaleToScreen("lobby/lobby2.png");
-        line = scaleToScreen("lobby/line.png");
-        lobbyOverlay = scaleToScreen("lobby/lobbyMenuOverlay.png");
-
-        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("font/CenturyGothic.ttf"));
-        FreeTypeFontGenerator.setMaxTextureSize(5000);
-        FreeTypeFontParameter parameter = new FreeTypeFontParameter();
-        parameter.size = (height * 150) / 1080;
-        parameter.borderColor = Color.BLACK;
-        parameter.borderWidth = (height * 4) / 1080f;
-        font = generator.generateFont(parameter);
+        background = scaleToScreen(AssetName.TEX_LOBBY_SCREEN);
+        lobbyText = scaleToScreen(AssetName.TEX_LOBBY_2);
+        line = scaleToScreen(AssetName.TEX_LOBBY_LINE);
+        lobbyOverlay = scaleToScreen(AssetName.TEX_LOBBY_OVERLAY);
+        font = getGame().getAssetManager().get(AssetName.FONT_2);
         font.setColor(new Color(0.6f, 0, 0, 1));
-        generator.dispose();
-
     }
 
     private Texture scaleToScreen(String path) {
-        Pixmap pixmap = new Pixmap(Gdx.files.internal(path));
+        Pixmap pixmap = getGame().getAssetManager().get(path);
 
         Pixmap pixmap1 = new Pixmap(width, height, pixmap.getFormat());
         pixmap1.drawPixmap(pixmap, 0, 0, pixmap.getWidth(), pixmap.getHeight(), 0, 0, pixmap1.getWidth(), pixmap1.getHeight());

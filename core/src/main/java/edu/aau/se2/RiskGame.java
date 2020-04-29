@@ -7,6 +7,7 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -49,16 +50,13 @@ public class RiskGame extends Game {
 			setScreen(mainMenuScreen);
 		}));
 		db.setJoinedLobbyListener((lobbyID, host, players) -> Gdx.app.postRunnable(() -> {
-			lobbyScreen = new LobbyScreen();
+			lobbyScreen = new LobbyScreen(this);
 			setScreen(lobbyScreen);
 		}));
 		db.setLobbyListChangedListener(lobbyList -> Gdx.app.postRunnable(() -> {
-			lobbyListScreen = new LobbyListScreen(lobbyList);
+			lobbyListScreen = new LobbyListScreen(this, lobbyList);
 			setScreen(lobbyListScreen);
 		}));
-
-		mainMenuScreen = new MainMenu(this);
-		setScreen(mainMenuScreen);
 
 		db.setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override
@@ -86,22 +84,45 @@ public class RiskGame extends Game {
 		assetManager.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
 		assetManager.setLoader(BitmapFont.class, ".ttf", new FreetypeFontLoader(resolver));
 
-		FreetypeFontLoader.FreeTypeFontLoaderParameter parameter = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
-		parameter.fontFileName = AssetName.FONT_1;
-		parameter.fontParameters.size = 70;
-		parameter.fontParameters.borderColor = Color.BLACK;
-        parameter.fontParameters.borderWidth = 2;
-		assetManager.load(AssetName.FONT_1, BitmapFont.class, parameter);
+		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont1 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
+		parameterFont1.fontFileName = "font/CenturyGothic.ttf";
+		parameterFont1.fontParameters.size = 70;
+		parameterFont1.fontParameters.borderColor = Color.BLACK;
+        parameterFont1.fontParameters.borderWidth = 2;
+		assetManager.load(AssetName.FONT_1, BitmapFont.class, parameterFont1);
+
+		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont2 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
+		parameterFont2.fontFileName = "font/CenturyGothic.ttf";
+		parameterFont2.fontParameters.size = (Gdx.graphics.getHeight() * 150) / 1080;
+		parameterFont2.fontParameters.borderColor = Color.BLACK;
+		parameterFont2.fontParameters.borderWidth = (Gdx.graphics.getHeight() * 4) / 1080f;
+		assetManager.load(AssetName.FONT_2, BitmapFont.class, parameterFont2);
 
 		assetManager.load(AssetName.PHASE_DISPLAY_BG, Texture.class);
-		assetManager.load(AssetName.UI_SKIN, Skin.class);
+		assetManager.load(AssetName.UI_SKIN_1, Skin.class);
+		assetManager.load(AssetName.UI_SKIN_2, Skin.class);
+		assetManager.load(AssetName.UI_SKIN_3, Skin.class);
+		assetManager.load(AssetName.TEX_LOBBY_SCREEN, Pixmap.class);
+		assetManager.load(AssetName.TEX_LOBBY_2, Pixmap.class);
+		assetManager.load(AssetName.TEX_LOBBY_LINE, Pixmap.class);
+		assetManager.load(AssetName.TEX_LOBBY_OVERLAY, Pixmap.class);
+		assetManager.load(AssetName.TEX_LOBBYLIST_SCREEN, Texture.class);
+		assetManager.load(AssetName.TEX_LOBBYLIST_2, Texture.class);
+		assetManager.load(AssetName.TEX_LOBBYLIST_OVERLAY, Texture.class);
+		assetManager.load(AssetName.TEX_LOBBYLIST_LINE, Texture.class);
 	}
+
+	boolean test = false;
 
 	@Override
 	public void render() {
 		super.render();
 		// load assets
-		assetManager.update();
+		if(assetManager.update() && !test) {
+			test = true;
+			mainMenuScreen = new MainMenu(this);
+			setScreen(mainMenuScreen);
+		}
 	}
 
 	@Override

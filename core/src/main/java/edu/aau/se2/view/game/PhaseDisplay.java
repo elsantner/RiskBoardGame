@@ -38,7 +38,7 @@ public class PhaseDisplay extends Group {
     private void setupTable() {
         label = new Label(getPhaseName(this.phase), new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
         label.setOrigin(Align.center);
-        buttonSkipStage = new TextButton("Beenden", (Skin) assetManager.get(AssetName.UI_SKIN));
+        buttonSkipStage = new TextButton("Beenden", (Skin) assetManager.get(AssetName.UI_SKIN_1));
         buttonSkipStage.setTransform(true);
         buttonSkipStage.scaleBy(2f);
         buttonSkipStage.setOrigin(Align.center);

@@ -2,10 +2,9 @@ package edu.aau.se2.view.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
@@ -15,6 +14,7 @@ import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.view.AbstractScreen;
+import edu.aau.se2.view.asset.AssetName;
 
 /**
  * @author Elias
@@ -103,8 +103,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     private void showFinishTurnDialog() {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        ConfirmDialog dialog = new ConfirmDialog("Zug beenden",
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin,"Zug beenden",
                 "Moechten Sie Ihren Zug beenden?", "Ja", "Nein",
                 result -> {
                     if (result) {
@@ -116,8 +117,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     private void showSkipAttackingPhaseDialog() {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        ConfirmDialog dialog = new ConfirmDialog("Phase beenden",
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin, "Phase beenden",
                 "Moechten Sie die Angriffsphase beenden?", "Ja", "Nein",
                 result -> {
                     if (result) {
@@ -129,8 +131,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     private void showSelectCountDialog(int fromTerritoryID, int toTerritoryID) {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        SelectCountDialog dialog = new SelectCountDialog("Einheitenanzahl", 1,
+        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Einheitenanzahl", 1,
                 db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
                 result -> {
                     if (result > 0) {
