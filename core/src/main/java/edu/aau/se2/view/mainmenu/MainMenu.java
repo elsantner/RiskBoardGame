@@ -17,8 +17,9 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
+import edu.aau.se2.view.AbstractScreen;
 
-public class MainMenu implements Screen {
+public class MainMenu extends AbstractScreen {
     private Skin mySkin;
     private Stage stage;
     private Viewport gamePort;
@@ -29,7 +30,8 @@ public class MainMenu implements Screen {
     private Button exit;
 
 
-    public MainMenu(RiskGame riskGame){
+    public MainMenu(RiskGame game){
+        super(game);
         mySkin = new Skin(Gdx.files.internal("skinMainMenu/star-soldier-ui.json"));
         gamePort = new ScreenViewport();
         stage = new Stage(gamePort);

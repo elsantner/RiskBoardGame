@@ -41,7 +41,7 @@ public class RiskGame extends Game {
         Database db = Database.getInstance();
 
 		db.setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
-            gameScreen = new GameScreen(assetManager);
+            gameScreen = new GameScreen(this);
             setScreen(gameScreen);
         }));
 		db.setLeftLobbyListener(() -> Gdx.app.postRunnable(() -> {
@@ -123,4 +123,8 @@ public class RiskGame extends Game {
             oldScreen.dispose();
         super.setScreen(screen);
     }
+
+	public AssetManager getAssetManager() {
+		return assetManager;
+	}
 }

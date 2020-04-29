@@ -22,13 +22,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.lobbylist.ExitButtonListener;
 import edu.aau.se2.view.lobbylist.ReadyButtonListener;
 
-public class LobbyScreen implements Screen, OnPlayersChangedListener {
+public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListener {
 
     private static final String TAG = "LobbyScreen";
     private Texture background;
@@ -45,7 +47,8 @@ public class LobbyScreen implements Screen, OnPlayersChangedListener {
     private Database db;
     private List<Player> users;
 
-    public LobbyScreen() {
+    public LobbyScreen(RiskGame game) {
+        super(game);
         db = Database.getInstance();
         db.setPlayersChangedListener(this);
 

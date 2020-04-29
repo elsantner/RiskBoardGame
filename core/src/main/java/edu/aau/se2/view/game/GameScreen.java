@@ -9,27 +9,30 @@ import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.view.AbstractScreen;
 
 /**
  * @author Elias
  */
-public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener,
+public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
         OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
     private BoardStage boardStage;
     private TempHUDStage tmpHUDStage;
     private Database db;
 
-    public GameScreen(AssetManager assetManager) {
-        this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), assetManager);
+    public GameScreen(RiskGame game) {
+        this(game, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
-    public GameScreen(int width, int height, AssetManager assetManager) {
-        boardStage = new BoardStage(new FitViewport(width, height));
-        tmpHUDStage = new TempHUDStage(new FitViewport(width, height), assetManager, this);
+    public GameScreen(RiskGame game, int width, int height) {
+        super(game);
+        boardStage = new BoardStage(this, new FitViewport(width, height));
+        tmpHUDStage = new TempHUDStage(this, new FitViewport(width, height), this);
         db = Database.getInstance();
         boardStage.setListener(this);
         db.setTerritoryUpdateListener(this);

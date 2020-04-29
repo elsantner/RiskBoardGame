@@ -19,9 +19,11 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import java.util.List;
 
+import edu.aau.se2.RiskGame;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
+import edu.aau.se2.view.AbstractScreen;
 
-public class LobbyListScreen extends ScreenAdapter {
+public class LobbyListScreen extends AbstractScreen {
 
     private static final String TAG = "LobbyScreen";
     private Texture background;
@@ -34,7 +36,8 @@ public class LobbyListScreen extends ScreenAdapter {
 
     private List<LobbyListMessage.LobbyData> lobbyData;
 
-    public LobbyListScreen(List<LobbyListMessage.LobbyData> lobbyData) {
+    public LobbyListScreen(RiskGame game, List<LobbyListMessage.LobbyData> lobbyData) {
+        super(game);
         this.lobbyData = lobbyData;
     }
 
@@ -56,6 +59,21 @@ public class LobbyListScreen extends ScreenAdapter {
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
+    }
+
+    @Override
+    public void pause() {
+        // currently unused
+    }
+
+    @Override
+    public void resume() {
+        // currently unused
+    }
+
+    @Override
+    public void hide() {
+        // currently unused
     }
 
     @Override

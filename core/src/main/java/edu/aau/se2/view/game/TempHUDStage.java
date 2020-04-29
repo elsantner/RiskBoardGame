@@ -9,23 +9,23 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import edu.aau.se2.model.Database;
+import edu.aau.se2.view.AbstractScreen;
+import edu.aau.se2.view.AbstractStage;
 
-public class TempHUDStage extends Stage {
+public class TempHUDStage extends AbstractStage {
     private PhaseDisplay phaseDisplay;
-    private AssetManager assetManager;
     private OnHUDInteractionListener hudInteractionListener;
     private Database db;
 
-    public TempHUDStage(Viewport vp, AssetManager assetManager, OnHUDInteractionListener l) {
-        super(vp);
+    public TempHUDStage(AbstractScreen screen, Viewport vp, OnHUDInteractionListener l) {
+        super(vp, screen);
         this.db = Database.getInstance();
-        this.assetManager = assetManager;
         this.hudInteractionListener = l;
         setupPhaseDisplay();
     }
 
     private void setupPhaseDisplay() {
-        this.phaseDisplay = new PhaseDisplay(assetManager);
+        this.phaseDisplay = new PhaseDisplay(getScreen().getGame().getAssetManager());
         this.addActor(phaseDisplay);
         phaseDisplay.setWidth(Gdx.graphics.getWidth());
         phaseDisplay.setHeight(Gdx.graphics.getHeight()/7f);

@@ -14,12 +14,14 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.server.logic.TerritoryHelper;
+import edu.aau.se2.view.AbstractScreen;
+import edu.aau.se2.view.AbstractStage;
 import edu.aau.se2.view.asset.AssetName;
 
 /**
  * @author Elias
  */
-public class BoardStage extends Stage implements IGameBoard, GestureDetector.GestureListener {
+public class BoardStage extends AbstractStage implements IGameBoard, GestureDetector.GestureListener {
     private static final float MAX_ZOOM_FACTOR = 1;
     private static final float MIN_ZOOM_FACTOR = 0.25f;
     private float prevZoomFactor = 1;
@@ -33,12 +35,12 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
     private Database.Phase phase;
     private Territory selectedTerritory;
 
-    public BoardStage(Viewport vp) {
-        this(vp, new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE});
+    public BoardStage(AbstractScreen screen, Viewport vp) {
+        this(screen, vp, new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE});
     }
 
-    public BoardStage(Viewport vp, Color[] playerColors) {
-        super(vp);
+    public BoardStage(AbstractScreen screen, Viewport vp, Color[] playerColors) {
+        super(vp, screen);
         if (playerColors.length != 6) {
             throw new IllegalArgumentException("player colors must contain exactly 6 colors");
         }
