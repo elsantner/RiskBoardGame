@@ -14,7 +14,7 @@ public class CardTest {
 
     @Before
     public void setUp() {
-        card = new Card("test", Card.CARD_TYPE.CAVALRY, Card.CONTINENT.EUROPE);
+        card = new Card("test", Card.CARD_TYPE.CAVALRY, Card.CONTINENT.EUROPE,0);
     }
 
     @After
@@ -24,9 +24,9 @@ public class CardTest {
 
     @Test
     public void testConstructor() {
-        Card c = new Card("test1", Card.CARD_TYPE.CAVALRY, Card.CONTINENT.EUROPE);
+        Card c = new Card("test1", Card.CARD_TYPE.CAVALRY, Card.CONTINENT.EUROPE, 0);
         assertEquals("test1", c.getCardName());
-        assertEquals(Card.CARD_TYPE.CAVALRY, c.getCard_type());
+        assertEquals(Card.CARD_TYPE.CAVALRY, c.getCardType());
         assertEquals(Card.CONTINENT.EUROPE, c.getContinent());
         assertEquals(-1, c.getOwnerID());
     }
@@ -38,7 +38,7 @@ public class CardTest {
 
     @Test
     public void testGetCard_type() {
-        assertEquals(Card.CARD_TYPE.CAVALRY, card.getCard_type());
+        assertEquals(Card.CARD_TYPE.CAVALRY, card.getCardType());
     }
 
     @Test
@@ -59,8 +59,8 @@ public class CardTest {
 
     @Test
     public void testWildCard() {
-        Card c = new Card("card_wild1", WILDCARD, null);
-        assertEquals(WILDCARD, c.getCard_type());
+        Card c = new Card("card_wild1", WILDCARD, null,0);
+        assertEquals(WILDCARD, c.getCardType());
         assertNull(c.getContinent());
     }
 }

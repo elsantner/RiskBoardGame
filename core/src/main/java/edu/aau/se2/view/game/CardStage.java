@@ -10,7 +10,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CardStage extends Stage {
+
+    private Table cardContainer;
+    private ArrayList<String> cardNames;
 
 
     public CardStage(Viewport viewport) {
@@ -20,38 +26,22 @@ public class CardStage extends Stage {
 
         /*
         This is a simple scrollable list of cards.
-        table: inner table of image actors
-        this table is surrounded by a ScrollPane
+        cardContainer: inner table of image actors
+        the container is surrounded by a ScrollPane
         ScrollPane is inside outer table, that is added as actor
          */
 
-        Table table = new Table();
-        Texture texture = new Texture(Gdx.files.internal("cards/card_afghanistan.png"));
-        Image im = new Image(texture);
-        table.add(im).pad(0, 0, 0, 20f);
-        texture = new Texture(Gdx.files.internal("cards/card_alaska.png"));
-        im = new Image(texture);
-        table.add(im).pad(0, 0, 0, 20f);
+        this.cardNames = new ArrayList<>();
+        this.cardContainer = new Table();
 
+        this.addCard("card_alaska");
+        this.addCard("card_siberia");
+        this.addCard("card_brazil");
+        this.addCard("card_ural");
 
-        texture = new Texture(Gdx.files.internal("cards/card_argentina.png"));
-        im = new Image(texture);
-        table.add(im).pad(0, 0, 0, 20f);
-        texture = new Texture(Gdx.files.internal("cards/card_brazil.png"));
-        im = new Image(texture);
-        table.add(im).pad(0, 0, 0, 20f);
-        texture = new Texture(Gdx.files.internal("cards/card_alaska.png"));
-        im = new Image(texture);
-        table.add(im).pad(0, 0, 0, 20f);
-        texture = new Texture(Gdx.files.internal("cards/card_alaska.png"));
-        im = new Image(texture);
-        table.add(im).pad(0, 0, 0, 20f);
+        this.cardContainer.setDebug(true);
 
-        table.row();
-        table.setDebug(true);
-
-
-        ScrollPane scrollPane = new ScrollPane(table);
+        ScrollPane scrollPane = new ScrollPane(cardContainer);
         Table outer = new Table();
         outer.setFillParent(true);
         outer.add(nameLabel).expand();
@@ -63,8 +53,20 @@ public class CardStage extends Stage {
 
     }
 
-    @Override
-    public void draw() {
-        super.draw();
+    // todo wildcard!!
+    public void addCard(String name) {
+
+        this.cardNames.add(name);
+        Texture texture = new Texture(Gdx.files.internal("cards/" + name + ".png"));
+        Image im = new Image(texture);
+        this.cardContainer.add(im).pad(0, 8f, 0, 8f);
+    }
+
+    public Table getCardContainer() {
+        return cardContainer;
+    }
+
+    public List<String> getCardNames() {
+        return cardNames;
     }
 }

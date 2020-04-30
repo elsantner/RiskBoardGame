@@ -45,7 +45,7 @@ public class CardDeckTest {
         Card c = cardDeck.getCard("card_iceland");
         assertEquals("card_iceland", c.getCardName());
         assertEquals(Card.CONTINENT.EUROPE, c.getContinent());
-        assertEquals(Card.CARD_TYPE.INFANTRY, c.getCard_type());
+        assertEquals(Card.CARD_TYPE.INFANTRY, c.getCardType());
     }
 
     @Test

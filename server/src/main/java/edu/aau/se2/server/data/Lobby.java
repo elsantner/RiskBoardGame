@@ -20,10 +20,12 @@ public class Lobby {
     private boolean isStarted;
     private boolean areInitialArmiesPlaced;
     private boolean hasCurrentPlayerToActReceivedNewArmies;
+    private CardDeck cardDeck;
 
     public Lobby(int lobbyID) {
         this.lobbyID = lobbyID;
         this.players = new TreeMap<>();
+        this.cardDeck = new CardDeck(lobbyID);
         this.isStarted = false;
         this.areInitialArmiesPlaced = false;
         initTerritories();
