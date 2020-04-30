@@ -68,7 +68,7 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
     }
 
     private void loadAssets() {
-        imgRiskBoard = new Image(new Texture(AssetName.RISK_BOARD));
+        imgRiskBoard = new Image(getScreen().getGame().getAssetManager().get(AssetName.RISK_BOARD, Texture.class));
     }
 
     private void setupBoardImage(int screenWidth, int screenHeight) {

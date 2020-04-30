@@ -24,21 +24,31 @@ import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.game.GameScreen;
+import edu.aau.se2.view.loading.LoadingScreen;
 import edu.aau.se2.view.lobby.LobbyScreen;
 import edu.aau.se2.view.lobbylist.LobbyListScreen;
 import edu.aau.se2.view.mainmenu.MainMenu;
 
 public class RiskGame extends Game {
 	private AssetManager assetManager;
+	private boolean isDoneLoadingAssets = false;
 
 	private GameScreen gameScreen;
 	private LobbyScreen lobbyScreen;
 	private LobbyListScreen lobbyListScreen;
 	private MainMenu mainMenuScreen;
+	private LoadingScreen loadingScreen;
 
 	@Override
 	public void create () {
-		setupAssetManager();
+		this.assetManager = new AssetManager();
+		setupAssetManagerLoadingScreen();
+		assetManager.finishLoading();
+
+		setupAssetManagerAllAssets();
+		loadingScreen = new LoadingScreen(this, assetManager.getQueuedAssets());
+		setScreen(loadingScreen);
+
         Database db = Database.getInstance();
 
 		db.setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
@@ -77,9 +87,12 @@ public class RiskGame extends Game {
 		}
 	}
 
-	private void setupAssetManager() {
-		assetManager = new AssetManager();
+	private void setupAssetManagerLoadingScreen() {
+		assetManager.load(AssetName.TEX_LOGO, Texture.class);
+		assetManager.load(AssetName.UI_SKIN_4, Skin.class);
+	}
 
+	private void setupAssetManagerAllAssets() {
 		FileHandleResolver resolver = new InternalFileHandleResolver();
 		assetManager.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
 		assetManager.setLoader(BitmapFont.class, ".ttf", new FreetypeFontLoader(resolver));
@@ -100,8 +113,6 @@ public class RiskGame extends Game {
 
 		assetManager.load(AssetName.PHASE_DISPLAY_BG, Texture.class);
 		assetManager.load(AssetName.UI_SKIN_1, Skin.class);
-		assetManager.load(AssetName.UI_SKIN_2, Skin.class);
-		assetManager.load(AssetName.UI_SKIN_3, Skin.class);
 		assetManager.load(AssetName.TEX_LOBBY_SCREEN, Pixmap.class);
 		assetManager.load(AssetName.TEX_LOBBY_2, Pixmap.class);
 		assetManager.load(AssetName.TEX_LOBBY_LINE, Pixmap.class);
@@ -110,16 +121,15 @@ public class RiskGame extends Game {
 		assetManager.load(AssetName.TEX_LOBBYLIST_2, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBYLIST_OVERLAY, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBYLIST_LINE, Texture.class);
+		assetManager.load(AssetName.RISK_BOARD, Texture.class);
 	}
-
-	boolean test = false;
 
 	@Override
 	public void render() {
 		super.render();
 		// load assets
-		if(assetManager.update() && !test) {
-			test = true;
+		if(assetManager.update() && !isDoneLoadingAssets) {
+			isDoneLoadingAssets = true;
 			mainMenuScreen = new MainMenu(this);
 			setScreen(mainMenuScreen);
 		}

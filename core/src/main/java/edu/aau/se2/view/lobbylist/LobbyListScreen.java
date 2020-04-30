@@ -91,7 +91,7 @@ public class LobbyListScreen extends AbstractScreen {
         this.stage = new Stage(new StretchViewport(1920,1080));
         stage.stageToScreenCoordinates(new Vector2(0,0));
         Gdx.input.setInputProcessor(this.stage);
-        final Skin skin = assetManager.get(AssetName.UI_SKIN_3);
+        final Skin skin = assetManager.get(AssetName.UI_SKIN_1);
         skin.getFont("default-font").getData().setScale(0.5f);
 
         Table lobbyListTable = new Table();
