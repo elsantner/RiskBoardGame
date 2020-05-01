@@ -2,6 +2,7 @@ package edu.aau.se2.view.lobby;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -101,10 +102,10 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
 
         batch.begin();
 
-        batch.draw(background, 0, 0);
-        batch.draw(lobbyOverlay, 0, 0);
-        batch.draw(line, 0, 0);
-        batch.draw(lobbyText, 0, 0);
+        batch.draw(background, 0, 0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
+        batch.draw(lobbyOverlay, 0, 0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
+        batch.draw(line, 0, 0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
+        batch.draw(lobbyText, 0, 0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
 
 
         batch.end();
@@ -175,21 +176,14 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
 
     private void assets() {
         Gdx.app.log(TAG, "Loading assets" + Gdx.graphics.getDensity() + "  "+ height);
+        AssetManager assetManager = getGame().getAssetManager();
 
-        background = scaleToScreen(AssetName.TEX_LOBBY_SCREEN);
-        lobbyText = scaleToScreen(AssetName.TEX_LOBBY_2);
-        line = scaleToScreen(AssetName.TEX_LOBBY_LINE);
-        lobbyOverlay = scaleToScreen(AssetName.TEX_LOBBY_OVERLAY);
+        background = assetManager.get(AssetName.TEX_LOBBY_SCREEN);
+        lobbyText = assetManager.get(AssetName.TEX_LOBBY_2);
+        line = assetManager.get(AssetName.TEX_LOBBY_LINE);
+        lobbyOverlay = assetManager.get(AssetName.TEX_LOBBY_OVERLAY);
         font = getGame().getAssetManager().get(AssetName.FONT_2);
         font.setColor(new Color(0.6f, 0, 0, 1));
-    }
-
-    private Texture scaleToScreen(String path) {
-        Pixmap pixmap = getGame().getAssetManager().get(path);
-
-        Pixmap pixmap1 = new Pixmap(width, height, pixmap.getFormat());
-        pixmap1.drawPixmap(pixmap, 0, 0, pixmap.getWidth(), pixmap.getHeight(), 0, 0, pixmap1.getWidth(), pixmap1.getHeight());
-        return new Texture(pixmap1);
     }
 
     public List<Player> getUsers() {

@@ -115,10 +115,10 @@ public class RiskGame extends Game {
 
 		assetManager.load(AssetName.PHASE_DISPLAY_BG, Texture.class);
 		assetManager.load(AssetName.UI_SKIN_1, Skin.class);
-		assetManager.load(AssetName.TEX_LOBBY_SCREEN, Pixmap.class);
-		assetManager.load(AssetName.TEX_LOBBY_2, Pixmap.class);
-		assetManager.load(AssetName.TEX_LOBBY_LINE, Pixmap.class);
-		assetManager.load(AssetName.TEX_LOBBY_OVERLAY, Pixmap.class);
+		assetManager.load(AssetName.TEX_LOBBY_SCREEN, Texture.class);
+		assetManager.load(AssetName.TEX_LOBBY_2, Texture.class);
+		assetManager.load(AssetName.TEX_LOBBY_LINE, Texture.class);
+		assetManager.load(AssetName.TEX_LOBBY_OVERLAY, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBYLIST_2, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBYLIST_OVERLAY, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBYLIST_LINE, Texture.class);
