@@ -1,22 +1,17 @@
 package edu.aau.se2.view.lobby;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import java.util.List;
@@ -78,19 +73,16 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
         skin.getFont("default-font").getData().setScale(0.5f);
 
         Table outerTable = new Table();
-        outerTable.setFillParent(true);
-        outerTable.pad(120f);
+        outerTable.setX(stage.getViewport().getWorldWidth() * 0.8f);
+        outerTable.setY(stage.getViewport().getWorldHeight() * 0.85f);
 
         TextButton ready = new TextButton("Bereit", skin);
         ready.addListener(new ReadyButtonListener());
         TextButton exit = new TextButton("Verlassen", skin);
         exit.addListener(new ExitButtonListener());
 
-        VerticalGroup buttonGroup = new VerticalGroup();
-        buttonGroup.addActor(ready);
-        buttonGroup.addActor(exit);
-        outerTable.add(buttonGroup);
-
+        outerTable.add(ready).width(stage.getViewport().getWorldWidth() *0.2f).pad(10f).row();
+        outerTable.add(exit).width(stage.getViewport().getWorldWidth() *0.2f).pad(10f);
         this.stage.addActor(outerTable);
     }
 
