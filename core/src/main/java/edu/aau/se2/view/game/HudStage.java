@@ -1,21 +1,17 @@
 //HUDSTAGE
 package edu.aau.se2.view.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-
-import java.awt.SystemColor;
 import java.util.List;
-
-
 import java.util.Locale;
-
-import edu.aau.se2.model.Database;
 import edu.aau.se2.server.data.Player;
 
 public class HudStage extends Stage implements IGameBoard {
@@ -26,20 +22,12 @@ public class HudStage extends Stage implements IGameBoard {
     private String[] currentPlayerNames;
     private Color[] currentPlayerColors;
     private Label[] currentPlayerLabels;
+    private BitmapFont niceFont;
 
-    private Integer scoreOwn;
-    private Integer scoreOpponentOne;
-    private Integer scoreOpponentTwo;
-    private Integer scoreOpponentThree;
     private Integer attacksMadeAmount;
     private Integer attacksMadeSucceededAmount;
     private Integer attacksGotAmount;
     private Integer attacksGotSucceededAmount;
-
-    // stings
-    private String nameOpponentOne;
-    private String nameOpponentTwo;
-    private String nameOpponentThree;
 
     //Labels
     private Label statisticsOwnLabel;
@@ -58,18 +46,7 @@ public class HudStage extends Stage implements IGameBoard {
         currentPlayerNames = new String[currentPlayers.size()];
         currentPlayerColors = new Color[currentPlayers.size()];
         currentPlayerLabels = new Label[currentPlayers.size()];
-        System.out.println("constructor currentplayer " + currentPlayers.size());
         setCurrentPlayersColorOnHud(currentPlayers);
-        System.out.println("currentPlayerNames  " + currentPlayerNames);
-        System.out.println("currentPlayerNames  " + currentPlayerColors);
-
-        for(String playerName : currentPlayerNames){
-            System.out.println("###asdasdasd " + playerName);
-        }
-        for(Color playerColors : currentPlayerColors){
-            System.out.println("###asdasdasd " + playerColors.toString());
-        }
-
 
         attacksMadeAmount = 5;
         attacksMadeSucceededAmount = 3;
@@ -77,22 +54,17 @@ public class HudStage extends Stage implements IGameBoard {
         attacksGotAmount = 2;
         attacksGotSucceededAmount = 2;
 
-
         Table table = new Table();
         table.top();
         table.setFillParent(true);
 
         //Own data
-        statisticsOwnLabel = new Label("Persönliche Info", new Label.LabelStyle(new BitmapFont(), Color.GOLD));
-        scoreOwnLabel = new Label("Score: " + String.format(Locale.US,"%4d", scoreOwn), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        attacksMadeLabel= new Label("Attacks made: " +  String.format(Locale.US,"%2d", attacksMadeAmount) + " / " +  String.format(Locale.US,"%2d", attacksMadeSucceededAmount), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        attacksGotLabel= new Label("Attacks got: " +  String.format(Locale.US,"%2d", attacksGotAmount) + " / " + String.format(Locale.US,"%2d", attacksGotSucceededAmount), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        yourTurnLabel= new Label(yourTurn, new Label.LabelStyle(new BitmapFont(), Color.valueOf("#ff0000ff")));
-
-        //Opponent data
-        statisticsOpponentsLabel = new Label("Übersicht", new Label.LabelStyle(new BitmapFont(), Color.GOLD));
-        //scoreOpponentOneLabel = new Label(currentPlayerNames[0].toString() + " : " + String.format(Locale.US, "%4d", scoreOpponentOne), new Label.LabelStyle(new BitmapFont(), Color.GOLD));
-        //scoreOpponentTwoLabel = new Label(currentPlayerNames[0] + " : " +  String.format(Locale.US,"%4d", scoreOpponentTwo), new Label.LabelStyle(new BitmapFont(), Color.valueOf(currentPlayerColors[0].toString())));
+        statisticsOwnLabel = new Label("Persönliche Info", new Label.LabelStyle(generateFont(), Color.GOLD));
+        //scoreOwnLabel = new Label("Score: " + String.format(Locale.US,"%4d", 4), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
+        attacksMadeLabel= new Label("Attacks made: " +  String.format(Locale.US,"%2d", attacksMadeAmount) + " / " +  String.format(Locale.US,"%2d", attacksMadeSucceededAmount), new Label.LabelStyle(generateFont(), Color.WHITE));
+        attacksGotLabel= new Label("Attacks got: " +  String.format(Locale.US,"%2d", attacksGotAmount) + " / " + String.format(Locale.US,"%2d", attacksGotSucceededAmount), new Label.LabelStyle(generateFont(), Color.WHITE));
+        yourTurnLabel= new Label(yourTurn, new Label.LabelStyle(generateFont(), Color.valueOf("#ff0000ff")));
+        statisticsOpponentsLabel = new Label("Allgemeine Info", new Label.LabelStyle(generateFont(), Color.GOLD));
 
         //row 1
         table.add(statisticsOwnLabel).expandX().padTop(5);
@@ -101,7 +73,7 @@ public class HudStage extends Stage implements IGameBoard {
         table.row();
 
         for(int i = 0; i < currentPlayers.size(); i++){
-            currentPlayerLabels[i] = new Label(currentPlayerNames[i], new Label.LabelStyle(new BitmapFont(), Color.valueOf(currentPlayerColors[i].toString())));
+            currentPlayerLabels[i] = new Label(currentPlayerNames[i], new Label.LabelStyle(generateFont(), Color.valueOf(currentPlayerColors[i].toString())));
             table.add().expandX();
             table.add().expandX();
             table.add(currentPlayerLabels[i]).expandX();
@@ -170,5 +142,15 @@ public class HudStage extends Stage implements IGameBoard {
     public void update() {
         yourTurnLabel.setText(this.yourTurn);
     }
+
+    private BitmapFont generateFont(){
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("font/CenturyGothic.ttf"));
+        FreeTypeFontParameter parameter = new FreeTypeFontParameter();
+        parameter.size = 32;
+        BitmapFont font = generator.generateFont(parameter);
+        generator.dispose();
+        return font;
+    }
+
 }
 

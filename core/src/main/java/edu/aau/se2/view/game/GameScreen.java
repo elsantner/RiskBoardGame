@@ -101,7 +101,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     @Override
     public void dispose() {
         boardStage.dispose();
-        hudStage.dispose();
+        if (hudStage != null) hudStage.dispose();
     }
 
     @Override
@@ -132,20 +132,6 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     }
 
     public void setPlayersDataOnHud(List<Player> currentPlayers) {
-        //hudStage.setCurrentPlayersColorOnHud(colorID);
         hudStage.setCurrentPlayersColorOnHud(currentPlayers);
-        //currentPlayers = db.getCurrentPlayers();
-
-        //System.out.println("##########db.getCurrentPlayerToAct() " + db.getCurrentPlayerToAct());
-        //System.out.println("##########db.getCurrentPlayerToAct() " + db.getCurrentPlayers());
-        //thisPlayer = db.getThisPlayer();
-        //System.out.println("#####thisplayer " + db.getCurrentPlayerToAct().getColorID() + " ### " + db.getCurrentPlayerToAct().getNickname() + " ### " + db.getCurrentPlayerToAct().getArmyReserveCount());
-        //users = db.getCurrentPlayers();
-        //System.out.println("#### users : " + users);
-        /*for (Player us : users
-        ) {
-            String name = us.getNickname();
-            System.out.println("##########name " + us.getNickname());
-        }*/
     }
 }
