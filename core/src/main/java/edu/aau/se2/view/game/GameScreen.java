@@ -3,14 +3,18 @@ package edu.aau.se2.view.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import java.util.List;
+
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.server.data.Player;
 
 /**
  * @author Elias
@@ -21,6 +25,8 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     private HudStage hudStage;
     private Database db;
     private InputMultiplexer inputMultiplexer;
+    private List<Player> currentPlayers;
+    private Player thisPlayer;
 
     public GameScreen() {
         this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -38,7 +44,10 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         // server message was received
         if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
             isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());
+            setPlayersDataOnHud(db.getCurrentPlayers());
+            System.out.println("####" + db.getCurrentPlayers());
         }
+
     }
 
     public void setListener(OnBoardInteractionListener l) {
@@ -122,5 +131,23 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
         boardStage.setArmiesPlacable(isThisPlayer);
         hudStage.setArmiesPlacable(isThisPlayer);
+    }
+
+    public void setPlayersDataOnHud(List<Player> currentPlayers) {
+        //hudStage.setCurrentPlayersColorOnHud(colorID);
+        hudStage.setCurrentPlayersColorOnHud(currentPlayers);
+        //currentPlayers = db.getCurrentPlayers();
+
+        //System.out.println("##########db.getCurrentPlayerToAct() " + db.getCurrentPlayerToAct());
+        //System.out.println("##########db.getCurrentPlayerToAct() " + db.getCurrentPlayers());
+        //thisPlayer = db.getThisPlayer();
+        //System.out.println("#####thisplayer " + db.getCurrentPlayerToAct().getColorID() + " ### " + db.getCurrentPlayerToAct().getNickname() + " ### " + db.getCurrentPlayerToAct().getArmyReserveCount());
+        //users = db.getCurrentPlayers();
+        //System.out.println("#### users : " + users);
+        /*for (Player us : users
+        ) {
+            String name = us.getNickname();
+            System.out.println("##########name " + us.getNickname());
+        }*/
     }
 }

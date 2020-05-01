@@ -8,13 +8,19 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import java.util.List;
+
 
 import java.util.Locale;
 
 import edu.aau.se2.model.Database;
+import edu.aau.se2.server.data.Player;
 
 public class HudStage extends Stage implements IGameBoard {
     private boolean armiesPlacable = false;
+    private Integer thisPlayerColorId;
+    private int[] thisPlayerColorIdArray;
+    private Color[] playerColors;
 
     private Integer scoreOwn;
     private Integer scoreOpponentOne;
@@ -43,10 +49,10 @@ public class HudStage extends Stage implements IGameBoard {
     private Label yourTurnLabel;
 
 
-
     public HudStage(Viewport vp){
         //TODO: values from server
         super(vp);
+        playerColors = new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE};
 
         scoreOwn = 544;
         scoreOpponentOne = 412;
@@ -77,7 +83,7 @@ public class HudStage extends Stage implements IGameBoard {
         scoreOwnLabel = new Label("Score: " + String.format(Locale.US,"%4d", scoreOwn), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         attacksMadeLabel= new Label("Attacks made: " +  String.format(Locale.US,"%2d", attacksMadeAmount) + " / " +  String.format(Locale.US,"%2d", attacksMadeSucceededAmount), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         attacksGotLabel= new Label("Attacks got: " +  String.format(Locale.US,"%2d", attacksGotAmount) + " / " + String.format(Locale.US,"%2d", attacksGotSucceededAmount), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        yourTurnLabel= new Label("TEST: " + yourTurn, new Label.LabelStyle(new BitmapFont(), Color.WHITE));
+        yourTurnLabel= new Label(yourTurn, new Label.LabelStyle(new BitmapFont(), Color.valueOf("#ff0000ff")));
 
         //Opponent data
         statisticsOpponentsLabel = new Label("Opponents", new Label.LabelStyle(new BitmapFont(), Color.GOLD));
@@ -105,19 +111,13 @@ public class HudStage extends Stage implements IGameBoard {
         table.add().expandX();
         table.add(scoreOpponentThreeLabel).expandX();
 
-
+        System.out.println("##### thisPlayerColorId " +  thisPlayerColorId);
         this.addActor(table);
     }
 
     @Override
     public void dispose() { super.dispose(); }
 
-    @Override
-    public void setArmiesPlacable(boolean armiesPlacable) {
-        System.out.println("####this.armiesPlacable" + this.armiesPlacable + armiesPlacable );
-        this.armiesPlacable = armiesPlacable;
-        this.setMessage(armiesPlacable);
-    }
 
     @Override
     public void setInteractable(boolean interactable) {
@@ -150,13 +150,34 @@ public class HudStage extends Stage implements IGameBoard {
     public void setArmyColor(int territoryID, int colorID) {
     }
 
+    @Override
+    public void setArmiesPlacable(boolean armiesPlacable) {
+        this.armiesPlacable = armiesPlacable;
+        this.setMessage(armiesPlacable);
+    }
+
     private void setMessage(boolean isPlayersTurn) {
         if(isPlayersTurn){
             this.yourTurn = "Your turn";
         } else {
             this.yourTurn = "";
         }
-        System.out.println("#####this.yourTurn" + this.yourTurn);
+    }
+
+    public void setCurrentPlayersColorOnHud(List<Player> currentPlayers){
+        for (Player user : currentPlayers) {
+            this.setColor(currentPlayers, user.getColorID(), user.getNickname());
+        }
+    }
+
+    private void setColor(List<Player> currentPlayers, int colorID, String nickName) {
+
+        //System.out.println("####BIG HOPE" + colorID);
+        //System.out.println("###" + playerColors[colorID]);
+        //System.out.println("###currentPlayers.size() : " + currentPlayers.size());
+        for(int i = 0; i < currentPlayers.size(); i++){
+            System.out.println("###USER " + i + " " + this.playerColors[colorID] + " " + nickName);
+        }
     }
 
     public void update() {
