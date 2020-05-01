@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Random;
 
 
+import edu.aau.se2.server.logic.TerritoryHelper;
+
 import static edu.aau.se2.server.data.Card.CARD_TYPE.*;
 import static edu.aau.se2.server.data.Card.CONTINENT.*;
 
@@ -17,7 +19,7 @@ public class CardDeck {
         this.setsTradedIn = 0;
         deck = new Card[]{
                 new Card("card_wild1", WILDCARD, null, -1),
-                new Card("card_wild2", WILDCARD, null, -1),
+                new Card("card_wild2", WILDCARD, null, -2),
                 new Card("card_afghanistan", INFANTRY, ASIA, 30),
                 new Card("card_alaska", INFANTRY, NORTH_AMERICA, 4),
                 new Card("card_argentina", INFANTRY, SOUTH_AMERICA, 0),
@@ -81,6 +83,20 @@ public class CardDeck {
         return null;
     }
 
+    public Card getCard(int cardID) {
+        for (Card c : deck
+        ) {
+            if (c.getCardID() == cardID) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    public int getSetsTradedIn() {
+        return setsTradedIn;
+    }
+
     private Card[] getUnassignedCards() {
         ArrayList<Card> cards = new ArrayList<>();
         for (Card c : deck
@@ -118,7 +134,7 @@ public class CardDeck {
      * methods getCardsOfType / getCardsOfTypes
      * The method will preferably not use a wildcard (only if no other option is left)
      */
-    private Card[] getCardSet(int playerID) {
+    public Card[] getCardSet(int playerID) {
         // 0:cavalry, 1:infantry, 2:artillery, 3:wild
         int[] types = new int[4];
 
@@ -215,14 +231,24 @@ public class CardDeck {
     }
 
 
-    //WIP
-    private void tradeInSet(int ownerID, Card[] set) {
+    public int tradeInSet(Card[] set, Territory[] playerTerritories) {
 
+        if(set.length >3) throw  new IllegalArgumentException("This is not a set!");
 
+        // set ownership of cards to -2
+        for (int i = 0; i < set.length; i++) {
+            for (Card c : deck
+            ) {
+                if (c.getCardID() == set[i].getCardID()) {
+                    c.setOwnerID(-2);
+                }
+            }
+        }
+        return getNextArmyCount(set, playerTerritories);
     }
 
-    /* WIP
-    private void getArmyCount(int playerID, Card[] set) {
+
+    private int getNextArmyCount(Card[] set, Territory[] playerTerritories) {
         int armyCount = 0;
         switch (setsTradedIn) {
             case (0):
@@ -237,16 +263,23 @@ public class CardDeck {
                 armyCount = 12;
             case (5):
                 armyCount = 15;
-            default:
+            default: // every additional set gives +5 cards
                 armyCount = 15;
                 for (int i = 0; i < setsTradedIn - 5; i++) {
                     armyCount += 5;
                 }
         }
-
-        playerOwnsTeritory ?
                 setsTradedIn++;
+
+        for (int i = 0; i < set.length; i++) {
+            for (Territory t: playerTerritories
+                 ) {
+                if(t.getId() == set[i].getCardID()) armyCount +=2;
+            }
+        }
+
+        return armyCount;
     }
-    */
+
 
 }

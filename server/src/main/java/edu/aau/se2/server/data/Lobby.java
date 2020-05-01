@@ -199,4 +199,14 @@ public class Lobby {
     public boolean isPlayerJoined(int playerID) {
         return players.containsKey(playerID);
     }
+
+    public Territory[] getTerritoriesOccupiedByPlayer(int playerID){
+        ArrayList<Territory> territories = new ArrayList<>();
+
+        for (Territory t: this.territories
+             ) {
+            if(t.getOccupierPlayerID() == playerID) territories.add(t);
+        }
+        return territories.toArray(new Territory[0]);
+    }
 }
