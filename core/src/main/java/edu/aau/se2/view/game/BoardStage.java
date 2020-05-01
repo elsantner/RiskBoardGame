@@ -1,5 +1,6 @@
 package edu.aau.se2.view.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -27,9 +28,18 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
     private boolean interactable = true;
     private boolean armiesPlacable = false;
     private boolean attackAllowed = false;
+    private Color[] playerColors;
 
     public BoardStage(Viewport vp) {
+        this(vp, new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE});
+    }
+
+    public BoardStage(Viewport vp, Color[] playerColors) {
         super(vp);
+        if (playerColors.length != 6) {
+            throw new IllegalArgumentException("player colors must contain exactly 6 colors");
+        }
+        this.playerColors = playerColors;
         cam = (OrthographicCamera) this.getCamera();
         // init territories (relevant for scaling to current resolution)
         if (Territory.isNotInitialized()) {
@@ -225,7 +235,7 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
     }
 
     @Override
-    public void setArmyColor(int territoryID, Color color) {
-        Territory.getByID(territoryID).setArmyColor(color);
+    public void setArmyColor(int territoryID, int colorID) {
+        Territory.getByID(territoryID).setArmyColor(playerColors[colorID]);
     }
 }

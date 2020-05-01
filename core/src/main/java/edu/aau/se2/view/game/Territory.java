@@ -9,7 +9,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
 import edu.aau.se2.view.asset.AssetName;
-import edu.aau.se2.model.TerritoryHelper;
+import edu.aau.se2.server.logic.TerritoryHelper;
 
 /**
  * @author Elias
@@ -118,7 +118,7 @@ public class Territory extends Actor {
             throw new IllegalStateException(ERR_MSG_NOT_INIT);
         }
         try {
-            return territories[id - 1];
+            return territories[id];
         }
         catch (ArrayIndexOutOfBoundsException ex) {
             throw new IllegalArgumentException("territory with id " + id + " does not exist");
@@ -164,7 +164,7 @@ public class Territory extends Actor {
         this.polygonHitbox = hitbox;
         this.name = name;
         this.armyPosition = armyPosition;
-        this.armyColor = null;
+        this.armyColor = Color.CLEAR;
         this.armyCount = 0;
         this.font = new BitmapFont();
         this.armyCirlce = new Texture(AssetName.ARMY_DISPLAY_CIRCLE);

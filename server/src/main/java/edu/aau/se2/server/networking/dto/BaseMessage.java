@@ -1,4 +1,5 @@
 package edu.aau.se2.server.networking.dto;
 
-public interface BaseMessage {
+public abstract class BaseMessage {
+    // exists to provide a common superclass for all message listeners
 }
