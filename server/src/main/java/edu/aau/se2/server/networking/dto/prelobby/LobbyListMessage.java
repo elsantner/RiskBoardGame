@@ -1,8 +1,9 @@
-package edu.aau.se2.server.networking.dto;
+package edu.aau.se2.server.networking.dto.prelobby;
 
 import java.util.List;
 
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.server.networking.dto.BaseMessage;
 
 public class LobbyListMessage extends BaseMessage {
 

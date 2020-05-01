@@ -1,28 +1,24 @@
-package edu.aau.se2;
+package edu.aau.se2.view.mainmenu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
 
 public class MainMenu implements Screen {
-    private RiskGame riskGame;
-    private Texture texture;
     private Skin mySkin;
     private Stage stage;
     private Viewport gamePort;
@@ -34,30 +30,29 @@ public class MainMenu implements Screen {
 
 
     public MainMenu(RiskGame riskGame){
-        this.riskGame = riskGame;
         mySkin = new Skin(Gdx.files.internal("skinMainMenu/star-soldier-ui.json"));
         gamePort = new ScreenViewport();
         stage = new Stage(gamePort);
         gameTitle = new Label("GAME MENU", mySkin);
-        gameTitle.setSize(GameConstants.col_width*2, GameConstants.row_height*2);
-        gameTitle.setPosition(GameConstants.cX - gameTitle.getWidth()/2, GameConstants.cY + GameConstants.row_height);
+        gameTitle.setSize(GameConstants.COL_WIDTH *2, GameConstants.ROW_HEIGHT *2);
+        gameTitle.setPosition(GameConstants.C_X - gameTitle.getWidth()/2, GameConstants.C_Y + GameConstants.ROW_HEIGHT);
         gameTitle.setAlignment(Align.center);
 
         create = new TextButton("Create Game", mySkin);
-        create.setSize(GameConstants.col_width*2, GameConstants.row_height);
-        create.setPosition(GameConstants.cX - create.getWidth()/2, GameConstants.cY + GameConstants.row_height);
+        create.setSize(GameConstants.COL_WIDTH *2, GameConstants.ROW_HEIGHT);
+        create.setPosition(GameConstants.C_X - create.getWidth()/2, GameConstants.C_Y + GameConstants.ROW_HEIGHT);
 
         join = new TextButton("Join Game", mySkin);
-        join.setSize(GameConstants.col_width*2, GameConstants.row_height);
-        join.setPosition(GameConstants.cX - join.getWidth()/2, create.getY() - GameConstants.row_height);
+        join.setSize(GameConstants.COL_WIDTH *2, GameConstants.ROW_HEIGHT);
+        join.setPosition(GameConstants.C_X - join.getWidth()/2, create.getY() - GameConstants.ROW_HEIGHT);
 
         settings = new TextButton("Settings", mySkin);
-        settings.setSize(GameConstants.col_width*2, GameConstants.row_height);
-        settings.setPosition(GameConstants.cX - settings.getWidth()/2, join.getY() - GameConstants.row_height);
+        settings.setSize(GameConstants.COL_WIDTH *2, GameConstants.ROW_HEIGHT);
+        settings.setPosition(GameConstants.C_X - settings.getWidth()/2, join.getY() - GameConstants.ROW_HEIGHT);
 
         exit = new TextButton("Exit Game", mySkin);
-        exit.setSize(GameConstants.col_width*2, GameConstants.row_height);
-        exit.setPosition(GameConstants.cX - exit.getWidth()/2, settings.getY() - GameConstants.row_height);
+        exit.setSize(GameConstants.COL_WIDTH *2, GameConstants.ROW_HEIGHT);
+        exit.setPosition(GameConstants.C_X - exit.getWidth()/2, settings.getY() - GameConstants.ROW_HEIGHT);
 
 
         stage.addActor(gameTitle);
@@ -103,11 +98,9 @@ public class MainMenu implements Screen {
 
     }
 
-
-
     @Override
     public void show() {
-
+        // TODO: Done display in show rather than constructor
     }
 
     @Override
@@ -126,17 +119,17 @@ public class MainMenu implements Screen {
 
     @Override
     public void pause() {
-
+        // currently unused
     }
 
     @Override
     public void resume() {
-
+        // currently unused
     }
 
     @Override
     public void hide() {
-
+        // currently unused
     }
 
     @Override

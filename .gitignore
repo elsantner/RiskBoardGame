@@ -18,3 +18,4 @@ build
 /core/build/
 /core/build/classes/java/main/
 /core/build/classes/java/test/
+/desktop/build/

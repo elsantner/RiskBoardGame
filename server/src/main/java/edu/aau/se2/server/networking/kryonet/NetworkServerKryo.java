@@ -16,7 +16,7 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.Callback;
 import edu.aau.se2.server.networking.NetworkServer;
 import edu.aau.se2.server.networking.dto.BaseMessage;
-import edu.aau.se2.server.networking.dto.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 
 public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
     private Server server;
