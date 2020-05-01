@@ -8,6 +8,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+
+import java.awt.SystemColor;
 import java.util.List;
 
 
@@ -21,6 +23,9 @@ public class HudStage extends Stage implements IGameBoard {
     private Integer thisPlayerColorId;
     private int[] thisPlayerColorIdArray;
     private Color[] playerColors;
+    private String[] currentPlayerNames;
+    private Color[] currentPlayerColors;
+    private Label[] currentPlayerLabels;
 
     private Integer scoreOwn;
     private Integer scoreOpponentOne;
@@ -42,22 +47,29 @@ public class HudStage extends Stage implements IGameBoard {
     private Label attacksMadeLabel;
     private Label attacksGotLabel;
     private Label scoreOwnLabel;
-    private Label scoreOpponentOneLabel;
-    private Label scoreOpponentTwoLabel;
-    private Label scoreOpponentThreeLabel;
     private String yourTurn;
     private Label yourTurnLabel;
 
 
-    public HudStage(Viewport vp){
+    public HudStage(Viewport vp, List<Player> currentPlayers){
         //TODO: values from server
         super(vp);
         playerColors = new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE};
+        currentPlayerNames = new String[currentPlayers.size()];
+        currentPlayerColors = new Color[currentPlayers.size()];
+        currentPlayerLabels = new Label[currentPlayers.size()];
+        System.out.println("constructor currentplayer " + currentPlayers.size());
+        setCurrentPlayersColorOnHud(currentPlayers);
+        System.out.println("currentPlayerNames  " + currentPlayerNames);
+        System.out.println("currentPlayerNames  " + currentPlayerColors);
 
-        scoreOwn = 544;
-        scoreOpponentOne = 412;
-        scoreOpponentTwo = 568;
-        scoreOpponentThree = 651;
+        for(String playerName : currentPlayerNames){
+            System.out.println("###asdasdasd " + playerName);
+        }
+        for(Color playerColors : currentPlayerColors){
+            System.out.println("###asdasdasd " + playerColors.toString());
+        }
+
 
         attacksMadeAmount = 5;
         attacksMadeSucceededAmount = 3;
@@ -65,53 +77,37 @@ public class HudStage extends Stage implements IGameBoard {
         attacksGotAmount = 2;
         attacksGotSucceededAmount = 2;
 
-        nameOpponentOne = "Player 1";
-        nameOpponentTwo = "Player 2";
-        nameOpponentThree = "Player 3";
-
-        //this viewport will be most likely different from the viewport od the risk-world-map-viewport, since not zoomable
-        //viewport = new FitViewport(RiskGame.V_WIDTH, RiskGame.V_HEIGHT, new OrthographicCamera());
-        //create the hudStage with the hud-spec-viewport
-        //stage = new Stage(viewport, spriteBatch);
 
         Table table = new Table();
         table.top();
         table.setFillParent(true);
 
         //Own data
-        statisticsOwnLabel = new Label("Statistics", new Label.LabelStyle(new BitmapFont(), Color.GOLD));
+        statisticsOwnLabel = new Label("Persönliche Info", new Label.LabelStyle(new BitmapFont(), Color.GOLD));
         scoreOwnLabel = new Label("Score: " + String.format(Locale.US,"%4d", scoreOwn), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         attacksMadeLabel= new Label("Attacks made: " +  String.format(Locale.US,"%2d", attacksMadeAmount) + " / " +  String.format(Locale.US,"%2d", attacksMadeSucceededAmount), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         attacksGotLabel= new Label("Attacks got: " +  String.format(Locale.US,"%2d", attacksGotAmount) + " / " + String.format(Locale.US,"%2d", attacksGotSucceededAmount), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
         yourTurnLabel= new Label(yourTurn, new Label.LabelStyle(new BitmapFont(), Color.valueOf("#ff0000ff")));
 
         //Opponent data
-        statisticsOpponentsLabel = new Label("Opponents", new Label.LabelStyle(new BitmapFont(), Color.GOLD));
-        scoreOpponentOneLabel = new Label(nameOpponentOne + " : " + String.format(Locale.US, "%4d", scoreOpponentOne), new Label.LabelStyle(new BitmapFont(), Color.RED));
-        scoreOpponentTwoLabel = new Label(nameOpponentTwo + " : " +  String.format(Locale.US,"%4d", scoreOpponentTwo), new Label.LabelStyle(new BitmapFont(), Color.GREEN));
-        scoreOpponentThreeLabel = new Label(nameOpponentThree + " : " + String.format(Locale.US, "%4d", scoreOpponentThree), new Label.LabelStyle(new BitmapFont(), Color.BLUE));
+        statisticsOpponentsLabel = new Label("Übersicht", new Label.LabelStyle(new BitmapFont(), Color.GOLD));
+        //scoreOpponentOneLabel = new Label(currentPlayerNames[0].toString() + " : " + String.format(Locale.US, "%4d", scoreOpponentOne), new Label.LabelStyle(new BitmapFont(), Color.GOLD));
+        //scoreOpponentTwoLabel = new Label(currentPlayerNames[0] + " : " +  String.format(Locale.US,"%4d", scoreOpponentTwo), new Label.LabelStyle(new BitmapFont(), Color.valueOf(currentPlayerColors[0].toString())));
 
         //row 1
         table.add(statisticsOwnLabel).expandX().padTop(5);
         table.add(yourTurnLabel).expandX().padTop(5);
         table.add(statisticsOpponentsLabel).expandX().padTop(5);
         table.row();
-        //row2
-        table.add(scoreOwnLabel).expandX();
-        table.add().expandX();
-        table.add(scoreOpponentOneLabel).expandX();
-        table.row();
-        //row 3
-        table.add(attacksMadeLabel).expandX();
-        table.add().expandX();
-        table.add(scoreOpponentTwoLabel).expandX();
-        table.row();
-        //row 4
-        table.add(attacksGotLabel).expandX();
-        table.add().expandX();
-        table.add(scoreOpponentThreeLabel).expandX();
 
-        System.out.println("##### thisPlayerColorId " +  thisPlayerColorId);
+        for(int i = 0; i < currentPlayers.size(); i++){
+            currentPlayerLabels[i] = new Label(currentPlayerNames[i], new Label.LabelStyle(new BitmapFont(), Color.valueOf(currentPlayerColors[i].toString())));
+            table.add().expandX();
+            table.add().expandX();
+            table.add(currentPlayerLabels[i]).expandX();
+            table.row();
+        }
+
         this.addActor(table);
     }
 
@@ -165,18 +161,9 @@ public class HudStage extends Stage implements IGameBoard {
     }
 
     public void setCurrentPlayersColorOnHud(List<Player> currentPlayers){
-        for (Player user : currentPlayers) {
-            this.setColor(currentPlayers, user.getColorID(), user.getNickname());
-        }
-    }
-
-    private void setColor(List<Player> currentPlayers, int colorID, String nickName) {
-
-        //System.out.println("####BIG HOPE" + colorID);
-        //System.out.println("###" + playerColors[colorID]);
-        //System.out.println("###currentPlayers.size() : " + currentPlayers.size());
         for(int i = 0; i < currentPlayers.size(); i++){
-            System.out.println("###USER " + i + " " + this.playerColors[colorID] + " " + nickName);
+            this.currentPlayerNames[i] = currentPlayers.get(i).getNickname();
+            this.currentPlayerColors[i] = this.playerColors[currentPlayers.get(i).getColorID()];
         }
     }
 

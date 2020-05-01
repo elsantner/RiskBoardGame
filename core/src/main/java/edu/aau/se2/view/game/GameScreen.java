@@ -35,19 +35,17 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public GameScreen(int width, int height) {
         boardStage = new BoardStage(new FitViewport(width, height));
         tmpHUDStage = new Stage(new FitViewport(width, height));
-        hudStage = new HudStage(new FitViewport(width, height));
         db = Database.getInstance();
         boardStage.setListener(db);
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
         // trigger player turn update because listener might not have been registered when
         // server message was received
+        hudStage = new HudStage(new FitViewport(width, height), db.getCurrentPlayers());
         if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
             isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());
             setPlayersDataOnHud(db.getCurrentPlayers());
-            System.out.println("####" + db.getCurrentPlayers());
         }
-
     }
 
     public void setListener(OnBoardInteractionListener l) {
