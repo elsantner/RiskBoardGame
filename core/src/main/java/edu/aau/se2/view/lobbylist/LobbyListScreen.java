@@ -19,6 +19,7 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import java.util.List;
 
+import edu.aau.se2.model.Database;
 import edu.aau.se2.server.networking.dto.LobbyListMessage;
 
 public class LobbyListScreen extends ScreenAdapter {
@@ -100,7 +101,18 @@ public class LobbyListScreen extends ScreenAdapter {
         outerTable.setFillParent(true);
         outerTable.pad(120f);
 
+        TextButton exitButton = new TextButton("Verlassen", skin);
+        exitButton.addListener(new ClickListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                Database.getInstance().returnToMainMenu();
+                return true;
+            }
+        });
+
+
         outerTable.add(new Image(lobbyText)).minHeight(lobbyText.getHeight());
+        outerTable.add(exitButton);
         outerTable.row();
         outerTable.add(new Image(line));
         outerTable.row();

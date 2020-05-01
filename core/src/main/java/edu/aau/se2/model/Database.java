@@ -456,6 +456,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
+    public synchronized void returnToMainMenu() {
+        if (onLeftLobbyListener != null)
+            onLeftLobbyListener.leftLobby();
+    }
+
     public int getCurrentLobbyID() {
         return currentLobbyID;
     }
