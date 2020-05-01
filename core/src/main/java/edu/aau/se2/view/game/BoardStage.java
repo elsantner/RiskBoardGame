@@ -49,7 +49,7 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
         cam = (OrthographicCamera) this.getCamera();
         // init territories (relevant for scaling to current resolution)
         if (Territory.isNotInitialized()) {
-            Territory.init(vp.getScreenWidth(), vp.getScreenHeight());
+            Territory.init(vp.getScreenWidth(), vp.getScreenHeight(), getScreen().getGame().getAssetManager());
         }
         loadAssets();
         setupBoardImage(vp.getScreenWidth(), vp.getScreenHeight());

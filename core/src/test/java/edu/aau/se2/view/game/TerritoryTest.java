@@ -1,11 +1,15 @@
 package edu.aau.se2.view.game;
 
+import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Texture;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import edu.aau.se2.server.logic.TerritoryHelper;
 import edu.aau.se2.view.GdxTestRunner;
+import edu.aau.se2.view.asset.AssetName;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -15,7 +19,10 @@ public class TerritoryTest {
 
 	@Before
 	public void initTerritories() {
-		Territory.init(2392, 1440);
+		AssetManager assetManager = new AssetManager();
+		assetManager.load(AssetName.ARMY_DISPLAY_CIRCLE, Texture.class);
+		assetManager.finishLoading();
+		Territory.init(2392, 1440, assetManager);
 	}
 
 	@Test

@@ -24,6 +24,7 @@ import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.game.GameScreen;
+import edu.aau.se2.view.game.Territory;
 import edu.aau.se2.view.loading.LoadingScreen;
 import edu.aau.se2.view.lobby.LobbyScreen;
 import edu.aau.se2.view.lobbylist.LobbyListScreen;
@@ -123,6 +124,7 @@ public class RiskGame extends Game {
 		assetManager.load(AssetName.TEX_LOBBYLIST_OVERLAY, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBYLIST_LINE, Texture.class);
 		assetManager.load(AssetName.RISK_BOARD, Texture.class);
+		assetManager.load(AssetName.ARMY_DISPLAY_CIRCLE, Texture.class);
 	}
 
 	@Override
@@ -140,6 +142,8 @@ public class RiskGame extends Game {
 	public void dispose () {
 		super.dispose();
 		try {
+			assetManager.dispose();
+			Territory.dispose();
 			Database.getInstance().closeConnection();
 			mainMenuScreen.dispose();
 			loadingScreen.dispose();
