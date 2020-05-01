@@ -209,4 +209,8 @@ public class Lobby {
         }
         return territories.toArray(new Territory[0]);
     }
+
+    public CardDeck getCardDeck() {
+        return cardDeck;
+    }
 }

@@ -4,12 +4,21 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnCardsChangedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 
@@ -31,12 +40,13 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public GameScreen(int width, int height) {
         boardStage = new BoardStage(new FitViewport(width, height));
         tmpHUDStage = new Stage(new FitViewport(width, height));
-        cardStage = new CardStage(new StretchViewport(width,height));
+        cardStage = new CardStage(new StretchViewport(width, height));
 
         db = Database.getInstance();
         boardStage.setListener(db);
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
+        db.setCardsChangedListener(cardStage);
         // trigger player turn update because listener might not have been registered when
         // server message was received
         if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
@@ -70,7 +80,10 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         boardStage.draw();
         tmpHUDStage.draw();
 
-        //only for testing
+        // todo remove (add button in Hud to show cards)
+        if(cardStage.isUpdated()){
+           cardStage.updateActor();
+        }
         cardStage.act();
         cardStage.draw();
 
@@ -99,6 +112,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     @Override
     public void dispose() {
         boardStage.dispose();
+        cardStage.dispose();
     }
 
     @Override

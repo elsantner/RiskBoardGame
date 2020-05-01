@@ -11,18 +11,34 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class CardStage extends Stage {
+import edu.aau.se2.model.listener.OnCardsChangedListener;
+
+public class CardStage extends Stage implements OnCardsChangedListener {
+
+    private static final String TAG = "CardStage";
+    private Logger log;
+    private boolean updated;
 
     private Table cardContainer;
+    private Table outer;
     private ArrayList<String> cardNames;
+    private ScrollPane scrollPane;
+    private Skin skin;
+    private Label nameLabel;
 
 
     public CardStage(Viewport viewport) {
         super(viewport);
-        Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
-        Label nameLabel = new Label("", skin);
+        skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        nameLabel = new Label("", skin);
+        this.updated = false;
+        this.log = Logger.getLogger(TAG);
+        log.setLevel(Level.INFO);
 
         /*
         This is a simple scrollable list of cards.
@@ -33,16 +49,34 @@ public class CardStage extends Stage {
 
         this.cardNames = new ArrayList<>();
         this.cardContainer = new Table();
-
-        this.addCard("card_alaska");
-        this.addCard("card_siberia");
-        this.addCard("card_brazil");
-        this.addCard("card_ural");
-
         this.cardContainer.setDebug(true);
 
-        ScrollPane scrollPane = new ScrollPane(cardContainer);
-        Table outer = new Table();
+        scrollPane = new ScrollPane(cardContainer);
+        outer = new Table();
+        outer.setFillParent(true);
+        outer.add(nameLabel).expand();
+        outer.row();
+
+        outer.add(scrollPane).fill().bottom().pad(0, 0, 20f, 0);
+
+        this.addActor(outer);
+    }
+
+    public void updateActor() {
+
+        outer.remove();
+
+        this.cardContainer = new Table();
+        this.cardContainer.setDebug(true);
+
+        for (String s : cardNames.toArray(new String[0])
+        ) {
+            addCard(s);
+        }
+
+
+        scrollPane = new ScrollPane(cardContainer);
+        outer = new Table();
         outer.setFillParent(true);
         outer.add(nameLabel).expand();
         outer.row();
@@ -51,15 +85,37 @@ public class CardStage extends Stage {
 
         this.addActor(outer);
 
+
+        this.updated = false;
     }
 
-    // todo wildcard!!
-    public void addCard(String name) {
+    public void addCard(String cardName) {
 
-        this.cardNames.add(name);
-        Texture texture = new Texture(Gdx.files.internal("cards/" + name + ".png"));
+        Texture texture;
+        if (cardName.equals("card_wild1") || cardName.equals("card_wild2")) {
+            texture = new Texture(Gdx.files.internal("cards/card_wild.png"));
+        } else {
+            log.info(cardName);
+            texture = new Texture(Gdx.files.internal("cards/" + cardName + ".png"));
+        }
         Image im = new Image(texture);
         this.cardContainer.add(im).pad(0, 8f, 0, 8f);
+    }
+
+    @Override
+    public void singleNewCard(String cardName) {
+        addCard(cardName);
+        this.cardNames.add(cardName);
+        Collections.sort(cardNames);
+        log.info("A Card has been added to the list: " + cardName);
+        this.cardContainer = new Table();
+        this.updated = true;
+
+    }
+
+    @Override
+    public void refreshCards(String[] cardNames) {
+
     }
 
     public Table getCardContainer() {
@@ -68,5 +124,13 @@ public class CardStage extends Stage {
 
     public List<String> getCardNames() {
         return cardNames;
+    }
+
+    public boolean isUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(boolean updated) {
+        this.updated = updated;
     }
 }

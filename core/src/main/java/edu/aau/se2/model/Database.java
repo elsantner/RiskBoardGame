@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
+import edu.aau.se2.model.listener.OnCardsChangedListener;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.model.listener.OnErrorListener;
 import edu.aau.se2.model.listener.OnGameStartListener;
@@ -33,6 +34,7 @@ import edu.aau.se2.server.networking.dto.JoinedLobbyMessage;
 import edu.aau.se2.server.networking.dto.LeftLobbyMessage;
 import edu.aau.se2.server.networking.dto.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.NewCardMessage;
 import edu.aau.se2.server.networking.dto.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.ReadyMessage;
@@ -80,6 +82,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private OnPlayersChangedListener playersChangedListener;
     private OnTerritoryUpdateListener territoryUpdateListener;
     private OnNextTurnListener nextTurnListener;
+    private OnCardsChangedListener cardsChangedListener;
     private OnJoinedLobbyListener joinedLobbyListener;
     private OnConnectionChangedListener connectionChangedListener;
     private OnArmyReserveChangedListener armyReserveChangedListener;
@@ -170,6 +173,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     public void setNextTurnListener(OnNextTurnListener l) {
         this.nextTurnListener = l;
     }
+    public void setCardsChangedListener(OnCardsChangedListener l){this.cardsChangedListener = l;}
     public void setJoinedLobbyListener(OnJoinedLobbyListener l) {
         this.joinedLobbyListener = l;
     }
@@ -206,6 +210,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             }
             else if (msg instanceof NextTurnMessage) {
                 handleNextTurnMessage((NextTurnMessage) msg);
+            }
+            else if (msg instanceof NewCardMessage) {
+                handleNewCardMessage((NewCardMessage) msg);
             }
             else if (msg instanceof NewArmiesMessage) {
                 handleNewArmiesMessage((NewArmiesMessage) msg);
@@ -255,6 +262,13 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             hasPlayerReceivedArmiesThisTurn = false;
             exchangeCards();
         }
+    }
+
+    private synchronized  void handleNewCardMessage(NewCardMessage msg){
+        log.info("received NewCardMessage: Cardname: " + msg.getCardName());
+       if(cardsChangedListener != null){
+           cardsChangedListener.singleNewCard(msg.getCardName());
+       }
     }
 
     private synchronized void handleJoinedLobbyMessage(JoinedLobbyMessage msg) {
