@@ -146,7 +146,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     private void showDialog(Dialog dialog) {
         dialog.show(tmpHUDStage);
-        dialog.scaleBy(3);
         dialog.setOrigin(Align.center);
     }
 

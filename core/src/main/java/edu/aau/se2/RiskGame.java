@@ -89,10 +89,12 @@ public class RiskGame extends Game {
 
 	private void setupAssetManagerLoadingScreen() {
 		assetManager.load(AssetName.TEX_LOGO, Texture.class);
-		assetManager.load(AssetName.UI_SKIN_4, Skin.class);
+		assetManager.load(AssetName.UI_SKIN_2, Skin.class);
+		assetManager.load(AssetName.TEX_LOBBYLIST_SCREEN, Texture.class);
 	}
 
 	private void setupAssetManagerAllAssets() {
+        FreeTypeFontGenerator.setMaxTextureSize(2048);
 		FileHandleResolver resolver = new InternalFileHandleResolver();
 		assetManager.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
 		assetManager.setLoader(BitmapFont.class, ".ttf", new FreetypeFontLoader(resolver));
@@ -117,7 +119,6 @@ public class RiskGame extends Game {
 		assetManager.load(AssetName.TEX_LOBBY_2, Pixmap.class);
 		assetManager.load(AssetName.TEX_LOBBY_LINE, Pixmap.class);
 		assetManager.load(AssetName.TEX_LOBBY_OVERLAY, Pixmap.class);
-		assetManager.load(AssetName.TEX_LOBBYLIST_SCREEN, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBYLIST_2, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBYLIST_OVERLAY, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBYLIST_LINE, Texture.class);
@@ -139,8 +140,12 @@ public class RiskGame extends Game {
 	public void dispose () {
 		super.dispose();
 		try {
+			Database.getInstance().closeConnection();
+			mainMenuScreen.dispose();
+			loadingScreen.dispose();
 			gameScreen.dispose();
 			lobbyScreen.dispose();
+			lobbyListScreen.dispose();
 		}
 		catch (Exception ex) {
 			Logger.getLogger("RiskGame").log(Level.WARNING, "Error: ", ex);
