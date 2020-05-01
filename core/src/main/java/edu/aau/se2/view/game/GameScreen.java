@@ -2,34 +2,37 @@ package edu.aau.se2.view.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.view.AbstractScreen;
+import edu.aau.se2.view.asset.AssetName;
 
 /**
  * @author Elias
  */
-public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener,
+public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
         OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
     private BoardStage boardStage;
     private TempHUDStage tmpHUDStage;
     private Database db;
 
-    public GameScreen(AssetManager assetManager) {
-        this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), assetManager);
+    public GameScreen(RiskGame game) {
+        this(game, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
-    public GameScreen(int width, int height, AssetManager assetManager) {
-        boardStage = new BoardStage(new FitViewport(width, height));
-        tmpHUDStage = new TempHUDStage(new FitViewport(width, height), assetManager, this);
+    public GameScreen(RiskGame game, int width, int height) {
+        super(game);
+        boardStage = new BoardStage(this, new FitViewport(width, height));
+        tmpHUDStage = new TempHUDStage(this, new FitViewport(width, height), this);
         db = Database.getInstance();
         boardStage.setListener(this);
         db.setTerritoryUpdateListener(this);
@@ -100,8 +103,9 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     }
 
     private void showFinishTurnDialog() {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        ConfirmDialog dialog = new ConfirmDialog("Zug beenden",
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin,"Zug beenden",
                 "Moechten Sie Ihren Zug beenden?", "Ja", "Nein",
                 result -> {
                     if (result) {
@@ -113,8 +117,9 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     }
 
     private void showSkipAttackingPhaseDialog() {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        ConfirmDialog dialog = new ConfirmDialog("Phase beenden",
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin, "Phase beenden",
                 "Moechten Sie die Angriffsphase beenden?", "Ja", "Nein",
                 result -> {
                     if (result) {
@@ -126,8 +131,9 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     }
 
     private void showSelectCountDialog(int fromTerritoryID, int toTerritoryID) {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        SelectCountDialog dialog = new SelectCountDialog("Einheitenanzahl", 1,
+        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Einheitenanzahl", 1,
                 db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
                 result -> {
                     if (result > 0) {
@@ -140,7 +146,6 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
 
     private void showDialog(Dialog dialog) {
         dialog.show(tmpHUDStage);
-        dialog.scaleBy(3);
         dialog.setOrigin(Align.center);
     }
 

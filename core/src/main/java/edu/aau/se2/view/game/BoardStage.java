@@ -1,6 +1,5 @@
 package edu.aau.se2.view.game;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -8,18 +7,19 @@ import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.server.logic.TerritoryHelper;
+import edu.aau.se2.view.AbstractScreen;
+import edu.aau.se2.view.AbstractStage;
 import edu.aau.se2.view.asset.AssetName;
 
 /**
  * @author Elias
  */
-public class BoardStage extends Stage implements IGameBoard, GestureDetector.GestureListener {
+public class BoardStage extends AbstractStage implements IGameBoard, GestureDetector.GestureListener {
     private static final float MAX_ZOOM_FACTOR = 1;
     private static final float MIN_ZOOM_FACTOR = 0.25f;
     private float prevZoomFactor = 1;
@@ -33,12 +33,12 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
     private Database.Phase phase;
     private Territory selectedTerritory;
 
-    public BoardStage(Viewport vp) {
-        this(vp, new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE});
+    public BoardStage(AbstractScreen screen, Viewport vp) {
+        this(screen, vp, new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE});
     }
 
-    public BoardStage(Viewport vp, Color[] playerColors) {
-        super(vp);
+    public BoardStage(AbstractScreen screen, Viewport vp, Color[] playerColors) {
+        super(vp, screen);
         if (playerColors.length != 6) {
             throw new IllegalArgumentException("player colors must contain exactly 6 colors");
         }
@@ -47,7 +47,7 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
         cam = (OrthographicCamera) this.getCamera();
         // init territories (relevant for scaling to current resolution)
         if (Territory.isNotInitialized()) {
-            Territory.init(vp.getScreenWidth(), vp.getScreenHeight());
+            Territory.init(vp.getScreenWidth(), vp.getScreenHeight(), getScreen().getGame().getAssetManager());
         }
         loadAssets();
         setupBoardImage(vp.getScreenWidth(), vp.getScreenHeight());
@@ -66,7 +66,7 @@ public class BoardStage extends Stage implements IGameBoard, GestureDetector.Ges
     }
 
     private void loadAssets() {
-        imgRiskBoard = new Image(new Texture(AssetName.RISK_BOARD));
+        imgRiskBoard = new Image(getScreen().getGame().getAssetManager().get(AssetName.RISK_BOARD, Texture.class));
     }
 
     private void setupBoardImage(int screenWidth, int screenHeight) {

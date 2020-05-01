@@ -19,7 +19,7 @@ import edu.aau.se2.server.logic.ArmyCountHelper;
 
 
 public class DatabaseSetupGameTest {
-    private final int NUM_CLIENTS = 6;
+    private final int NUM_CLIENTS = 4;
     private final int TURNS_TO_PLAY = 16;
     private final int MOVE_EVERY_NTH_TURN = 4;
 
