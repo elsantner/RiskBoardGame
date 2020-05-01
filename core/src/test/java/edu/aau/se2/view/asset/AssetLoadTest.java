@@ -16,6 +16,16 @@ public class AssetLoadTest {
         assertTrue(Gdx.files.internal(AssetName.ARMY_DISPLAY_CIRCLE).exists());
         assertTrue(Gdx.files.internal(AssetName.PHASE_DISPLAY_BG).exists());
         assertTrue(Gdx.files.internal(AssetName.UI_SKIN_1).exists());
-        assertTrue(Gdx.files.internal(AssetName.FONT_1).exists());
+        assertTrue(Gdx.files.internal(AssetName.TEX_LOBBY_2).exists());
+        assertTrue(Gdx.files.internal(AssetName.TEX_LOBBY_LINE).exists());
+        assertTrue(Gdx.files.internal(AssetName.TEX_LOBBY_OVERLAY).exists());
+        assertTrue(Gdx.files.internal(AssetName.TEX_LOBBY_SCREEN).exists());
+        assertTrue(Gdx.files.internal(AssetName.TEX_LOBBYLIST_2).exists());
+        assertTrue(Gdx.files.internal(AssetName.TEX_LOBBYLIST_LINE).exists());
+        assertTrue(Gdx.files.internal(AssetName.TEX_LOBBYLIST_OVERLAY).exists());
+        assertTrue(Gdx.files.internal(AssetName.TEX_LOBBYLIST_SCREEN).exists());
+        assertTrue(Gdx.files.internal(AssetName.TEX_LOGO).exists());
+        assertTrue(Gdx.files.internal(AssetName.UI_SKIN_1).exists());
+        assertTrue(Gdx.files.internal(AssetName.UI_SKIN_2).exists());
     }
 }
