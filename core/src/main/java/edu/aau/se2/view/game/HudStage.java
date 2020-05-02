@@ -23,6 +23,8 @@ public class HudStage extends Stage implements IGameBoard {
     private Color[] currentPlayerColors;
     private Label[] currentPlayerLabels;
     private BitmapFont niceFont;
+    private int[] currentArmyReserveCount;
+    private int playersCount;
 
     private Integer attacksMadeAmount;
     private Integer attacksMadeSucceededAmount;
@@ -30,7 +32,7 @@ public class HudStage extends Stage implements IGameBoard {
     private Integer attacksGotSucceededAmount;
 
     //Labels
-    private Label statisticsOwnLabel;
+    private Label unitsLabel;
     private Label statisticsOpponentsLabel;
     private Label attacksMadeLabel;
     private Label attacksGotLabel;
@@ -46,6 +48,8 @@ public class HudStage extends Stage implements IGameBoard {
         currentPlayerNames = new String[currentPlayers.size()];
         currentPlayerColors = new Color[currentPlayers.size()];
         currentPlayerLabels = new Label[currentPlayers.size()];
+        currentArmyReserveCount = new int[currentPlayers.size()];
+        playersCount = currentPlayers.size();
         setCurrentPlayersColorOnHud(currentPlayers);
 
         attacksMadeAmount = 5;
@@ -58,20 +62,18 @@ public class HudStage extends Stage implements IGameBoard {
         table.top();
         table.setFillParent(true);
 
-        //Own data
-        statisticsOwnLabel = new Label("Persönliche Info", new Label.LabelStyle(generateFont(), Color.GOLD));
-        //scoreOwnLabel = new Label("Score: " + String.format(Locale.US,"%4d", 4), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
+        unitsLabel = new Label("Einheiten", new Label.LabelStyle(generateFont(), Color.WHITE));
         attacksMadeLabel= new Label("Attacks made: " +  String.format(Locale.US,"%2d", attacksMadeAmount) + " / " +  String.format(Locale.US,"%2d", attacksMadeSucceededAmount), new Label.LabelStyle(generateFont(), Color.WHITE));
         attacksGotLabel= new Label("Attacks got: " +  String.format(Locale.US,"%2d", attacksGotAmount) + " / " + String.format(Locale.US,"%2d", attacksGotSucceededAmount), new Label.LabelStyle(generateFont(), Color.WHITE));
         yourTurnLabel= new Label(yourTurn, new Label.LabelStyle(generateFont(), Color.valueOf("#ff0000ff")));
-        statisticsOpponentsLabel = new Label("Allgemeine Info", new Label.LabelStyle(generateFont(), Color.GOLD));
+        statisticsOpponentsLabel = new Label("Spieler", new Label.LabelStyle(generateFont(), Color.WHITE));
 
         //row 1
-        table.add(statisticsOwnLabel).expandX().padTop(5);
+        table.add(unitsLabel).expandX().padTop(5);
         table.add(yourTurnLabel).expandX().padTop(5);
         table.add(statisticsOpponentsLabel).expandX().padTop(5);
         table.row();
-
+        //remaining rows
         for(int i = 0; i < currentPlayers.size(); i++){
             currentPlayerLabels[i] = new Label(currentPlayerNames[i], new Label.LabelStyle(generateFont(), Color.valueOf(currentPlayerColors[i].toString())));
             table.add().expandX();
@@ -79,13 +81,8 @@ public class HudStage extends Stage implements IGameBoard {
             table.add(currentPlayerLabels[i]).expandX();
             table.row();
         }
-
         this.addActor(table);
     }
-
-    @Override
-    public void dispose() { super.dispose(); }
-
 
     @Override
     public void setInteractable(boolean interactable) {
@@ -126,7 +123,7 @@ public class HudStage extends Stage implements IGameBoard {
 
     private void setMessage(boolean isPlayersTurn) {
         if(isPlayersTurn){
-            this.yourTurn = "Your turn";
+            this.yourTurn = "Deine Runde";
         } else {
             this.yourTurn = "";
         }
@@ -136,11 +133,17 @@ public class HudStage extends Stage implements IGameBoard {
         for(int i = 0; i < currentPlayers.size(); i++){
             this.currentPlayerNames[i] = currentPlayers.get(i).getNickname();
             this.currentPlayerColors[i] = this.playerColors[currentPlayers.get(i).getColorID()];
+            //remaining units are going to be set here
+            this.currentArmyReserveCount[i] = currentPlayers.get(i).getArmyReserveCount();
         }
     }
 
     public void update() {
         yourTurnLabel.setText(this.yourTurn);
+        /*for(int i = 0; i < this.playersCount; i++){
+            currentPlayerLabels[i].setText(currentPlayerNames[i]);
+            System.out.println("####" + currentPlayerLabels[i]);
+        }*/
     }
 
     private BitmapFont generateFont(){
@@ -151,6 +154,9 @@ public class HudStage extends Stage implements IGameBoard {
         generator.dispose();
         return font;
     }
+
+    @Override
+    public void dispose() { super.dispose(); }
 
 }
 
