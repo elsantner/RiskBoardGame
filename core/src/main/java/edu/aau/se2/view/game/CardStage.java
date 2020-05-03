@@ -38,7 +38,6 @@ public class CardStage extends Stage implements OnCardsChangedListener {
         nameLabel = new Label("", skin);
         this.updated = false;
         this.log = Logger.getLogger(TAG);
-        log.setLevel(Level.INFO);
 
         /*
         This is a simple scrollable list of cards.
@@ -107,7 +106,7 @@ public class CardStage extends Stage implements OnCardsChangedListener {
         addCard(cardName);
         this.cardNames.add(cardName);
         Collections.sort(cardNames);
-        log.info("A Card has been added to the list: " + cardName);
+        log.log(Level.INFO, "A Card has been added to the list: {0}" , cardName);
         this.cardContainer = new Table();
         this.updated = true;
 
@@ -115,7 +114,7 @@ public class CardStage extends Stage implements OnCardsChangedListener {
 
     @Override
     public void refreshCards(String[] cardNames) {
-
+        // not yet implemented
     }
 
     public Table getCardContainer() {

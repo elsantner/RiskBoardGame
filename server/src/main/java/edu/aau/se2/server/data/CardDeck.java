@@ -3,9 +3,6 @@ package edu.aau.se2.server.data;
 import java.util.ArrayList;
 import java.util.Random;
 
-
-import edu.aau.se2.server.logic.TerritoryHelper;
-
 import static edu.aau.se2.server.data.Card.CARD_TYPE.*;
 import static edu.aau.se2.server.data.Card.CONTINENT.*;
 
@@ -109,6 +106,7 @@ public class CardDeck {
     public Card getRandomCard(int ownerID) {
         Card[] cards = getUnassignedCards();
         if (cards.length == 0) return null; //no cards left
+        if (ownerID < 0) throw new IllegalArgumentException("Not a valid Owner");
 
         int random = new Random().nextInt(cards.length);
         cards[random].setOwnerID(ownerID);
@@ -186,15 +184,16 @@ public class CardDeck {
 
     private Card[] getCardsOfType(Card[] cards, Card.CARD_TYPE type) {
         Card[] set = new Card[3];
-        for (int i = 0; i < set.length; i++) {
-            for (Card c : cards
-            ) {
-                if (c.getCardType().equals(type)) {
-                    set[i] = c;
-                    c = null;
-                }
+        int i = 0;
+        for (Card c : cards
+        ) {
+            if (c.getCardType().equals(type) && i < set.length) {
+                set[i] = c;
+                i++;
             }
         }
+
+
         return set;
     }
 
@@ -202,14 +201,12 @@ public class CardDeck {
         Card[] set = new Card[3];
 
         if (types.length == 2) {
-
             int y = 0;
             for (int i = 0; i < set.length; i++) {
                 for (Card c : cards
                 ) {
-                    if (c.getCardType().equals(types[y])) {
+                    if (y < 2 && c.getCardType().equals(types[y])) {
                         set[i] = c;
-                        c = null;
                         y += i;
                     }
                 }
@@ -221,19 +218,19 @@ public class CardDeck {
                 ) {
                     if (c.getCardType().equals(types[i])) {
                         set[i] = c;
-                        c = null;
                     }
                 }
             }
+        }
 
-        } else throw new IllegalArgumentException("Wrong use of getCardsOfTypes");
         return set;
     }
 
 
     public int tradeInSet(Card[] set, Territory[] playerTerritories) {
 
-        if(set.length >3) throw  new IllegalArgumentException("This is not a set!");
+        if (set == null || set.length != 3)
+            throw new IllegalArgumentException("This is not a set!");
 
         // set ownership of cards to -2
         for (int i = 0; i < set.length; i++) {
@@ -253,28 +250,37 @@ public class CardDeck {
         switch (setsTradedIn) {
             case (0):
                 armyCount = 4;
+                break;
             case (1):
                 armyCount = 6;
+                break;
             case (2):
                 armyCount = 8;
+                break;
             case (3):
                 armyCount = 10;
+                break;
             case (4):
                 armyCount = 12;
+                break;
             case (5):
                 armyCount = 15;
+                break;
             default: // every additional set gives +5 cards
-                armyCount = 15;
-                for (int i = 0; i < setsTradedIn - 5; i++) {
-                    armyCount += 5;
-                }
-        }
-                setsTradedIn++;
+                armyCount = 15 + ((setsTradedIn - 5) * 5);
 
-        for (int i = 0; i < set.length; i++) {
-            for (Territory t: playerTerritories
-                 ) {
-                if(t.getId() == set[i].getCardID()) armyCount +=2;
+        }
+        setsTradedIn++;
+
+        // these 2 armies should be added to that territory
+        for (Card card : set) {
+            for (Territory t : playerTerritories
+            ) {
+                if (t.getId() == card.getCardID()) {
+                    armyCount += 2;
+                    return armyCount;
+                }
+
             }
         }
 

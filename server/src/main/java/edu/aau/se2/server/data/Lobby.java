@@ -201,13 +201,13 @@ public class Lobby {
     }
 
     public Territory[] getTerritoriesOccupiedByPlayer(int playerID){
-        ArrayList<Territory> territories = new ArrayList<>();
+        ArrayList<Territory> terr = new ArrayList<>();
 
         for (Territory t: this.territories
              ) {
-            if(t.getOccupierPlayerID() == playerID) territories.add(t);
+            if(t.getOccupierPlayerID() == playerID) terr.add(t);
         }
-        return territories.toArray(new Territory[0]);
+        return terr.toArray(new Territory[0]);
     }
 
     public CardDeck getCardDeck() {
