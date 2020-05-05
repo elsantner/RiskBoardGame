@@ -168,10 +168,17 @@ public class MainServer implements PlayerLostConnectionListener {
             int id = msg.getFromPlayerID();
             Card c = lobby.getCardDeck().getRandomCard(id);
 
+            // test if there is a set for trading in (if yes ask for trade at start of next turn)
+            lobby.getPlayerToAct().setTradableSet(lobby.getCardDeck().getCardSet(id));
+            boolean b = false;
+            if(lobby.getPlayerToAct().getTradableSet() != null){
+                b = true;
+            }
+
 
             if (c != null) { // if c is null, there are no cards left
                 // send name of new Card to player of last turn
-                server.broadcastMessage(new NewCardMessage(lobby.getLobbyID(), id, c.getCardName()), lobby.getPlayerToAct());
+                server.broadcastMessage(new NewCardMessage(lobby.getLobbyID(), id, c.getCardName(), b), lobby.getPlayerToAct());
             }
 
             lobby.nextPlayersTurn();

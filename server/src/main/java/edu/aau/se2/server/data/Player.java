@@ -8,9 +8,12 @@ public class Player implements Serializable {
     private int colorID;
     private boolean isReady;
     private transient int armyReserveCount;
+    private Card[] tradableSet;
+    private boolean askForCardExchange;
 
     public Player() {
     }
+
 
     public Player(int uid, String nickname) {
         this.uid = uid;
@@ -18,6 +21,7 @@ public class Player implements Serializable {
         this.armyReserveCount = 0;
         this.isReady = false;
         this.colorID = -1;
+        this.askForCardExchange = false;
     }
 
     public int getUid() {
@@ -42,6 +46,7 @@ public class Player implements Serializable {
 
     /**
      * Sets the player color.
+     *
      * @param colorID ID of the color to set. Must be between 0 and 5.
      */
     public void setColorID(int colorID) {
@@ -70,4 +75,21 @@ public class Player implements Serializable {
     public void setReady(boolean ready) {
         isReady = ready;
     }
+
+    public Card[] getTradableSet() {
+        return tradableSet;
+    }
+
+    public void setTradableSet(Card[] tradableSet) {
+        this.tradableSet = tradableSet;
+    }
+
+    public boolean isAskForCardExchange() {
+        return askForCardExchange;
+    }
+
+    public void setAskForCardExchange(boolean askForCardExchange) {
+        this.askForCardExchange = askForCardExchange;
+    }
+
 }

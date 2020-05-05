@@ -54,6 +54,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     /**
      * Gets the singleton instance of Database.
+     *
      * @return Database instance, or null if connection error occurred.
      */
     public static synchronized Database getInstance() {
@@ -66,6 +67,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     /**
      * Sets the server address. This can only be done before a instance of Database is created.
      * Note: This method is designed to be used for testing purposes only!
+     *
      * @param serverAddress New server address
      */
     public static void setServerAddress(String serverAddress) {
@@ -148,7 +150,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private void initTerritoryData() {
         territoryData = new Territory[42];
-        for (int i=0; i<territoryData.length; i++) {
+        for (int i = 0; i < territoryData.length; i++) {
             territoryData[i] = new Territory(i);
         }
     }
@@ -156,27 +158,43 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     public void setErrorListener(OnErrorListener l) {
         this.errorListener = l;
     }
+
     public void setLeftLobbyListener(OnLeftLobbyListener l) {
         this.onLeftLobbyListener = l;
     }
+
     public void setLobbyListChangedListener(OnLobbyListChangedListener l) {
         this.lobbyListChangedListener = l;
     }
+
     public void setConnectionChangedListener(OnConnectionChangedListener l) {
         this.connectionChangedListener = l;
     }
+
     public void setGameStartListener(OnGameStartListener l) {
         this.gameStartListener = l;
     }
-    public void setPlayersChangedListener(OnPlayersChangedListener l) { this.playersChangedListener = l; }
-    public void setTerritoryUpdateListener(OnTerritoryUpdateListener l) { this.territoryUpdateListener = l; }
+
+    public void setPlayersChangedListener(OnPlayersChangedListener l) {
+        this.playersChangedListener = l;
+    }
+
+    public void setTerritoryUpdateListener(OnTerritoryUpdateListener l) {
+        this.territoryUpdateListener = l;
+    }
+
     public void setNextTurnListener(OnNextTurnListener l) {
         this.nextTurnListener = l;
     }
-    public void setCardsChangedListener(OnCardsChangedListener l){this.cardsChangedListener = l;}
+
+    public void setCardsChangedListener(OnCardsChangedListener l) {
+        this.cardsChangedListener = l;
+    }
+
     public void setJoinedLobbyListener(OnJoinedLobbyListener l) {
         this.joinedLobbyListener = l;
     }
+
     public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) {
         this.armyReserveChangedListener = l;
     }
@@ -186,38 +204,27 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             log.info("Received " + msg.getClass().getSimpleName());
             if (msg instanceof ConnectedMessage) {
                 handleConnectedMessage((ConnectedMessage) msg);
-            }
-            else if (msg instanceof StartGameMessage) {
+            } else if (msg instanceof StartGameMessage) {
                 handleStartGameMessage((StartGameMessage) msg);
-            }
-            else if (msg instanceof InitialArmyPlacingMessage) {
+            } else if (msg instanceof InitialArmyPlacingMessage) {
                 handleInitialArmyPlacingMessage((InitialArmyPlacingMessage) msg);
-            }
-            else if (msg instanceof ArmyPlacedMessage) {
+            } else if (msg instanceof ArmyPlacedMessage) {
                 handleArmyPlacedMessage((ArmyPlacedMessage) msg);
-            }
-            else if (msg instanceof PlayersChangedMessage) {
+            } else if (msg instanceof PlayersChangedMessage) {
                 handlePlayersChangedMessage((PlayersChangedMessage) msg);
-            }
-            else if (msg instanceof JoinedLobbyMessage) {
+            } else if (msg instanceof JoinedLobbyMessage) {
                 handleJoinedLobbyMessage((JoinedLobbyMessage) msg);
-            }
-            else if (msg instanceof LobbyListMessage) {
+            } else if (msg instanceof LobbyListMessage) {
                 handleLobbyListMessage((LobbyListMessage) msg);
-            }
-            else if (msg instanceof LeftLobbyMessage) {
+            } else if (msg instanceof LeftLobbyMessage) {
                 handleLeftLobbyMessage();
-            }
-            else if (msg instanceof NextTurnMessage) {
+            } else if (msg instanceof NextTurnMessage) {
                 handleNextTurnMessage((NextTurnMessage) msg);
-            }
-            else if (msg instanceof NewCardMessage) {
+            } else if (msg instanceof NewCardMessage) {
                 handleNewCardMessage((NewCardMessage) msg);
-            }
-            else if (msg instanceof NewArmiesMessage) {
+            } else if (msg instanceof NewArmiesMessage) {
                 handleNewArmiesMessage((NewArmiesMessage) msg);
-            }
-            else if (msg instanceof ErrorMessage) {
+            } else if (msg instanceof ErrorMessage) {
                 handleErrorMessage((ErrorMessage) msg);
             }
         });
@@ -264,11 +271,14 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
-    private synchronized  void handleNewCardMessage(NewCardMessage msg){
-        log.info("received NewCardMessage: Cardname: " + msg.getCardName());
-       if(cardsChangedListener != null){
-           cardsChangedListener.singleNewCard(msg.getCardName());
-       }
+    private synchronized void handleNewCardMessage(NewCardMessage msg) {
+        log.info("received NewCardMessage: Cardname: " + msg.getCardName() + "\t IsPlayerReadyForCardExch:" + msg.isAskForCardExchange());
+        if (msg.isAskForCardExchange()) {
+            this.thisPlayer.setAskForCardExchange(true);
+        }
+        if (cardsChangedListener != null) {
+            cardsChangedListener.singleNewCard(msg.getCardName());
+        }
     }
 
     private synchronized void handleJoinedLobbyMessage(JoinedLobbyMessage msg) {
@@ -289,7 +299,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void setCurrentPlayers(List<Player> players) {
         currentPlayers.clear();
-        for (Player p: players) {
+        for (Player p : players) {
             currentPlayers.put(p.getUid(), p);
         }
     }
@@ -338,7 +348,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private synchronized void handleStartGameMessage(StartGameMessage msg) {
         setCurrentArmyReserve(msg.getStartArmyCount(), true);
         if (gameStartListener != null) {
-            for (Player p: msg.getPlayers()) {
+            for (Player p : msg.getPlayers()) {
                 currentPlayers.put(p.getUid(), p);
             }
             gameStartListener.onGameStarted(msg.getPlayers(), msg.getStartArmyCount());
