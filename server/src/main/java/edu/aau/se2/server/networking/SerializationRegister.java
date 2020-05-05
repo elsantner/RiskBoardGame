@@ -15,6 +15,7 @@ import edu.aau.se2.server.networking.dto.NewCardMessage;
 import edu.aau.se2.server.networking.dto.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.ReadyMessage;
+import edu.aau.se2.server.networking.dto.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.RequestLobbyListMessage;
@@ -51,5 +52,7 @@ public interface SerializationRegister {
         component.registerClass(LeftLobbyMessage.class);
         component.registerClass(PlayersChangedMessage.class);
         component.registerClass(NewCardMessage.class);
+        component.registerClass(String[].class);
+        component.registerClass(RefreshCardsMessage.class);
     }
 }

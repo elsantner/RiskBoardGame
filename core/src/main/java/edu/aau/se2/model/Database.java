@@ -38,6 +38,7 @@ import edu.aau.se2.server.networking.dto.NewCardMessage;
 import edu.aau.se2.server.networking.dto.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.ReadyMessage;
+import edu.aau.se2.server.networking.dto.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.RequestLobbyListMessage;
@@ -224,11 +225,14 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleNewCardMessage((NewCardMessage) msg);
             } else if (msg instanceof NewArmiesMessage) {
                 handleNewArmiesMessage((NewArmiesMessage) msg);
+            } else if (msg instanceof RefreshCardsMessage) {
+                handleRefreshCardsMessage((RefreshCardsMessage) msg);
             } else if (msg instanceof ErrorMessage) {
                 handleErrorMessage((ErrorMessage) msg);
             }
         });
     }
+
 
     private void handleErrorMessage(ErrorMessage msg) {
         if (errorListener != null) {
@@ -265,9 +269,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             nextTurnListener.isPlayersTurnNow(currentTurnPlayerID,
                     thisPlayer.getUid() == currentTurnPlayerID);
         }
-        if (isThisPlayersTurn()) {
+        if (isThisPlayersTurn() && !thisPlayer.isAskForCardExchange()) {
             hasPlayerReceivedArmiesThisTurn = false;
-            exchangeCards();
+            exchangeCards(false);
         }
     }
 
@@ -278,6 +282,12 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
         if (cardsChangedListener != null) {
             cardsChangedListener.singleNewCard(msg.getCardName());
+        }
+    }
+
+    private void handleRefreshCardsMessage(RefreshCardsMessage msg) {
+        if(cardsChangedListener !=null){
+            cardsChangedListener.refreshCards(msg.getCardNames());
         }
     }
 
@@ -437,10 +447,15 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         return isConnected;
     }
 
-    // TODO: Change when cards are implemented
-    public void exchangeCards() {
-        log.info("Sending CardExchangeMessage");
-        client.sendMessage(new CardExchangeMessage(currentLobbyID, thisPlayer.getUid()));
+    public void exchangeCards(boolean exchangeCards) {
+        log.info("Sending CardExchangeMessage, exchangeCards: " + exchangeCards);
+
+        if (exchangeCards) {
+            thisPlayer.setExchangeCards(true);
+            thisPlayer.setAskForCardExchange(false);
+        }
+
+        client.sendMessage(new CardExchangeMessage(currentLobbyID, thisPlayer.getUid(), exchangeCards));
     }
 
     private synchronized void setCurrentArmyReserve(int newValue, boolean isInitialCount) {

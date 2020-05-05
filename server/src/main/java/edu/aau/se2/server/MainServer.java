@@ -29,6 +29,7 @@ import edu.aau.se2.server.networking.dto.NewCardMessage;
 import edu.aau.se2.server.networking.dto.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.ReadyMessage;
+import edu.aau.se2.server.networking.dto.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.RequestLobbyListMessage;
@@ -64,6 +65,7 @@ public class MainServer implements PlayerLostConnectionListener {
     public void start() throws IOException {
         server.start();
     }
+
     public void stop() {
         server.stop();
     }
@@ -171,7 +173,7 @@ public class MainServer implements PlayerLostConnectionListener {
             // test if there is a set for trading in (if yes ask for trade at start of next turn)
             lobby.getPlayerToAct().setTradableSet(lobby.getCardDeck().getCardSet(id));
             boolean b = false;
-            if(lobby.getPlayerToAct().getTradableSet() != null){
+            if (lobby.getPlayerToAct().getTradableSet() != null) {
                 b = true;
             }
 
@@ -195,6 +197,15 @@ public class MainServer implements PlayerLostConnectionListener {
         if (msg.getFromPlayerID() == lobby.getPlayerToAct().getUid()) {
             // generate new armies for player
             lobby.giveNewArmiesToPlayer(msg.getFromPlayerID());
+
+            // add armies, when player trades in set
+            if (msg.isExchangeSet()) {
+
+                Player p = lobby.getPlayerToAct();
+                p.setArmyReserveCount(p.getArmyReserveCount() + lobby.getCardDeck().tradeInSet(p.getTradableSet(), lobby.getTerritoriesOccupiedByPlayer(p.getUid())));
+                p.setTradableSet(null);
+                server.broadcastMessage(new RefreshCardsMessage(lobby.getLobbyID(), p.getUid(), lobby.getCardDeck().getCardNamesOfPlayer(p.getUid())), lobby.getPlayerToAct());
+            }
             ds.updateLobby(lobby);
 
             server.broadcastMessage(new NewArmiesMessage(lobby.getLobbyID(), msg.getFromPlayerID(),

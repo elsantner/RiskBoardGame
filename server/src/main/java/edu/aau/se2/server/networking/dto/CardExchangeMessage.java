@@ -1,13 +1,19 @@
 package edu.aau.se2.server.networking.dto;
 
 public class CardExchangeMessage extends InLobbyMessage {
-    // TODO: Add card information once cards are implemented
+
+    private boolean exchangeSet;
 
     public CardExchangeMessage() {
         super();
     }
 
-    public CardExchangeMessage(int lobbyID, int fromPlayerID) {
+    public CardExchangeMessage(int lobbyID, int fromPlayerID, boolean exchangeSet) {
         super(lobbyID, fromPlayerID);
+        this.exchangeSet = exchangeSet;
+    }
+
+    public boolean isExchangeSet() {
+        return exchangeSet;
     }
 }

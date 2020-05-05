@@ -5,7 +5,6 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
@@ -23,8 +22,6 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     private Database db;
     private InputMultiplexer inputMultiplexer;
     private ConfirmDialog dialog;
-    private Table table;
-
 
     public GameScreen() {
         this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -52,7 +49,9 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
                     @Override
                     public void clicked(boolean result) {
                         inputMultiplexer.removeProcessor(tmpHUDStage);
-                        db.exchangeCards();
+                        inputMultiplexer.addProcessor(cardStage);
+                        if(result) db.exchangeCards(true);
+                        else db.exchangeCards(false);
                     }
                 });
         dialog.setPosition(width/2f, height/2f);
@@ -82,15 +81,16 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
 
 
         boardStage.draw();
-        tmpHUDStage.draw();
+
 
         // todo remove (add button in Hud to show cards)
-       /* if (cardStage.isUpdated()) {
+        if (cardStage.isUpdated()) {
             cardStage.updateActor();
         }
         cardStage.act();
-        cardStage.draw();*/
+        cardStage.draw();
 
+        tmpHUDStage.draw();
 
     }
 
@@ -145,6 +145,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
 
     private void showAskForCardExchange() {
         inputMultiplexer.addProcessor(tmpHUDStage);
+        inputMultiplexer.removeProcessor(cardStage);
         dialog.show(tmpHUDStage).setPosition(100f, 100f);
         dialog.setMovable(true);
     }
@@ -152,7 +153,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
         boardStage.setArmiesPlacable(isThisPlayer);
-        if (db.getThisPlayer() != null && db.getThisPlayer().isAskForCardExchange()) {
+        if (db.getThisPlayer() != null && playerID == db.getThisPlayer().getUid() && db.getThisPlayer().isAskForCardExchange()) {
             showAskForCardExchange();
         }
     }

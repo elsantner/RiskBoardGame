@@ -4,6 +4,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -119,6 +122,27 @@ public class CardDeckTest {
     @Test(expected = IllegalArgumentException.class)
     public void testGetRandomCardInvalidOwner() {
         cardDeck.getRandomCard(-1);
+    }
+
+    @Test
+    public void testGetCardNamesOfPlayer() {
+
+        ArrayList<String> cards = new ArrayList<>();
+        Card c;
+
+        for (int i = 0; i < 20; i++) {
+            c = cardDeck.getRandomCard(1);
+            cards.add(c.getCardName());
+        }
+        Collections.sort(cards);
+
+        String[] names = cardDeck.getCardNamesOfPlayer(1);
+
+        assertEquals(20, names.length);
+
+        for (int i = 0; i < names.length; i++) {
+            assertEquals(cards.get(i), names[i]);
+        }
     }
 
     @Test

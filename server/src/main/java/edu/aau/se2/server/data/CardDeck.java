@@ -1,6 +1,7 @@
 package edu.aau.se2.server.data;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 import static edu.aau.se2.server.data.Card.CARD_TYPE.*;
@@ -121,6 +122,18 @@ public class CardDeck {
             if (c.getOwnerID() == playerID) cards.add(c);
         }
         return cards.toArray(new Card[0]);
+    }
+
+    public String[] getCardNamesOfPlayer(int playerID) {
+        ArrayList<String> cardNames = new ArrayList<>();
+        for (Card c : deck
+        ) {
+            if (c.getOwnerID() == playerID) {
+                cardNames.add(c.getCardName());
+            }
+        }
+        Collections.sort(cardNames);
+        return cardNames.toArray(new String[0]);
     }
 
     /**

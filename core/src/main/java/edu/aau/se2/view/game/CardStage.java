@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -48,7 +49,7 @@ public class CardStage extends Stage implements OnCardsChangedListener {
 
         this.cardNames = new ArrayList<>();
         this.cardContainer = new Table();
-        this.cardContainer.setDebug(true);
+        //this.cardContainer.setDebug(true);
 
         scrollPane = new ScrollPane(cardContainer);
         outer = new Table();
@@ -66,13 +67,12 @@ public class CardStage extends Stage implements OnCardsChangedListener {
         outer.remove();
 
         this.cardContainer = new Table();
-        this.cardContainer.setDebug(true);
+        //this.cardContainer.setDebug(true);
 
         for (String s : cardNames.toArray(new String[0])
         ) {
             addCard(s);
         }
-
 
         scrollPane = new ScrollPane(cardContainer);
         outer = new Table();
@@ -106,7 +106,7 @@ public class CardStage extends Stage implements OnCardsChangedListener {
         addCard(cardName);
         this.cardNames.add(cardName);
         Collections.sort(cardNames);
-        log.log(Level.INFO, "A Card has been added to the list: {0}" , cardName);
+        log.log(Level.INFO, "A Card has been added to the list: " + cardName);
         this.cardContainer = new Table();
         this.updated = true;
 
@@ -114,7 +114,11 @@ public class CardStage extends Stage implements OnCardsChangedListener {
 
     @Override
     public void refreshCards(String[] cardNames) {
-        // not yet implemented
+        this.cardNames = new ArrayList<String>(Arrays.asList(cardNames));
+        for (int i = 0; i < cardNames.length; i++) {
+            log.log(Level.INFO, "Card["+ i + "]from Server: " + cardNames[i]);
+        }
+        this.updated = true;
     }
 
     public Table getCardContainer() {
