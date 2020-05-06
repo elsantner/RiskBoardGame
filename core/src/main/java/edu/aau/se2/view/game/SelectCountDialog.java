@@ -1,6 +1,5 @@
 package edu.aau.se2.view.game;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -9,25 +8,24 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 public class SelectCountDialog extends Dialog {
-    private static final Skin uiSkin = new Skin(Gdx.files.internal("dialog/uiskin.json"));
     private OnResultListener listener;
     private int minCount;
     private int maxCount;
     private int currentCount;
     private Label lblCurrentCount;
 
-    public SelectCountDialog(String title, int minCount, int maxCount, OnResultListener listener) {
+    public SelectCountDialog(Skin uiSkin, String title, int minCount, int maxCount, OnResultListener listener) {
         super(title, uiSkin);
         this.minCount = minCount;
         this.maxCount = maxCount;
         this.currentCount = minCount + (maxCount-minCount)/2;
 
-        setupUI();
+        setupUI(uiSkin);
         this.setMovable(false);
         this.listener = listener;
     }
 
-    private void setupUI() {
+    private void setupUI(Skin uiSkin) {
         lblCurrentCount = new Label(Integer.toString(currentCount), uiSkin);
         this.text(lblCurrentCount).center();
         getContentTable().row().center();

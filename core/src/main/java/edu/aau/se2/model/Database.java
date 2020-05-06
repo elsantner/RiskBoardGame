@@ -527,4 +527,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             throw new IllegalArgumentException("territory with id " + territoryID + " does not exist");
         }
     }
+
+    public void closeConnection() {
+        client.disconnect();
+    }
 }
