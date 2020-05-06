@@ -1,7 +1,7 @@
 package edu.aau.se2.view.lobbylist;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -20,9 +20,12 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 import java.util.List;
 
 import edu.aau.se2.model.Database;
+import edu.aau.se2.RiskGame;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
+import edu.aau.se2.view.AbstractScreen;
+import edu.aau.se2.view.asset.AssetName;
 
-public class LobbyListScreen extends ScreenAdapter {
+public class LobbyListScreen extends AbstractScreen {
 
     private static final String TAG = "LobbyScreen";
     private Texture background;
@@ -35,7 +38,8 @@ public class LobbyListScreen extends ScreenAdapter {
 
     private List<LobbyListMessage.LobbyData> lobbyData;
 
-    public LobbyListScreen(List<LobbyListMessage.LobbyData> lobbyData) {
+    public LobbyListScreen(RiskGame game, List<LobbyListMessage.LobbyData> lobbyData) {
+        super(game);
         this.lobbyData = lobbyData;
     }
 
@@ -60,18 +64,34 @@ public class LobbyListScreen extends ScreenAdapter {
     }
 
     @Override
+    public void pause() {
+        // currently unused
+    }
+
+    @Override
+    public void resume() {
+        // currently unused
+    }
+
+    @Override
+    public void hide() {
+        // currently unused
+    }
+
+    @Override
     public void show() {
         Gdx.app.log(TAG, "Loading assets");
-        background = new Texture(Gdx.files.internal("lobbylist/lobbyScreen.png"));
-        lobbyText = new Texture(Gdx.files.internal("lobbylist/lobby2.png"));
-        lobbyOverlay = new Texture(Gdx.files.internal("lobbylist/lobbyMenuOverlay.png"));
-        line = new Texture(Gdx.files.internal("lobbylist/line.png"));
+        AssetManager assetManager = getGame().getAssetManager();
+        background = assetManager.get(AssetName.TEX_LOBBYLIST_SCREEN);
+        lobbyText = assetManager.get(AssetName.TEX_LOBBYLIST_2);
+        lobbyOverlay = assetManager.get(AssetName.TEX_LOBBYLIST_OVERLAY);
+        line = assetManager.get(AssetName.TEX_LOBBYLIST_LINE);
         batch = new SpriteBatch();
 
         this.stage = new Stage(new StretchViewport(1920,1080));
         stage.stageToScreenCoordinates(new Vector2(0,0));
         Gdx.input.setInputProcessor(this.stage);
-        final Skin skin = new Skin(Gdx.files.internal("lobbylistskin/uiskin.json"));
+        final Skin skin = assetManager.get(AssetName.UI_SKIN_1);
         skin.getFont("default-font").getData().setScale(0.5f);
 
         Table lobbyListTable = new Table();
@@ -124,9 +144,9 @@ public class LobbyListScreen extends ScreenAdapter {
     @Override
     public void dispose() {
         Gdx.app.log(TAG, "dispose");
-        background.dispose();
-        lobbyOverlay.dispose();
-        line.dispose();
-        lobbyText.dispose();
+        background = null;
+        lobbyOverlay = null;
+        line = null;
+        lobbyText = null;
     }
 }
