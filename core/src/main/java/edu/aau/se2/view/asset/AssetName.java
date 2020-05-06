@@ -21,4 +21,6 @@ public abstract class AssetName {
     public static final String TEX_LOBBYLIST_LINE = "lobbylist/line.png";
     public static final String TEX_LOBBYLIST_OVERLAY = "lobbylist/lobbyMenuOverlay.png";
     public static final String TEX_LOGO = "logo.png";
+    public static final String TEX_DICE_ATTACKER = "dices/dices_attacker.JPG";
+    public static final String TEX_DICE_DEFENDER = "dices/dices_defender.JPG";
 }
