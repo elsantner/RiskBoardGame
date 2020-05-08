@@ -107,7 +107,7 @@ public class RiskGame extends Game {
 
 		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont1 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
 		parameterFont1.fontFileName = "font/CenturyGothic.ttf";
-		parameterFont1.fontParameters.size = 70;
+		parameterFont1.fontParameters.size = (int) (screenHeight * 0.05f);
 		parameterFont1.fontParameters.borderColor = Color.BLACK;
         parameterFont1.fontParameters.borderWidth = 2;
 		assetManager.load(AssetName.FONT_1, BitmapFont.class, parameterFont1);
@@ -138,9 +138,14 @@ public class RiskGame extends Game {
 		// load assets
 		if(assetManager.update() && !isDoneLoadingAssets) {
 			isDoneLoadingAssets = true;
+			assetPostProcessing();
 			mainMenuScreen = new MainMenu(this);
 			setScreen(mainMenuScreen);
 		}
+	}
+
+	private void assetPostProcessing() {
+		((Skin)assetManager.get(AssetName.UI_SKIN_1)).getFont("default-font").getData().setScale(0.5f);
 	}
 
 	@Override
