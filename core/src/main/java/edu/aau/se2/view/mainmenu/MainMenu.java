@@ -53,25 +53,14 @@ public class MainMenu extends AbstractScreen {
     public void setupButtons(){
 
         create = new TextButton("Spiel erstellen", mySkin);
-        create.setTransform(true);
-        create.setScale(1f);
-        create.setPosition(GameConstants.C_X - create.getWidth()/2, GameConstants.C_Y + GameConstants.ROW_HEIGHT);
-
         join = new TextButton("Spiel beitreten", mySkin);
-        join.setTransform(true);
-        join.setScale(1f);
-        join.setPosition(GameConstants.C_X - join.getWidth()/2, create.getY() - GameConstants.ROW_HEIGHT);
-
         exit = new TextButton("Spiel verlassen", mySkin);
-        exit.setTransform(true);
-        exit.setScale(1f);
-        exit.setPosition(GameConstants.C_X - exit.getWidth()/2, join.getY() - GameConstants.ROW_HEIGHT);
 
-        table.add(create).width(450).pad(10);
+        table.add(create).width(gamePort.getWorldWidth() * 0.5f).height(gamePort.getWorldHeight() * 0.15f).padBottom(gamePort.getWorldHeight() * 0.05f);
         table.row();
-        table.add(join).width(450).pad(10);
+        table.add(join).width(gamePort.getWorldWidth() * 0.5f).height(gamePort.getWorldHeight() * 0.15f).padBottom(gamePort.getWorldHeight() * 0.05f);
         table.row();
-        table.add(exit).width(450);
+        table.add(exit).width(gamePort.getWorldWidth() * 0.5f).height(gamePort.getWorldHeight() * 0.15f);
 
     }
 
