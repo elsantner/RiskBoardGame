@@ -6,16 +6,23 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import java.util.List;
 import java.util.Locale;
-import edu.aau.se2.server.data.Player;
 
-public class HudStage extends Stage implements IGameBoard {
-    private boolean armiesPlacable = false;
+import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnNextTurnListener;
+import edu.aau.se2.server.data.Player;
+import edu.aau.se2.view.AbstractScreen;
+import edu.aau.se2.view.AbstractStage;
+
+public class HudStage extends AbstractStage implements OnNextTurnListener {
     private Integer thisPlayerColorId;
     private int[] thisPlayerColorIdArray;
     private Color[] playerColors;
@@ -25,6 +32,10 @@ public class HudStage extends Stage implements IGameBoard {
     private BitmapFont niceFont;
     private int[] currentArmyReserveCount;
     private int playersCount;
+
+    //from temphudstage
+    private PhaseDisplay phaseDisplay;
+    private OnHUDInteractionListener hudInteractionListener;
 
     private Integer attacksMadeAmount;
     private Integer attacksMadeSucceededAmount;
@@ -41,9 +52,9 @@ public class HudStage extends Stage implements IGameBoard {
     private Label yourTurnLabel;
 
 
-    public HudStage(Viewport vp, List<Player> currentPlayers){
+    public HudStage(AbstractScreen screen, Viewport vp, List<Player> currentPlayers, OnHUDInteractionListener l){
         //TODO: values from server
-        super(vp);
+        super(vp, screen);
         playerColors = new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE};
         currentPlayerNames = new String[currentPlayers.size()];
         currentPlayerColors = new Color[currentPlayers.size()];
@@ -51,6 +62,10 @@ public class HudStage extends Stage implements IGameBoard {
         currentArmyReserveCount = new int[currentPlayers.size()];
         playersCount = currentPlayers.size();
         setCurrentPlayersColorOnHud(currentPlayers);
+
+        //from temphud
+        this.hudInteractionListener = l;
+        setupPhaseDisplay();
 
         attacksMadeAmount = 5;
         attacksMadeSucceededAmount = 3;
@@ -82,43 +97,6 @@ public class HudStage extends Stage implements IGameBoard {
             table.row();
         }
         this.addActor(table);
-    }
-
-    @Override
-    public void setInteractable(boolean interactable) {
-    }
-
-    @Override
-    public boolean isInteractable() {
-        return true;
-    }
-
-    @Override
-    public boolean isArmiesPlacable() {
-        return true;
-    }
-
-    @Override
-    public void setAttackAllowed(boolean attackAllowed) {
-    }
-
-    @Override
-    public boolean isAttackAllowed() {
-        return true;
-    }
-
-    @Override
-    public void setArmyCount(int territoryID, int count) {
-    }
-
-    @Override
-    public void setArmyColor(int territoryID, int colorID) {
-    }
-
-    @Override
-    public void setArmiesPlacable(boolean armiesPlacable) {
-        this.armiesPlacable = armiesPlacable;
-        this.setMessage(armiesPlacable);
     }
 
     private void setMessage(boolean isPlayersTurn) {
@@ -154,5 +132,35 @@ public class HudStage extends Stage implements IGameBoard {
     @Override
     public void dispose() { super.dispose(); }
 
+    @Override
+    public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
+        this.setMessage(isThisPlayer);
+    }
+
+    private void setupPhaseDisplay() {
+        this.phaseDisplay = new PhaseDisplay(getScreen().getGame().getAssetManager());
+        this.addActor(phaseDisplay);
+        phaseDisplay.setWidth(Gdx.graphics.getWidth());
+        phaseDisplay.setHeight(Gdx.graphics.getHeight()/7f);
+        phaseDisplay.setOrigin(Align.center);
+    }
+
+    public void setPhase(Database.Phase phase) {
+        phaseDisplay.setPhase(phase);
+        if ((phase == Database.Phase.ATTACKING || phase == Database.Phase.MOVING) &&
+                Database.getInstance().isThisPlayersTurn()) {
+
+            phaseDisplay.setSkipButtonVisible(true);
+            phaseDisplay.setSkipButtonListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    hudInteractionListener.stageSkipButtonClicked();
+                }
+            });
+        }
+        else {
+            phaseDisplay.setSkipButtonVisible(false);
+        }
+    }
 }
 

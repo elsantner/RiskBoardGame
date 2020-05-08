@@ -27,7 +27,6 @@ import edu.aau.se2.server.data.Player;
 public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
         OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
     private BoardStage boardStage;
-    private TempHUDStage tmpHUDStage;
     private HudStage hudStage;
     private Database db;
     private InputMultiplexer inputMultiplexer;
@@ -41,10 +40,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public GameScreen(RiskGame game, int width, int height) {
         super(game);
         boardStage = new BoardStage(this, new FitViewport(width, height));
-        tmpHUDStage = new TempHUDStage(this, new FitViewport(width, height), this);
         db = Database.getInstance();
         boardStage.setListener(this);
-        hudStage = new HudStage(new FitViewport(width, height), db.getCurrentPlayers());
+        hudStage = new HudStage(this, new FitViewport(width, height), db.getCurrentPlayers(), this);
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
         db.setPhaseChangedListener(this);
@@ -68,7 +66,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public void show() {
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
-        inputMultiplexer.addProcessor(tmpHUDStage);
+        inputMultiplexer.addProcessor(hudStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
@@ -114,9 +112,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public void territoryUpdated(int territoryID, int armyCount, int colorID) {
         boardStage.setArmyCount(territoryID, armyCount);
         boardStage.setArmyColor(territoryID, colorID);
-        if (db.isInitialArmyPlacementFinished() && db.isThisPlayersTurn() && db.getCurrentArmyReserve() == 0) {
-            showFinishTurnDialog();
-        }
+        //TODO: call statistik methode -> wie viele territorien ein spieler hat
     }
 
     private void showFinishTurnDialog() {
@@ -162,14 +158,13 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     private void showDialog(Dialog dialog) {
-        dialog.show(tmpHUDStage);
+        dialog.show(hudStage);
         dialog.setOrigin(Align.center);
     }
 
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
-        boardStage.setArmiesPlacable(isThisPlayer);
-        hudStage.setArmiesPlacable(isThisPlayer);
+        hudStage.isPlayersTurnNow(playerID, isThisPlayer);
     }
 
     @Override
@@ -184,7 +179,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void phaseChanged(Database.Phase newPhase) {
-        tmpHUDStage.setPhase(newPhase);
+        hudStage.setPhase(newPhase);
         boardStage.setPhase(newPhase);
     }
 
