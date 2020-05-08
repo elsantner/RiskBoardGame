@@ -38,7 +38,7 @@ public class Lobby {
     }
 
     public boolean removePlayer(int uid) {
-        return this.players.remove(uid) == null;
+        return this.players.remove(uid) != null;
     }
 
     public int getLobbyID() {
@@ -165,6 +165,11 @@ public class Lobby {
 
     public boolean hasCurrentPlayerToActReceivedNewArmies() {
         return hasCurrentPlayerToActReceivedNewArmies;
+    }
+
+    public boolean hasCurrentPlayerToActPlacedNewArmies() {
+        return hasCurrentPlayerToActReceivedNewArmies &&
+                this.getPlayerToAct().getArmyReserveCount() == 0;
     }
 
     public boolean isJoinable() {

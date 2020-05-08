@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.dto.BaseMessage;
-import edu.aau.se2.server.networking.dto.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.TextMessage;
 import edu.aau.se2.server.networking.kryonet.KryoNetComponent;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
