@@ -56,11 +56,11 @@ public class MainMenu extends AbstractScreen {
         join = new TextButton("Spiel beitreten", mySkin);
         exit = new TextButton("Spiel verlassen", mySkin);
 
-        table.add(create).width(gamePort.getWorldWidth() * 0.5f).height(gamePort.getWorldHeight() * 0.15f).padBottom(gamePort.getWorldHeight() * 0.05f);
+        table.add(create).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.15f).padBottom(gamePort.getWorldHeight() * 0.05f);
         table.row();
-        table.add(join).width(gamePort.getWorldWidth() * 0.5f).height(gamePort.getWorldHeight() * 0.15f).padBottom(gamePort.getWorldHeight() * 0.05f);
+        table.add(join).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.15f).padBottom(gamePort.getWorldHeight() * 0.05f);
         table.row();
-        table.add(exit).width(gamePort.getWorldWidth() * 0.5f).height(gamePort.getWorldHeight() * 0.15f);
+        table.add(exit).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.15f);
 
     }
 
@@ -70,7 +70,7 @@ public class MainMenu extends AbstractScreen {
         logoImage.setScale(gamePort.getWorldWidth() / (logoImage.getWidth() * 2));
         logoImage.setOrigin(Align.center);
 
-        table.add(logoImage).row();
+        table.add(logoImage).padBottom(gamePort.getWorldHeight() * 0.1f).row();;
     }
 
     public void onClickButtons(){
