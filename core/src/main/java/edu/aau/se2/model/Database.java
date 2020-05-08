@@ -206,7 +206,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             } else if (msg instanceof LobbyListMessage) {
                 handleLobbyListMessage((LobbyListMessage) msg);
             } else if (msg instanceof LeftLobbyMessage) {
-                handleLeftLobbyMessage();
+                handleLeftLobbyMessage((LeftLobbyMessage) msg);
             } else if (msg instanceof NextTurnMessage) {
                 handleNextTurnMessage((NextTurnMessage) msg);
             } else if (msg instanceof NewArmiesMessage) {
@@ -254,10 +254,10 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
-    private void handleLeftLobbyMessage() {
+    private void handleLeftLobbyMessage(LeftLobbyMessage msg) {
         resetLobby();
         if (onLeftLobbyListener != null) {
-            onLeftLobbyListener.leftLobby();
+            onLeftLobbyListener.leftLobby(msg.isWasClosed());
         }
     }
 
@@ -502,7 +502,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public synchronized void returnToMainMenu() {
         if (onLeftLobbyListener != null)
-            onLeftLobbyListener.leftLobby();
+            onLeftLobbyListener.leftLobby(false);
     }
 
     public int getCurrentLobbyID() {

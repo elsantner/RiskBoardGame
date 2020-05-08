@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.view.PopupMessageDisplay;
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.game.GameScreen;
 import edu.aau.se2.view.game.Territory;
@@ -32,12 +33,21 @@ import edu.aau.se2.view.mainmenu.MainMenu;
 public class RiskGame extends Game {
 	private AssetManager assetManager;
 	private boolean isDoneLoadingAssets = false;
+	private PopupMessageDisplay popupMessageDisplay;
 
 	private GameScreen gameScreen;
 	private LobbyScreen lobbyScreen;
 	private LobbyListScreen lobbyListScreen;
 	private MainMenu mainMenuScreen;
 	private LoadingScreen loadingScreen;
+
+	public RiskGame(PopupMessageDisplay popupMessageDisplay) {
+		if (popupMessageDisplay == null) {
+			throw new NullPointerException("popupMessageDisplay must not be null");
+		}
+
+		this.popupMessageDisplay = popupMessageDisplay;
+	}
 
 	@Override
 	public void create () {
@@ -55,7 +65,11 @@ public class RiskGame extends Game {
             gameScreen = new GameScreen(this);
             setScreen(gameScreen);
         }));
-		db.setLeftLobbyListener(() -> Gdx.app.postRunnable(() -> {
+		db.setLeftLobbyListener((wasClosed) -> Gdx.app.postRunnable(() -> {
+			if (wasClosed) {
+				popupMessageDisplay.showMessage("Spiel geschlossen");
+			}
+
 			mainMenuScreen = new MainMenu(this);
 			setScreen(mainMenuScreen);
 		}));
@@ -76,6 +90,7 @@ public class RiskGame extends Game {
 			@Override
 			public void disconnected() {
 				Logger.getLogger("RiskGame").log(Level.SEVERE, "Connection lost");
+				popupMessageDisplay.showMessage("Verbindung verloren");
 				System.exit(-1);
 			}
 		});
@@ -83,6 +98,7 @@ public class RiskGame extends Game {
 			db.connectIfNotConnected();
 		} catch (IOException e) {
 			Logger.getLogger("RiskGame").log(Level.SEVERE, "Connection Error: ", e);
+			popupMessageDisplay.showMessage("Verbindungsfehler");
 			System.exit(-1);
 		}
 	}
