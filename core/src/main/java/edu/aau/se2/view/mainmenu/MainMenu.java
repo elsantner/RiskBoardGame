@@ -1,14 +1,12 @@
 package edu.aau.se2.view.mainmenu;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -30,18 +28,16 @@ public class MainMenu extends AbstractScreen {
     private Button join;
     private Button exit;
     private Texture backgroundTxt;
-    private Texture logoTxt;
-    private Image logoImage;
     private Table table;
 
 
     public MainMenu(RiskGame riskGame){
         super(riskGame);
-        mySkin = new Skin(Gdx.files.internal("skin_glassy/glassy-ui.json"));
+        mySkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         gamePort = new ScreenViewport();
         stage = new Stage(gamePort);
 
-        backgroundTxt = new Texture(Gdx.files.internal("lobby/lobbyScreen.png"));
+        backgroundTxt = getGame().getAssetManager().get(AssetName.TEX_LOBBY_SCREEN);
 
         table = new Table();
         table.setFillParent(true);
@@ -80,8 +76,8 @@ public class MainMenu extends AbstractScreen {
     }
 
     public void setupLogo(){
-        logoTxt = new Texture(Gdx.files.internal("logo.png"));
-        logoImage = new Image(logoTxt);
+        Texture logoTxt = getGame().getAssetManager().get(AssetName.TEX_LOGO);
+        Image logoImage = new Image(logoTxt);
         logoImage.setScale(gamePort.getWorldWidth() / (logoImage.getWidth() * 2));
         logoImage.setOrigin(Align.center);
 
@@ -125,7 +121,6 @@ public class MainMenu extends AbstractScreen {
         Gdx.gl.glClearColor(1,0,0,0);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-
         stage.getBatch().begin();
         stage.getBatch().draw(backgroundTxt,0,0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
         stage.getBatch().end();
@@ -143,17 +138,17 @@ public class MainMenu extends AbstractScreen {
 
     @Override
     public void pause() {
-
+        //currently unused
     }
 
     @Override
     public void resume() {
-
+        //currently unused
     }
 
     @Override
     public void hide() {
-
+        //currently unused
     }
 
     @Override
