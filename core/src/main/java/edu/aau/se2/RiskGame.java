@@ -94,6 +94,12 @@ public class RiskGame extends Game {
 	}
 
 	private void setupAssetManagerAllAssets() {
+		// if device is not yet rotated correctly (may happen during startup)
+		int screenHeight = Gdx.graphics.getHeight();
+		if (Gdx.graphics.getWidth() < Gdx.graphics.getHeight()) {
+			screenHeight = Gdx.graphics.getWidth();
+		}
+
         FreeTypeFontGenerator.setMaxTextureSize(2048);
 		FileHandleResolver resolver = new InternalFileHandleResolver();
 		assetManager.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
@@ -108,9 +114,9 @@ public class RiskGame extends Game {
 
 		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont2 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
 		parameterFont2.fontFileName = "font/CenturyGothic.ttf";
-		parameterFont2.fontParameters.size = (Gdx.graphics.getHeight() * 150) / 1080;
+		parameterFont2.fontParameters.size = (screenHeight * 150) / 1080;
 		parameterFont2.fontParameters.borderColor = Color.BLACK;
-		parameterFont2.fontParameters.borderWidth = (Gdx.graphics.getHeight() * 4) / 1080f;
+		parameterFont2.fontParameters.borderWidth = (screenHeight * 4) / 1080f;
 		assetManager.load(AssetName.FONT_2, BitmapFont.class, parameterFont2);
 
 		assetManager.load(AssetName.PHASE_DISPLAY_BG, Texture.class);
@@ -141,6 +147,7 @@ public class RiskGame extends Game {
 	public void dispose () {
 		super.dispose();
 		try {
+			isDoneLoadingAssets = false;
 			assetManager.dispose();
 			Territory.dispose();
 			Database.getInstance().closeConnection();
