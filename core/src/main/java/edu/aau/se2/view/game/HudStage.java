@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
@@ -23,15 +22,13 @@ import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.AbstractStage;
 
 public class HudStage extends AbstractStage implements OnNextTurnListener {
-    private Integer thisPlayerColorId;
-    private int[] thisPlayerColorIdArray;
     private Color[] playerColors;
     private String[] currentPlayerNames;
     private Color[] currentPlayerColors;
     private Label[] currentPlayerLabels;
-    private BitmapFont niceFont;
     private int[] currentArmyReserveCount;
     private int playersCount;
+    private Color arrayT[] = new Color[41];
 
     //from temphudstage
     private PhaseDisplay phaseDisplay;
@@ -47,7 +44,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     private Label statisticsOpponentsLabel;
     private Label attacksMadeLabel;
     private Label attacksGotLabel;
-    private Label scoreOwnLabel;
     private String yourTurn;
     private Label yourTurnLabel;
 
@@ -89,7 +85,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         table.add(statisticsOpponentsLabel).expandX().padTop(5);
         table.row();
         //remaining rows
-        for(int i = 0; i < currentPlayers.size(); i++){
+        for(int i = 0; i < playersCount; i++){
             currentPlayerLabels[i] = new Label(currentPlayerNames[i], new Label.LabelStyle(generateFont(), Color.valueOf(currentPlayerColors[i].toString())));
             table.add().expandX();
             table.add().expandX();
@@ -160,6 +156,19 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         }
         else {
             phaseDisplay.setSkipButtonVisible(false);
+        }
+    }
+
+    public void setPlayerTerritoryCount(int territoryID){
+        Territory.getByID(territoryID).getArmyColor();
+        Territory.getByID(territoryID).getTerritoryName();
+        //System.out.println("###id: " + territoryID + " : " + Territory.getByID(territoryID).getTerritoryName() + Territory.getByID(territoryID).getArmyColor());
+        this.arrayT[territoryID] = Territory.getByID(territoryID).getArmyColor();
+        for (Color territory : this.arrayT
+             ) {
+            if(territory != null){
+                System.out.println("### terr in the array: " + territory.toString());
+            }
         }
     }
 }

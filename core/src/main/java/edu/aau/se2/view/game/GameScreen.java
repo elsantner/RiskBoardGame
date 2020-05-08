@@ -2,8 +2,6 @@ package edu.aau.se2.view.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -30,8 +28,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private HudStage hudStage;
     private Database db;
     private InputMultiplexer inputMultiplexer;
-    private List<Player> currentPlayers;
-    private Player thisPlayer;
 
     public GameScreen(RiskGame game) {
         this(game, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -112,6 +108,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public void territoryUpdated(int territoryID, int armyCount, int colorID) {
         boardStage.setArmyCount(territoryID, armyCount);
         boardStage.setArmyColor(territoryID, colorID);
+        hudStage.setPlayerTerritoryCount(territoryID);
         //TODO: call statistik methode -> wie viele territorien ein spieler hat
     }
 
