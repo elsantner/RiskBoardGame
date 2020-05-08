@@ -62,7 +62,7 @@ public class HudStage extends Stage implements IGameBoard {
         table.top();
         table.setFillParent(true);
 
-        unitsLabel = new Label("Einheiten", new Label.LabelStyle(generateFont(), Color.WHITE));
+        unitsLabel = new Label("Statistik", new Label.LabelStyle(generateFont(), Color.WHITE));
         attacksMadeLabel= new Label("Attacks made: " +  String.format(Locale.US,"%2d", attacksMadeAmount) + " / " +  String.format(Locale.US,"%2d", attacksMadeSucceededAmount), new Label.LabelStyle(generateFont(), Color.WHITE));
         attacksGotLabel= new Label("Attacks got: " +  String.format(Locale.US,"%2d", attacksGotAmount) + " / " + String.format(Locale.US,"%2d", attacksGotSucceededAmount), new Label.LabelStyle(generateFont(), Color.WHITE));
         yourTurnLabel= new Label(yourTurn, new Label.LabelStyle(generateFont(), Color.valueOf("#ff0000ff")));
@@ -140,10 +140,6 @@ public class HudStage extends Stage implements IGameBoard {
 
     public void update() {
         yourTurnLabel.setText(this.yourTurn);
-        /*for(int i = 0; i < this.playersCount; i++){
-            currentPlayerLabels[i].setText(currentPlayerNames[i]);
-            System.out.println("####" + currentPlayerLabels[i]);
-        }*/
     }
 
     private BitmapFont generateFont(){
