@@ -33,7 +33,7 @@ public class MainMenu extends AbstractScreen {
 
     public MainMenu(RiskGame riskGame){
         super(riskGame);
-        mySkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        mySkin = getGame().getAssetManager().get(AssetName.UI_SKIN_2);
         gamePort = new ScreenViewport();
         stage = new Stage(gamePort);
 
@@ -113,6 +113,7 @@ public class MainMenu extends AbstractScreen {
 
     @Override
     public void show() {
+        //currently unused
     }
 
     @Override
@@ -153,9 +154,6 @@ public class MainMenu extends AbstractScreen {
 
     @Override
     public void dispose() {
-        stage.getBatch().dispose();
-        backgroundTxt.dispose();
-        mySkin.dispose();
         stage.dispose();
     }
 }
