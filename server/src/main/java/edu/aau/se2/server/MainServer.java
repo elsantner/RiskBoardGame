@@ -15,22 +15,24 @@ import edu.aau.se2.server.data.PlayerLostConnectionListener;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.DiceHelper;
 import edu.aau.se2.server.networking.SerializationRegister;
-import edu.aau.se2.server.networking.dto.ArmyPlacedMessage;
-import edu.aau.se2.server.networking.dto.CardExchangeMessage;
-import edu.aau.se2.server.networking.dto.CreateLobbyMessage;
-import edu.aau.se2.server.networking.dto.ErrorMessage;
-import edu.aau.se2.server.networking.dto.InitialArmyPlacingMessage;
-import edu.aau.se2.server.networking.dto.JoinedLobbyMessage;
-import edu.aau.se2.server.networking.dto.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.LobbyListMessage;
-import edu.aau.se2.server.networking.dto.NewArmiesMessage;
-import edu.aau.se2.server.networking.dto.NextTurnMessage;
-import edu.aau.se2.server.networking.dto.PlayersChangedMessage;
-import edu.aau.se2.server.networking.dto.ReadyMessage;
-import edu.aau.se2.server.networking.dto.RequestJoinLobbyMessage;
-import edu.aau.se2.server.networking.dto.RequestLeaveLobby;
-import edu.aau.se2.server.networking.dto.RequestLobbyListMessage;
-import edu.aau.se2.server.networking.dto.StartGameMessage;
+import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
+import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
+import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
+import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
+import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
+import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
+import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
+import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
+import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
+import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
+import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
 
 public class MainServer implements PlayerLostConnectionListener {
@@ -78,9 +80,9 @@ public class MainServer implements PlayerLostConnectionListener {
                 if (arg instanceof ReadyMessage) {
                     handleReadyMessage((ReadyMessage) arg);
                 } else if (arg instanceof ArmyPlacedMessage) {
-                    handleArmyPlaced((ArmyPlacedMessage) arg);
+                    handleArmyPlacedMessage((ArmyPlacedMessage) arg);
                 } else if (arg instanceof CreateLobbyMessage) {
-                    handleCreateLobby((CreateLobbyMessage) arg);
+                    handleCreateLobbyMessage((CreateLobbyMessage) arg);
                 } else if (arg instanceof CardExchangeMessage) {
                     handleCardExchangeMessage((CardExchangeMessage) arg);
                 } else if (arg instanceof NextTurnMessage) {
@@ -91,12 +93,51 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleRequestJoinLobbyMessage((RequestJoinLobbyMessage) arg);
                 }else if (arg instanceof RequestLeaveLobby) {
                     handleRequestLeaveLobby((RequestLeaveLobby) arg);
+                } else if (arg instanceof ArmyMovedMessage) {
+                    handleArmyMovedMessage((ArmyMovedMessage) arg);
+                } else if (arg instanceof AttackingPhaseFinishedMessage) {
+                    handleAttackingPhaseFinishedMessage((AttackingPhaseFinishedMessage) arg);
                 }
             }
             catch (Exception ex) {
                 log.log(Level.SEVERE, "Exception: " + ex.getMessage(), ex);
             }
         });
+    }
+
+    private void handleAttackingPhaseFinishedMessage(AttackingPhaseFinishedMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+        // if it's players turn, broadcast message to lobby
+        if (l.getPlayerToAct().getUid() == msg.getFromPlayerID()) {
+            server.broadcastMessage(msg, l.getPlayers());
+        }
+    }
+
+    private synchronized void handleArmyMovedMessage(ArmyMovedMessage msg) {
+        Lobby lobby = ds.getLobbyByID(msg.getLobbyID());
+        Player player = ds.getPlayerByID(msg.getFromPlayerID());
+        // if is players turn and he has placed all new armies
+        if (lobby.getPlayerToAct().getUid() == player.getUid() &&
+                lobby.hasCurrentPlayerToActPlacedNewArmies()) {
+
+            Territory fromTerritory = lobby.getTerritoryByID(msg.getFromTerritoryID());
+            Territory toTerritory = lobby.getTerritoryByID(msg.getToTerritoryID());
+            // if player occupies both territories and there are more armies than being moved (at least 1 needs to remain)
+            if (fromTerritory.getOccupierPlayerID() == player.getUid() &&
+                    toTerritory.getOccupierPlayerID() == player.getUid() &&
+                    fromTerritory.getArmyCount() > msg.getArmyCountMoved()) {
+
+                fromTerritory.subFromArmyCount(msg.getArmyCountMoved());
+                toTerritory.addToArmyCount(msg.getArmyCountMoved());
+                lobby.nextPlayersTurn();
+                ds.updateLobby(lobby);
+
+                // broadcast message to all players & start next turn
+                server.broadcastMessage(msg, lobby.getPlayers());
+                server.broadcastMessage(new NextTurnMessage(lobby.getLobbyID(), SERVER_PLAYER_ID,
+                        lobby.getPlayerToAct().getUid()), lobby.getPlayers());
+            }
+        }
     }
 
     private synchronized void handleRequestLeaveLobby(RequestLeaveLobby msg) {
@@ -163,8 +204,7 @@ public class MainServer implements PlayerLostConnectionListener {
         Lobby lobby = ds.getLobbyByID(msg.getLobbyID());
         // only player to act can trigger next turn AND only if all new armies have been received and placed
         if (lobby.getPlayerToAct().getUid() == msg.getFromPlayerID() &&
-                lobby.hasCurrentPlayerToActReceivedNewArmies() &&
-                lobby.getPlayerToAct().getArmyReserveCount() == 0) {
+                lobby.hasCurrentPlayerToActPlacedNewArmies()) {
 
             lobby.nextPlayersTurn();
             ds.updateLobby(lobby);
@@ -187,7 +227,7 @@ public class MainServer implements PlayerLostConnectionListener {
         }
     }
 
-    private synchronized void handleCreateLobby(CreateLobbyMessage msg) {
+    private synchronized void handleCreateLobbyMessage(CreateLobbyMessage msg) {
         Player player = ds.getPlayerByID(msg.getPlayerID());
         if (player != null && !ds.isPlayerInAnyLobby(msg.getPlayerID())) {
             Lobby newLobby = ds.createLobby(player);
@@ -198,7 +238,7 @@ public class MainServer implements PlayerLostConnectionListener {
         }
     }
 
-    private synchronized void handleArmyPlaced(ArmyPlacedMessage msg) {
+    private synchronized void handleArmyPlacedMessage(ArmyPlacedMessage msg) {
         Lobby lobby = ds.getLobbyByID(msg.getLobbyID());
         // only player to act can place armies & only if he has enough armies to place remaining
         if (lobby.isStarted() &&

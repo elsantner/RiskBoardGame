@@ -5,8 +5,8 @@ import com.badlogic.gdx.Game;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import edu.aau.se2.GdxTestRunner;
 import edu.aau.se2.RiskGame;
+import edu.aau.se2.view.GdxTestRunner;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;

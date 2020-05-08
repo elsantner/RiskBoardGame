@@ -5,7 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import edu.aau.se2.GdxTestRunner;
+import edu.aau.se2.view.GdxTestRunner;
 
 @RunWith(GdxTestRunner.class)
 public class ReadyButtonListenerTest {

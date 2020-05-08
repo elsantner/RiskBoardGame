@@ -31,6 +31,10 @@ public class Territory {
         this.armyCount += armyCountSummand;
     }
 
+    public void subFromArmyCount(int armyCountSubtrahend) {
+        this.armyCount -= armyCountSubtrahend;
+    }
+
     public int getOccupierPlayerID() {
         return occupierPlayerID;
     }

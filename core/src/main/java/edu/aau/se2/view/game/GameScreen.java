@@ -2,36 +2,42 @@ package edu.aau.se2.view.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
+import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.view.AbstractScreen;
+import edu.aau.se2.view.asset.AssetName;
 
 /**
  * @author Elias
  */
-public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurnListener {
+public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
+        OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
     private BoardStage boardStage;
-    private Stage tmpHUDStage;
+    private TempHUDStage tmpHUDStage;
     private Database db;
-    private InputMultiplexer inputMultiplexer;
 
-    public GameScreen() {
-        this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+    public GameScreen(RiskGame game) {
+        this(game, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
     }
 
-    public GameScreen(int width, int height) {
-        boardStage = new BoardStage(new FitViewport(width, height));
-        tmpHUDStage = new Stage(new FitViewport(width, height));
+    public GameScreen(RiskGame game, int width, int height) {
+        super(game);
+        boardStage = new BoardStage(this, new FitViewport(width, height));
+        tmpHUDStage = new TempHUDStage(this, new FitViewport(width, height), this);
         db = Database.getInstance();
-        boardStage.setListener(db);
+        boardStage.setListener(this);
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
+        db.setPhaseChangedListener(this);
         // trigger player turn update because listener might not have been registered when
         // server message was received
         if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
@@ -49,8 +55,9 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
 
     @Override
     public void show() {
-        inputMultiplexer = new InputMultiplexer();
+        InputMultiplexer inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
+        inputMultiplexer.addProcessor(tmpHUDStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
@@ -93,27 +100,88 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     public void territoryUpdated(int territoryID, int armyCount, int colorID) {
         boardStage.setArmyCount(territoryID, armyCount);
         boardStage.setArmyColor(territoryID, colorID);
-
-        if (db.isInitialArmyPlacementFinished() && db.isThisPlayersTurn() && db.getCurrentArmyReserve() == 0) {
-            //showFinishTurnDialog();
-            db.finishTurn();
-        }
     }
 
     private void showFinishTurnDialog() {
-        inputMultiplexer.addProcessor(tmpHUDStage);
-        ConfirmDialog dialog = new ConfirmDialog("Zug beenden",
-                "Möchten Sie Ihren Zug beenden?", "Ja", "Nein",
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin,"Zug beenden",
+                "Moechten Sie Ihren Zug beenden?", "Ja", "Nein",
                 result -> {
-                    inputMultiplexer.removeProcessor(tmpHUDStage);
-                    db.finishTurn();
+                    if (result) {
+                        db.finishTurn();
+                    }
+                    boardStage.setInteractable(true);
                 });
+        showDialog(dialog);
+    }
+
+    private void showSkipAttackingPhaseDialog() {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin, "Phase beenden",
+                "Moechten Sie die Angriffsphase beenden?", "Ja", "Nein",
+                result -> {
+                    if (result) {
+                        db.finishAttackingPhase();
+                    }
+                    boardStage.setInteractable(true);
+                });
+        showDialog(dialog);
+    }
+
+    private void showSelectCountDialog(int fromTerritoryID, int toTerritoryID) {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Einheitenanzahl", 1,
+                db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
+                result -> {
+                    if (result > 0) {
+                        db.armyMoved(fromTerritoryID, toTerritoryID, result);
+                    }
+                    boardStage.setInteractable(true);
+                });
+        showDialog(dialog);
+    }
+
+    private void showDialog(Dialog dialog) {
         dialog.show(tmpHUDStage);
-        dialog.setMovable(false);
+        dialog.setOrigin(Align.center);
     }
 
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
-        boardStage.setArmiesPlacable(isThisPlayer);
+        // currently unused
+    }
+
+    @Override
+    public void stageSkipButtonClicked() {
+        if (db.getCurrentPhase() == Database.Phase.ATTACKING) {
+            showSkipAttackingPhaseDialog();
+        }
+        else if (db.getCurrentPhase() == Database.Phase.MOVING) {
+            showFinishTurnDialog();
+        }
+    }
+
+    @Override
+    public void phaseChanged(Database.Phase newPhase) {
+        tmpHUDStage.setPhase(newPhase);
+        boardStage.setPhase(newPhase);
+    }
+
+    @Override
+    public void armyPlaced(int territoryID, int count) {
+        db.armyPlaced(territoryID, count);
+    }
+
+    @Override
+    public void armyMoved(int fromTerritoryID, int toTerritoryID, int count) {
+        showSelectCountDialog(fromTerritoryID, toTerritoryID);
+    }
+
+    @Override
+    public void attackStarted(int fromTerritoryID, int onTerritoryID) {
+        // TODO: implement attacking
     }
 }
