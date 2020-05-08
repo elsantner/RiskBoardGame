@@ -106,9 +106,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void territoryUpdated(int territoryID, int armyCount, int colorID) {
+        int playerColor = db.getCurrentPlayerToAct().getColorID();
         boardStage.setArmyCount(territoryID, armyCount);
         boardStage.setArmyColor(territoryID, colorID);
-        hudStage.setPlayerTerritoryCount(territoryID);
+        hudStage.setPlayerTerritoryCount(territoryID, playerColor);
         //TODO: call statistik methode -> wie viele territorien ein spieler hat
     }
 
