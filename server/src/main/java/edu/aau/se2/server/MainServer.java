@@ -198,18 +198,27 @@ public class MainServer implements PlayerLostConnectionListener {
             // generate new armies for player
             lobby.giveNewArmiesToPlayer(msg.getFromPlayerID());
 
-            // add armies, when player trades in set
+            // add armies, when player trades in set, +2 bonus armies on one territory if same id as card
+            int territoryIdForBonusArmies = -1;
             if (msg.isExchangeSet()) {
 
                 Player p = lobby.getPlayerToAct();
-                p.setArmyReserveCount(p.getArmyReserveCount() + lobby.getCardDeck().tradeInSet(p.getTradableSet(), lobby.getTerritoriesOccupiedByPlayer(p.getUid())));
+                p.setArmyReserveCount(p.getArmyReserveCount() + lobby.getCardDeck().tradeInSet(p.getTradableSet()));
+                territoryIdForBonusArmies = lobby.getCardDeck().getTerritoryIDForBonusArmies(p.getTradableSet(), lobby.getTerritoriesOccupiedByPlayer(p.getUid()));
+
+                if(territoryIdForBonusArmies != -1) {
+                    Territory t = lobby.getTerritoryByID(territoryIdForBonusArmies);
+                    t.addToArmyCount(2);
+                }
+
                 p.setTradableSet(null);
+
                 server.broadcastMessage(new RefreshCardsMessage(lobby.getLobbyID(), p.getUid(), lobby.getCardDeck().getCardNamesOfPlayer(p.getUid())), lobby.getPlayerToAct());
             }
             ds.updateLobby(lobby);
 
             server.broadcastMessage(new NewArmiesMessage(lobby.getLobbyID(), msg.getFromPlayerID(),
-                    lobby.getPlayerToAct().getArmyReserveCount()), lobby.getPlayers());
+                    lobby.getPlayerToAct().getArmyReserveCount(), territoryIdForBonusArmies), lobby.getPlayers());
         }
     }
 

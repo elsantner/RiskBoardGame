@@ -260,7 +260,16 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             setCurrentArmyReserve(msg.getNewArmyCount(), true);
             hasPlayerReceivedArmiesThisTurn = true;
         }
+
+        log.info("received NewArmiesMessage: " + msg.getTerritoryIdForBonusArmies());
+        if (msg.getTerritoryIdForBonusArmies() != -1 && territoryUpdateListener != null) {
+            territoryData[msg.getTerritoryIdForBonusArmies()].addToArmyCount(2);
+            territoryUpdateListener.territoryUpdated(msg.getTerritoryIdForBonusArmies(),
+                    territoryData[msg.getTerritoryIdForBonusArmies()].getArmyCount(),
+                    currentPlayers.get(msg.getFromPlayerID()).getColorID());
+        }
     }
+
 
     private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
         initialArmyPlacementFinished = true;
@@ -286,7 +295,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private void handleRefreshCardsMessage(RefreshCardsMessage msg) {
-        if(cardsChangedListener !=null){
+        if (cardsChangedListener != null) {
             cardsChangedListener.refreshCards(msg.getCardNames());
         }
     }
@@ -448,7 +457,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public void exchangeCards(boolean exchangeCards) {
-        log.info("Sending CardExchangeMessage, exchangeCards: " + exchangeCards);
+        log.info("Sending CardExchangeMessage");
 
         if (exchangeCards) {
             thisPlayer.setExchangeCards(true);

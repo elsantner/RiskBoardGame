@@ -240,7 +240,7 @@ public class CardDeck {
     }
 
 
-    public int tradeInSet(Card[] set, Territory[] playerTerritories) {
+    public int tradeInSet(Card[] set) {
 
         if (set == null || set.length != 3)
             throw new IllegalArgumentException("This is not a set!");
@@ -254,12 +254,12 @@ public class CardDeck {
                 }
             }
         }
-        return getNextArmyCount(set, playerTerritories);
+        return getNextArmyCount();
     }
 
 
-    private int getNextArmyCount(Card[] set, Territory[] playerTerritories) {
-        int armyCount = 0;
+    private int getNextArmyCount() {
+        int armyCount;
         switch (setsTradedIn) {
             case (0):
                 armyCount = 4;
@@ -284,21 +284,25 @@ public class CardDeck {
 
         }
         setsTradedIn++;
+        return armyCount;
+    }
 
-        // these 2 armies should be added to that territory
+    public int getTerritoryIDForBonusArmies(Card[] set, Territory[] playerTerritories){
+
+        if(set == null || playerTerritories == null){
+           return -1;
+        }
+        // 2 armies should be added to that territory
         for (Card card : set) {
             for (Territory t : playerTerritories
             ) {
                 if (t.getId() == card.getCardID()) {
-                    armyCount += 2;
-                    return armyCount;
+                    return t.getId();
                 }
-
             }
         }
-
-        return armyCount;
+        // nothing found, return territory with invalid id
+        return -1;
     }
-
 
 }

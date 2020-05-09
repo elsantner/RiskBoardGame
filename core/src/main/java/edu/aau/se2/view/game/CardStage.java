@@ -49,7 +49,6 @@ public class CardStage extends Stage implements OnCardsChangedListener {
 
         this.cardNames = new ArrayList<>();
         this.cardContainer = new Table();
-        //this.cardContainer.setDebug(true);
 
         scrollPane = new ScrollPane(cardContainer);
         outer = new Table();
@@ -67,7 +66,6 @@ public class CardStage extends Stage implements OnCardsChangedListener {
         outer.remove();
 
         this.cardContainer = new Table();
-        //this.cardContainer.setDebug(true);
 
         for (String s : cardNames.toArray(new String[0])
         ) {
@@ -114,10 +112,7 @@ public class CardStage extends Stage implements OnCardsChangedListener {
 
     @Override
     public void refreshCards(String[] cardNames) {
-        this.cardNames = new ArrayList<String>(Arrays.asList(cardNames));
-        for (int i = 0; i < cardNames.length; i++) {
-            log.log(Level.INFO, "Card["+ i + "]from Server: " + cardNames[i]);
-        }
+        this.cardNames = new ArrayList<>(Arrays.asList(cardNames));
         this.updated = true;
     }
 

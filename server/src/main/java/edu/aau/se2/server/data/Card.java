@@ -7,7 +7,7 @@ public class Card {
     private String cardName;
     private CARD_TYPE cardType;
     private CONTINENT continent;
-    private int ownerID;  // owner = playerID || -1 : no owner yet || -2 : traded in cards
+    private int ownerID;  // owner: playerID; -1 : no owner yet; -2 : traded in cards
     private int cardID; // cardID is based on TerritoryHelper's cardIDs (wildcards have -1,-2)
 
     public Card(String cardName, CARD_TYPE cardType, CONTINENT continent, int cardID) {

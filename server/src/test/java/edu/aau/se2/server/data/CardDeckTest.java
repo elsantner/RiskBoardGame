@@ -427,8 +427,8 @@ public class CardDeckTest {
         assertNull(cardDeck.getCardSet(1));
     }
 
-    @Test // player owns no territory equal to card
-    public void testTradeInSet1() {
+    @Test
+    public void testTradeInSet() {
         cardDeck.getCard(13).setOwnerID(1); //cavalry
         cardDeck.getCard(6).setOwnerID(1);  //cavalry
         cardDeck.getCard(10).setOwnerID(1); //cavalry
@@ -442,7 +442,7 @@ public class CardDeckTest {
         testSet[2] = cardDeck.getCard(10);
 
         assertEquals(0, cardDeck.getSetsTradedIn());
-        assertEquals(4, cardDeck.tradeInSet(testSet, playerTerritory));
+        assertEquals(4, cardDeck.tradeInSet(testSet));
         assertEquals(1, cardDeck.getSetsTradedIn());
         assertEquals(-2, cardDeck.getCard(13).getOwnerID());
         assertEquals(-2, cardDeck.getCard(6).getOwnerID());
@@ -452,62 +452,16 @@ public class CardDeckTest {
         assertEquals(1, cardDeck.getCard(17).getOwnerID());
     }
 
-    @Test // player owns 1 territory -> 2 bonus
-    public void testTradeInSet2() {
-        cardDeck.getCard(13).setOwnerID(1); //cavalry
-        cardDeck.getCard(6).setOwnerID(1);  //cavalry
-        cardDeck.getCard(10).setOwnerID(1); //cavalry
-        cardDeck.getCard(41).setOwnerID(1); //cavalry
-        cardDeck.getCard(37).setOwnerID(1); //artillery
-        cardDeck.getCard(17).setOwnerID(1); //infantry
-
-        Card[] testSet = new Card[3];
-        testSet[0] = cardDeck.getCard(41);
-        testSet[1] = cardDeck.getCard(6);
-        testSet[2] = cardDeck.getCard(10);
-
-        assertEquals(0, cardDeck.getSetsTradedIn());
-        assertEquals(6, cardDeck.tradeInSet(testSet, playerTerritory));
-        assertEquals(1, cardDeck.getSetsTradedIn());
-        assertEquals(-2, cardDeck.getCard(41).getOwnerID());
-        assertEquals(-2, cardDeck.getCard(6).getOwnerID());
-        assertEquals(-2, cardDeck.getCard(10).getOwnerID());
-    }
-
-    @Test // player owns 2 territory still only 2 bonus
-    public void testTradeInSet3() {
-        cardDeck.getCard(13).setOwnerID(1); //cavalry
-        cardDeck.getCard(6).setOwnerID(1);  //cavalry
-        cardDeck.getCard(10).setOwnerID(1); //cavalry
-        cardDeck.getCard(41).setOwnerID(1); //cavalry
-        cardDeck.getCard(37).setOwnerID(1); //artillery
-        cardDeck.getCard(17).setOwnerID(1); //infantry
-
-        Card[] testSet = new Card[3];
-        testSet[0] = cardDeck.getCard(41);
-        testSet[1] = cardDeck.getCard(37);
-        testSet[2] = cardDeck.getCard(10);
-
-        assertEquals(0, cardDeck.getSetsTradedIn());
-        assertEquals(6, cardDeck.tradeInSet(testSet, playerTerritory));
-        assertEquals(1, cardDeck.getSetsTradedIn());
-        assertEquals(-2, cardDeck.getCard(41).getOwnerID());
-        assertEquals(-2, cardDeck.getCard(37).getOwnerID());
-        assertEquals(-2, cardDeck.getCard(10).getOwnerID());
-    }
 
     @Test
     public void testTradeInSetAll() {
         int size = cardDeck.getDeck().length;
-
 
         // get all cards from deck
         for (int i = 0; i < size; i++) {
             cardDeck.getRandomCard(1);
         }
 
-        Territory[] territories = new Territory[1];
-        territories[0] = new Territory(-1);
         Card[] set;
 
         int i = 0;
@@ -526,21 +480,45 @@ public class CardDeckTest {
                 count++;
             }
             i++;
-            assertEquals(expectedArmyCount, cardDeck.tradeInSet(set, territories));
+            assertEquals(expectedArmyCount, cardDeck.tradeInSet(set));
             assertEquals(i, cardDeck.getSetsTradedIn());
         }
     }
 
-
     @Test(expected = IllegalArgumentException.class)
     public void testTradeInSetNoSet1() {
         Card[] set = new Card[5];
-        cardDeck.tradeInSet(set, playerTerritory);
+        cardDeck.tradeInSet(set);
 
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testTradeInSetNoSet2() {
-        cardDeck.tradeInSet(null, playerTerritory);
+        cardDeck.tradeInSet(null);
+    }
+
+    @Test
+    public void testGetTerritoryIDForBonusArmies1() {
+        Card[] testSet = new Card[3];
+        testSet[0] = cardDeck.getCard(13);
+        testSet[1] = cardDeck.getCard(6);
+        testSet[2] = cardDeck.getCard(10);
+
+        assertEquals(-1, cardDeck.getTerritoryIDForBonusArmies(testSet, playerTerritory));
+    }
+
+    @Test
+    public void testGetTerritoryIDForBonusArmies2() {
+        Card[] testSet = new Card[3];
+        testSet[0] = cardDeck.getCard(13);
+        testSet[1] = cardDeck.getCard(6);
+        testSet[2] = cardDeck.getCard(41);
+
+        assertEquals(playerTerritory[0].getId(), cardDeck.getTerritoryIDForBonusArmies(testSet, playerTerritory));
+    }
+
+    @Test
+    public void testGetTerritoryIDForBonusArmiesFail() {
+        assertEquals(-1, cardDeck.getTerritoryIDForBonusArmies(null, playerTerritory));
     }
 }
