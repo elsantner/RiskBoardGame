@@ -173,7 +173,7 @@ public class MainServer implements PlayerLostConnectionListener {
             // test if there is a set for trading in (if yes ask for trade at start of next turn)
             lobby.getPlayerToAct().setTradableSet(lobby.getCardDeck().getCardSet(id));
             boolean b = false;
-            if (lobby.getPlayerToAct().getTradableSet() != null) {
+            if (lobby.getPlayerToAct().getTradableSet().length == 3  ) {
                 b = true;
             }
 

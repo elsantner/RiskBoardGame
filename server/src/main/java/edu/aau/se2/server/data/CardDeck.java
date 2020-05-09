@@ -141,9 +141,11 @@ public class CardDeck {
      * @return returns a set of three cards, that are allowed to be exchanged
      * 3 x the same type || 1 of each type || wildcards count as any type
      * (a set may only contain 1 wildcard)
-     * the method checks for possible sets, until it finds one, which it then returns, using the
-     * methods getCardsOfType / getCardsOfTypes
+     * the method checks for possible sets, until it finds one, which it then returns,
+     * methods: getCardSetNoWild, getCardSetWithWIld checks if a set is possible
      * The method will preferably not use a wildcard (only if no other option is left)
+     * getCardsOfType, getCardsOf2Types, getCardsOf3Types returns the final found set
+     * This method is split up to reduce the maximum allowed complexity of a single method
      */
     public Card[] getCardSet(int playerID) {
         // 0:cavalry, 1:infantry, 2:artillery, 3:wild
@@ -158,6 +160,17 @@ public class CardDeck {
             if (c.getCardType() == WILDCARD) types[3]++;
         }
 
+        Card[] set = getCardSetNoWild(cards, types);
+
+        if (set.length == 0 && types[3] >= 1) {
+            set = getCardSetWithWild(cards, types);
+        }
+
+        // no set found
+        return set;
+    }
+
+    private Card[] getCardSetNoWild(Card[] cards, int[] types) {
         if (types[0] >= 3) {
             return getCardsOfType(cards, CAVALRY);
         }
@@ -168,31 +181,31 @@ public class CardDeck {
             return getCardsOfType(cards, ARTILLERY);
         }
         if (types[0] >= 1 && types[1] >= 1 && types[2] >= 1) {
-            return getCardsOfTypes(cards, new Card.CARD_TYPE[]{CAVALRY, INFANTRY, ARTILLERY});
+            return getCardsOf3Types(cards, new Card.CARD_TYPE[]{CAVALRY, INFANTRY, ARTILLERY});
         }
-        if (types[3] >= 1) {
-            if (types[0] >= 2) {
-                return getCardsOfTypes(cards, new Card.CARD_TYPE[]{CAVALRY, WILDCARD});
-            }
-            if (types[1] >= 2) {
-                return getCardsOfTypes(cards, new Card.CARD_TYPE[]{INFANTRY, WILDCARD});
-            }
-            if (types[2] >= 2) {
-                return getCardsOfTypes(cards, new Card.CARD_TYPE[]{ARTILLERY, WILDCARD});
-            }
-            if (types[0] >= 1 && types[1] >= 1) {
-                return getCardsOfTypes(cards, new Card.CARD_TYPE[]{CAVALRY, INFANTRY, WILDCARD});
-            }
-            if (types[0] >= 1 && types[2] >= 1) {
-                return getCardsOfTypes(cards, new Card.CARD_TYPE[]{CAVALRY, ARTILLERY, WILDCARD});
-            }
-            if (types[1] >= 1 && types[2] >= 1) {
-                return getCardsOfTypes(cards, new Card.CARD_TYPE[]{INFANTRY, ARTILLERY, WILDCARD});
-            }
-        }
+        return new Card[0];
+    }
 
-        // no set found
-        return null;
+    private Card[] getCardSetWithWild(Card[] cards, int[] types) {
+        if (types[0] >= 2) {
+            return getCardsOf2Types(cards, new Card.CARD_TYPE[]{CAVALRY, WILDCARD});
+        }
+        if (types[1] >= 2) {
+            return getCardsOf2Types(cards, new Card.CARD_TYPE[]{INFANTRY, WILDCARD});
+        }
+        if (types[2] >= 2) {
+            return getCardsOf2Types(cards, new Card.CARD_TYPE[]{ARTILLERY, WILDCARD});
+        }
+        if (types[0] >= 1 && types[1] >= 1) {
+            return getCardsOf3Types(cards, new Card.CARD_TYPE[]{CAVALRY, INFANTRY, WILDCARD});
+        }
+        if (types[0] >= 1 && types[2] >= 1) {
+            return getCardsOf3Types(cards, new Card.CARD_TYPE[]{CAVALRY, ARTILLERY, WILDCARD});
+        }
+        if (types[1] >= 1 && types[2] >= 1) {
+            return getCardsOf3Types(cards, new Card.CARD_TYPE[]{INFANTRY, ARTILLERY, WILDCARD});
+        }
+        return new Card[0];
     }
 
     private Card[] getCardsOfType(Card[] cards, Card.CARD_TYPE type) {
@@ -205,37 +218,34 @@ public class CardDeck {
                 i++;
             }
         }
-
-
         return set;
     }
 
-    private Card[] getCardsOfTypes(Card[] cards, Card.CARD_TYPE[] types) {
+    private Card[] getCardsOf2Types(Card[] cards, Card.CARD_TYPE[] types) {
         Card[] set = new Card[3];
-
-        if (types.length == 2) {
-            int y = 0;
-            for (int i = 0; i < set.length; i++) {
-                for (Card c : cards
-                ) {
-                    if (y < 2 && c.getCardType().equals(types[y])) {
-                        set[i] = c;
-                        y += i;
-                    }
-                }
-            }
-
-        } else if (types.length == 3) {
-            for (int i = 0; i < set.length; i++) {
-                for (Card c : cards
-                ) {
-                    if (c.getCardType().equals(types[i])) {
-                        set[i] = c;
-                    }
+        int y = 0;
+        for (int i = 0; i < set.length; i++) {
+            for (Card c : cards
+            ) {
+                if (y < 2 && c.getCardType().equals(types[y])) {
+                    set[i] = c;
+                    y += i;
                 }
             }
         }
+        return set;
+    }
 
+    private Card[] getCardsOf3Types(Card[] cards, Card.CARD_TYPE[] types) {
+        Card[] set = new Card[3];
+        for (int i = 0; i < set.length; i++) {
+            for (Card c : cards
+            ) {
+                if (c.getCardType().equals(types[i])) {
+                    set[i] = c;
+                }
+            }
+        }
         return set;
     }
 
@@ -246,10 +256,10 @@ public class CardDeck {
             throw new IllegalArgumentException("This is not a set!");
 
         // set ownership of cards to -2
-        for (int i = 0; i < set.length; i++) {
+        for (Card card : set) {
             for (Card c : deck
             ) {
-                if (c.getCardID() == set[i].getCardID()) {
+                if (c.getCardID() == card.getCardID()) {
                     c.setOwnerID(-2);
                 }
             }
@@ -287,10 +297,10 @@ public class CardDeck {
         return armyCount;
     }
 
-    public int getTerritoryIDForBonusArmies(Card[] set, Territory[] playerTerritories){
+    public int getTerritoryIDForBonusArmies(Card[] set, Territory[] playerTerritories) {
 
-        if(set == null || playerTerritories == null){
-           return -1;
+        if (set == null || playerTerritories == null) {
+            return -1;
         }
         // 2 armies should be added to that territory
         for (Card card : set) {

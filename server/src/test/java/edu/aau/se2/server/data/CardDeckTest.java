@@ -424,7 +424,7 @@ public class CardDeckTest {
     public void testGetCardSetNoSetFound() {
         cardDeck.getCard(13).setOwnerID(1); //cavalry
         cardDeck.getCard(17).setOwnerID(1); //infantry
-        assertNull(cardDeck.getCardSet(1));
+        assertEquals(0, cardDeck.getCardSet(1).length);
     }
 
     @Test
@@ -467,7 +467,7 @@ public class CardDeckTest {
         int i = 0;
         int expectedArmyCount = 2;
         int count = 0;
-        while ((set = cardDeck.getCardSet(1)) != null) {
+        while ((set = cardDeck.getCardSet(1)).length == 3) {
             if (count < 5) {
                 expectedArmyCount += 2;
                 count++;
