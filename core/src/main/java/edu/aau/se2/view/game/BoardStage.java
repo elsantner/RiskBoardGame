@@ -61,6 +61,7 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
 
     private void setupTerritories() {
         for (Territory t: Territory.getAll()) {
+            t.setScale(getViewport().getWorldWidth() / Territory.REFERENCE_WIDTH);
             this.addActor(t);
         }
     }

@@ -22,8 +22,8 @@ public class Territory extends Actor {
     private static Territory[] territories = new Territory[42];
     private static boolean initialized = false;
     // These values give the screen resolution when the coordinates of the territories where recorded
-    private static final int REFERENCE_WIDTH = 2392;
-    private static final int REFERENCE_HEIGHT = 1440;
+    public static final int REFERENCE_WIDTH = 2392;
+    public static final int REFERENCE_HEIGHT = 1440;
     private static final String ERR_MSG_NOT_INIT = "territories not initialized";
 
     public static boolean isNotInitialized() {
@@ -225,16 +225,19 @@ public class Territory extends Actor {
             // if highlighted draw white border
             if (isHighlighted) {
                 batch.setColor(Color.WHITE);
-                batch.draw(armyCirlce, armyPosition.x - 32, armyPosition.y - 32, 64, 64);
+                batch.draw(armyCirlce, armyPosition.x - (32 * getScaleX()), armyPosition.y - (32 * getScaleX()),
+                        64*getScaleX(), 64*getScaleX());
             }
             batch.setColor(armyColor);
-            batch.draw(armyCirlce, armyPosition.x - 24, armyPosition.y - 24, 48, 48);
+            batch.draw(armyCirlce, armyPosition.x - (24 * getScaleX()), armyPosition.y - (24 * getScaleX()),
+                    48*getScaleX(), 48*getScaleX());
             // center text in armyCircle (NOTE: These constants are dependent on the text and texture size)
-            int xOffsetText = 5;
+            int xOffsetText = (int) (5 * getScaleX());
             if (armyCount > 9) {
-                xOffsetText = 12;
+                xOffsetText = (int) (12 * getScaleX());
             }
-            font.draw(batch, Integer.toString(armyCount), armyPosition.x - xOffsetText, armyPosition.y + 7);
+            font.getData().setScale(getScaleX());
+            font.draw(batch, Integer.toString(armyCount), armyPosition.x - xOffsetText, armyPosition.y + (7*getScaleX()));
         }
     }
 
