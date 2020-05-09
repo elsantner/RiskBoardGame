@@ -15,16 +15,10 @@ public class Player implements Serializable {
     public Player() {
     }
 
-
     public Player(int uid, String nickname) {
         this.uid = uid;
         this.nickname = nickname;
-        this.armyReserveCount = 0;
-        this.isReady = false;
-        this.colorID = -1;
-        this.askForCardExchange = false;
-        this.exchangeCards = false;
-
+        reset();
     }
 
     public int getUid() {
@@ -49,7 +43,6 @@ public class Player implements Serializable {
 
     /**
      * Sets the player color.
-     *
      * @param colorID ID of the color to set. Must be between 0 and 5.
      */
     public void setColorID(int colorID) {
@@ -77,6 +70,14 @@ public class Player implements Serializable {
 
     public void setReady(boolean ready) {
         isReady = ready;
+    }
+
+    public void reset() {
+        this.armyReserveCount = 0;
+        this.isReady = false;
+        this.colorID = -1;
+        this.askForCardExchange = false;
+        this.exchangeCards = false;
     }
 
     public Card[] getTradableSet() {

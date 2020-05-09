@@ -9,14 +9,14 @@ import java.io.IOException;
 
 import edu.aau.se2.server.MainServer;
 import edu.aau.se2.server.data.Player;
-import edu.aau.se2.server.networking.dto.ConnectedMessage;
-import edu.aau.se2.server.networking.dto.CreateLobbyMessage;
-import edu.aau.se2.server.networking.dto.JoinedLobbyMessage;
-import edu.aau.se2.server.networking.dto.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.LobbyListMessage;
-import edu.aau.se2.server.networking.dto.RequestJoinLobbyMessage;
-import edu.aau.se2.server.networking.dto.RequestLeaveLobby;
-import edu.aau.se2.server.networking.dto.RequestLobbyListMessage;
+import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
+import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
+import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 
 public class GetLobbyListAndJoinTest {

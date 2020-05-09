@@ -40,7 +40,7 @@ public class Lobby {
     }
 
     public boolean removePlayer(int uid) {
-        return this.players.remove(uid) == null;
+        return this.players.remove(uid) != null;
     }
 
     public int getLobbyID() {
@@ -169,6 +169,11 @@ public class Lobby {
         return hasCurrentPlayerToActReceivedNewArmies;
     }
 
+    public boolean hasCurrentPlayerToActPlacedNewArmies() {
+        return hasCurrentPlayerToActReceivedNewArmies &&
+                this.getPlayerToAct().getArmyReserveCount() == 0;
+    }
+
     public boolean isJoinable() {
         return !isStarted && players.size() < 6;
     }
@@ -198,6 +203,12 @@ public class Lobby {
 
     public boolean isPlayerJoined(int playerID) {
         return players.containsKey(playerID);
+    }
+
+    public void resetPlayers() {
+        for (Player p: players.values()) {
+            p.reset();
+        }
     }
 
     public Territory[] getTerritoriesOccupiedByPlayer(int playerID){
