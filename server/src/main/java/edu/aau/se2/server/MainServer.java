@@ -8,6 +8,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.DataStore;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
@@ -17,22 +18,24 @@ import edu.aau.se2.server.logic.DiceHelper;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
-import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
-import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
+import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
-import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
-import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
+import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
+import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
-import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
 
 public class MainServer implements PlayerLostConnectionListener {
@@ -97,6 +100,10 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleArmyMovedMessage((ArmyMovedMessage) arg);
                 } else if (arg instanceof AttackingPhaseFinishedMessage) {
                     handleAttackingPhaseFinishedMessage((AttackingPhaseFinishedMessage) arg);
+                } else if (arg instanceof DiceResultMessage) {
+                    handleDiceResultMessage((DiceResultMessage) arg);
+                } else if (arg instanceof AttackStartedMessage) {
+                    handleAttackStartedMessage((AttackStartedMessage) arg);
                 }
             }
             catch (Exception ex) {
@@ -105,10 +112,31 @@ public class MainServer implements PlayerLostConnectionListener {
         });
     }
 
+    private void handleAttackStartedMessage(AttackStartedMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+
+        if (l.getPlayerToAct().getUid() == msg.getFromPlayerID()) {
+            l.setCurrentAttack(new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID()));
+            server.broadcastMessage(msg, l.getPlayers());
+        }
+    }
+
+    private synchronized void handleDiceResultMessage(DiceResultMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+
+        // if it's attackers turn and attack running, broadcast message to lobby
+        if (l.getPlayerToAct().getUid() == msg.getFromPlayerID() && l.attackRunning()) {
+            l.getCurrentAttack().setAttackerDiceResults(msg.getResults());
+            l.getCurrentAttack().setCheated(msg.isCheated());
+            server.broadcastMessage(new DiceResultMessage(msg), l.getPlayers());
+        }
+    }
+
     private void handleAttackingPhaseFinishedMessage(AttackingPhaseFinishedMessage msg) {
         Lobby l = ds.getLobbyByID(msg.getLobbyID());
         // if it's players turn, broadcast message to lobby
         if (l.getPlayerToAct().getUid() == msg.getFromPlayerID()) {
+
             server.broadcastMessage(msg, l.getPlayers());
         }
     }

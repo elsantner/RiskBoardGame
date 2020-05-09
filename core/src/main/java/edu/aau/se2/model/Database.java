@@ -21,29 +21,32 @@ import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
-import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
-import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
-import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
+import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
-import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
-import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
+import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
+import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
-import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkConstants;
 import edu.aau.se2.view.game.OnBoardInteractionListener;
@@ -105,6 +108,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private int currentArmyReserve;
     private Phase currentPhase;
+
+    private Attack currentAttack;
 
     protected Database() {
         resetLobby();
@@ -217,8 +222,18 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleErrorMessage((ErrorMessage) msg);
             } else if (msg instanceof AttackingPhaseFinishedMessage) {
                 handleAttackingPhaseFinishedMessage();
+            } else if (msg instanceof AttackStartedMessage) {
+                handleAttackStartedMessage((AttackStartedMessage)msg);
             }
         });
+    }
+
+    private void handleAttackStartedMessage(AttackStartedMessage msg) {
+        log.info("Received AttackStartedMessage");
+        if (currentPhase != Phase.ATTACKING) {
+            setCurrentPhase(Phase.ATTACKING);
+            currentAttack = new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID());
+        }
     }
 
     private void handleAttackingPhaseFinishedMessage() {
@@ -367,6 +382,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
+    private synchronized void handleDiceResultMessage(DiceResultMessage msg) {
+        // TODO show result
+        log.info("Received DiceResultMessage");
+    }
+
     /**
      * Sets the current player to act to the next player according to turn order.
      * WARNING: This method should only be used during initial army placing phase.
@@ -395,6 +415,15 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public boolean isThisPlayersTurn() {
         return getCurrentPlayerToAct().getUid() == thisPlayer.getUid();
+    }
+
+    public boolean isThisPlayerDefender() {
+        if (currentAttack == null) return false;
+        return territoryData[currentAttack.getToTerritoryID()].getOccupierPlayerID() == thisPlayer.getUid();
+    }
+
+    public Attack getAttack() {
+        return currentAttack;
     }
 
     public void setPlayerReady(boolean ready) {
@@ -428,10 +457,17 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
+    public void sendAttackerResults(List<Integer> results, boolean cheated) {
+        log.info("Sending AttackerResults");
+        client.sendMessage(new DiceResultMessage(currentLobbyID, thisPlayer.getUid(), results, cheated));
+    }
+
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
         if (currentPhase == Phase.ATTACKING) {
             // currently unused as feature is not yet implemented
+            log.info("Sending AttackStartedMessage");
+            client.sendMessage(new AttackStartedMessage(currentLobbyID, thisPlayer.getUid(), fromTerritoryID, onTerritoryID));
         }
     }
 

@@ -4,41 +4,33 @@ import edu.aau.se2.server.networking.dto.InLobbyMessage;
 
 public class AttackStartedMessage extends InLobbyMessage {
     private int fromTerritoryID;
-    private int onTerritoryID;
-    private int count;
+    private int toTerritoryID;
+    private int diceCount;
 
-    public AttackStartedMessage() {
-        super();
+    public AttackStartedMessage(int fromTerritoryID, int toTerritoryID) {
+        this.fromTerritoryID = fromTerritoryID;
+        this.toTerritoryID = toTerritoryID;
     }
 
-    public AttackStartedMessage(int lobbyID, int fromPlayerID, int fromTerritoryID, int onTerritoryID, int count) {
+    public AttackStartedMessage(int lobbyID, int fromPlayerID, int fromTerritoryID, int toTerritoryID) {
         super(lobbyID, fromPlayerID);
         this.fromTerritoryID = fromTerritoryID;
-        this.onTerritoryID = onTerritoryID;
-        this.count = count;
+        this.toTerritoryID = toTerritoryID;
     }
 
     public int getFromTerritoryID() {
         return fromTerritoryID;
     }
 
-    public void setFromTerritoryID(int fromTerritoryID) {
-        this.fromTerritoryID = fromTerritoryID;
+    public int getToTerritoryID() {
+        return toTerritoryID;
     }
 
-    public int getOnTerritoryID() {
-        return onTerritoryID;
+    public int getDiceCount() {
+        return diceCount;
     }
 
-    public void setOnTerritoryID(int onTerritoryID) {
-        this.onTerritoryID = onTerritoryID;
-    }
-
-    public int getCount() {
-        return count;
-    }
-
-    public void setCount(int count) {
-        this.count = count;
+    public void setDiceCount(int diceCount) {
+        this.diceCount = diceCount;
     }
 }

@@ -8,6 +8,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import java.util.List;
+
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
@@ -15,6 +17,7 @@ import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
+import edu.aau.se2.view.dices.DiceStage;
 
 /**
  * @author Elias
@@ -23,6 +26,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
     private BoardStage boardStage;
     private TempHUDStage tmpHUDStage;
+    private DiceStage diceStage;
     private Database db;
 
     public GameScreen(RiskGame game) {
@@ -32,8 +36,14 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public GameScreen(RiskGame game, int width, int height) {
         super(game);
         boardStage = new BoardStage(this, new FitViewport(width, height));
-        tmpHUDStage = new TempHUDStage(this, new FitViewport(width, height), this);
+
         db = Database.getInstance();
+
+        List<Integer> results = DiceStage.rollDice(true);
+        diceStage = new DiceStage(new FitViewport(width, height), this, results, true);
+        //db.sendAttackerResults(results, false);
+        tmpHUDStage = new TempHUDStage(this, new FitViewport(width, height), this);
+
         boardStage.setListener(this);
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
@@ -58,6 +68,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
         inputMultiplexer.addProcessor(tmpHUDStage);
+        inputMultiplexer.addProcessor(diceStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
@@ -69,6 +80,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
         boardStage.draw();
         tmpHUDStage.draw();
+        diceStage.act(delta);
+        diceStage.draw();
     }
 
     @Override
@@ -184,6 +197,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public void phaseChanged(Database.Phase newPhase) {
         tmpHUDStage.setPhase(newPhase);
         boardStage.setPhase(newPhase);
+        diceStage.setPhase(newPhase);
     }
 
     @Override
@@ -199,5 +213,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
         showStartAttackDialog(fromTerritoryID, onTerritoryID);
+        // TODO: CHECK!!!!
+        db.attackStarted(fromTerritoryID, onTerritoryID);
     }
 }

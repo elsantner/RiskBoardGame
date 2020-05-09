@@ -20,12 +20,14 @@ public class Lobby {
     private boolean isStarted;
     private boolean areInitialArmiesPlaced;
     private boolean hasCurrentPlayerToActReceivedNewArmies;
+    private Attack currentAttack;
 
     public Lobby(int lobbyID) {
         this.lobbyID = lobbyID;
         this.players = new TreeMap<>();
         this.isStarted = false;
         this.areInitialArmiesPlaced = false;
+        this.currentAttack = null;
         initTerritories();
     }
 
@@ -207,5 +209,17 @@ public class Lobby {
         for (Player p: players.values()) {
             p.reset();
         }
+    }
+
+    public boolean attackRunning() {
+        return currentAttack != null;
+    }
+
+    public Attack getCurrentAttack() {
+        return currentAttack;
+    }
+
+    public void setCurrentAttack(Attack currentAttack) {
+        this.currentAttack = currentAttack;
     }
 }
