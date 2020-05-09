@@ -261,7 +261,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             hasPlayerReceivedArmiesThisTurn = true;
         }
 
-        log.info("received NewArmiesMessage: " + msg.getTerritoryIdForBonusArmies());
+        // add bonus armies to the correct territory, update for all players
         if (msg.getTerritoryIdForBonusArmies() != -1 && territoryUpdateListener != null) {
             territoryData[msg.getTerritoryIdForBonusArmies()].addToArmyCount(2);
             territoryUpdateListener.territoryUpdated(msg.getTerritoryIdForBonusArmies(),
@@ -285,7 +285,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private synchronized void handleNewCardMessage(NewCardMessage msg) {
-        log.info("received NewCardMessage: Cardname: " + msg.getCardName() + "\t IsPlayerReadyForCardExch:" + msg.isAskForCardExchange());
+        // adds the new card to the players cards, shown by CardStage
         if (msg.isAskForCardExchange()) {
             this.thisPlayer.setAskForCardExchange(true);
         }
@@ -295,6 +295,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private void handleRefreshCardsMessage(RefreshCardsMessage msg) {
+        // after set trade-in displayed cards need to be refreshed
         if (cardsChangedListener != null) {
             cardsChangedListener.refreshCards(msg.getCardNames());
         }

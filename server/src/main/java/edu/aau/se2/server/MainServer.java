@@ -165,12 +165,12 @@ public class MainServer implements PlayerLostConnectionListener {
                 lobby.hasCurrentPlayerToActReceivedNewArmies() &&
                 lobby.getPlayerToAct().getArmyReserveCount() == 0) {
 
-            // at the end of turn give new random card to player
+            // now: at the end of turn give new random card to player
             // todo: only give card if player has occupied new territory
             int id = msg.getFromPlayerID();
             Card c = lobby.getCardDeck().getRandomCard(id);
 
-            // test if there is a set for trading in (if yes ask for trade at start of next turn)
+            // test if there is a set for trading in (if yes -> ask player for trade at start of next turn)
             lobby.getPlayerToAct().setTradableSet(lobby.getCardDeck().getCardSet(id));
             boolean b = false;
             if (lobby.getPlayerToAct().getTradableSet().length == 3  ) {

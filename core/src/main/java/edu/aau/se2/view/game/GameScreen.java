@@ -21,7 +21,7 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     private CardStage cardStage;
     private Database db;
     private InputMultiplexer inputMultiplexer;
-    private ConfirmDialog dialog;
+    private ConfirmDialog dialogCardExchange;
 
     public GameScreen() {
         this(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -43,18 +43,17 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
             isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());
         }
 
-        this.dialog = new ConfirmDialog("Exchange cards",
+        this.dialogCardExchange = new ConfirmDialog("Exchange cards",
                 "Moechten Sie 3 Karten eintauschen?", "Ja", "Nein",
                 new ConfirmDialog.OnClickListener() {
                     @Override
                     public void clicked(boolean result) {
                         inputMultiplexer.removeProcessor(tmpHUDStage);
                         inputMultiplexer.addProcessor(cardStage);
-                        if(result) db.exchangeCards(true);
-                        else db.exchangeCards(false);
+                        db.exchangeCards(result);
                     }
                 });
-        dialog.setPosition(width/2f, height/2f);
+        dialogCardExchange.setPosition(width/2f, height/2f);
     }
 
     public void setListener(OnBoardInteractionListener l) {
@@ -79,16 +78,15 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
         Gdx.gl.glClearColor(1, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-
         boardStage.draw();
 
-
-        // todo remove (add button in Hud to show cards)
+        /* todo remove (add button in Hud to show cards)
         if (cardStage.isUpdated()) {
             cardStage.updateActor();
         }
         cardStage.act();
         cardStage.draw();
+        */
 
         tmpHUDStage.draw();
 
@@ -146,8 +144,8 @@ public class GameScreen implements Screen, OnTerritoryUpdateListener, OnNextTurn
     private void showAskForCardExchange() {
         inputMultiplexer.addProcessor(tmpHUDStage);
         inputMultiplexer.removeProcessor(cardStage);
-        dialog.show(tmpHUDStage).setPosition(100f, 100f);
-        dialog.setMovable(true);
+        dialogCardExchange.show(tmpHUDStage).setPosition(100f, 100f);
+        dialogCardExchange.setMovable(true);
     }
 
     @Override
