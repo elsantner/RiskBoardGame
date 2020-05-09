@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
@@ -53,5 +54,6 @@ public interface SerializationRegister {
         component.registerClass(PlayersChangedMessage.class);
         component.registerClass(ArmyMovedMessage.class);
         component.registerClass(AttackingPhaseFinishedMessage.class);
+        component.registerClass(AttackStartedMessage.class);
     }
 }

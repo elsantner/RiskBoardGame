@@ -429,7 +429,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     @Override
-    public void attackStarted(int fromTerritoryID, int onTerritoryID) {
+    public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
         if (currentPhase == Phase.ATTACKING) {
             // currently unused as feature is not yet implemented
         }

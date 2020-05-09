@@ -20,6 +20,17 @@ public class TempHUDStage extends AbstractStage {
         this.db = Database.getInstance();
         this.hudInteractionListener = l;
         setupPhaseDisplay();
+        showAttackDisplay();
+    }
+
+    private void showAttackDisplay() {
+        AttackDisplay attackDisplay = new AttackDisplay(getScreen().getGame().getAssetManager(),
+                "Player1", "Player2", "XXX", "YYY", 1);
+        this.addActor(attackDisplay);
+        attackDisplay.setWidth(Gdx.graphics.getWidth());
+        attackDisplay.setHeight(Gdx.graphics.getHeight()/4f);
+        attackDisplay.setY(Gdx.graphics.getHeight() * 0.75f);
+        attackDisplay.setOrigin(Align.center);
     }
 
     private void setupPhaseDisplay() {

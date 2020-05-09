@@ -135,11 +135,25 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private void showSelectCountDialog(int fromTerritoryID, int toTerritoryID) {
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Einheitenanzahl", 1,
+        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Einheitenanzahl", "Wie viele Einheiten wollen Sie verschieben?", 1,
                 db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
                 result -> {
                     if (result > 0) {
                         db.armyMoved(fromTerritoryID, toTerritoryID, result);
+                    }
+                    boardStage.setInteractable(true);
+                });
+        showDialog(dialog);
+    }
+
+    private void showStartAttackDialog(int fromTerritoryID, int onTerritoryID) {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Angriff starten", "Wuerfelanzahl waehlen", 1,
+                Math.min(db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1, 3),
+                result -> {
+                    if (result > 0) {
+                        db.attackStarted(fromTerritoryID, onTerritoryID, result);
                     }
                     boardStage.setInteractable(true);
                 });
@@ -183,7 +197,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     @Override
-    public void attackStarted(int fromTerritoryID, int onTerritoryID) {
-        // TODO: implement attacking
+    public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
+        showStartAttackDialog(fromTerritoryID, onTerritoryID);
     }
 }
