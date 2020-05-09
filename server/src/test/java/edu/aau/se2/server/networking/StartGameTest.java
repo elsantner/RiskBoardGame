@@ -192,7 +192,7 @@ public class StartGameTest {
             currentTurnPlayerID = msg.getPlayerToActID();
             NetworkClientKryo c = clients.get(clientIndex);
             Player p = clientPlayers[clientIndex];
-            c.sendMessage(new CardExchangeMessage(joinedLobbyMessage.getLobbyID(), p.getUid()));
+            c.sendMessage(new CardExchangeMessage(joinedLobbyMessage.getLobbyID(), p.getUid(),false));
         }
     }
 

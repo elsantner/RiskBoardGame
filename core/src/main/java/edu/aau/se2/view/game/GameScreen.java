@@ -27,7 +27,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private TempHUDStage tmpHUDStage;
     private CardStage cardStage;
     private Database db;
-    private ConfirmDialog dialogCardExchange;
 
     public GameScreen(RiskGame game) {
         this(game, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -50,17 +49,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
             isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());
         }
 
-        this.dialogCardExchange = new ConfirmDialog("Exchange cards",
-                "Moechten Sie 3 Karten eintauschen?", "Ja", "Nein",
-                new ConfirmDialog.OnClickListener() {
-                    @Override
-                    public void clicked(boolean result) {
-                        inputMultiplexer.removeProcessor(tmpHUDStage);
-                        inputMultiplexer.addProcessor(cardStage);
-                        db.exchangeCards(result);
-                    }
-                });
-        dialogCardExchange.setPosition(width/2f, height/2f);
     }
 
     public void setListener(OnBoardInteractionListener l) {
@@ -137,7 +125,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private void showFinishTurnDialog() {
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        ConfirmDialog dialog = new ConfirmDialog(uiSkin,"Zug beenden",
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin, "Zug beenden",
                 "Moechten Sie Ihren Zug beenden?", "Ja", "Nein",
                 result -> {
                     if (result) {
@@ -182,15 +170,19 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     private void showAskForCardExchange() {
-        inputMultiplexer.addProcessor(tmpHUDStage);
-        inputMultiplexer.removeProcessor(cardStage);
-        dialogCardExchange.show(tmpHUDStage).setPosition(100f, 100f);
-        dialogCardExchange.setMovable(true);
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin, "Kartentausch",
+                "Moechten Sie 3 Karten eintauschen?", "Ja", "Nein",
+                result -> {
+                    db.exchangeCards(result);
+                    boardStage.setInteractable(true);
+                });
+        showDialog(dialog);
     }
 
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
-        boardStage.setArmiesPlacable(isThisPlayer);
         if (db.getThisPlayer() != null && playerID == db.getThisPlayer().getUid() && db.getThisPlayer().isAskForCardExchange()) {
             showAskForCardExchange();
         }
@@ -200,8 +192,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public void stageSkipButtonClicked() {
         if (db.getCurrentPhase() == Database.Phase.ATTACKING) {
             showSkipAttackingPhaseDialog();
-        }
-        else if (db.getCurrentPhase() == Database.Phase.MOVING) {
+        } else if (db.getCurrentPhase() == Database.Phase.MOVING) {
             showFinishTurnDialog();
         }
     }

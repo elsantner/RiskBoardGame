@@ -1,4 +1,6 @@
-package edu.aau.se2.server.networking.dto;
+package edu.aau.se2.server.networking.dto.game;
+
+import edu.aau.se2.server.networking.dto.InLobbyMessage;
 
 public class NewCardMessage extends InLobbyMessage {
     private String cardName;
