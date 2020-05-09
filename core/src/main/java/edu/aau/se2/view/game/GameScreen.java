@@ -12,6 +12,7 @@ import java.util.List;
 
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
@@ -23,7 +24,7 @@ import edu.aau.se2.view.dices.DiceStage;
  * @author Elias
  */
 public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
-        OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
+        OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener, OnAttackUpdatedListener {
     private BoardStage boardStage;
     private TempHUDStage tmpHUDStage;
     private DiceStage diceStage;
@@ -48,6 +49,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
         db.setPhaseChangedListener(this);
+        db.setAttackStartedListener(this);
+
         // trigger player turn update because listener might not have been registered when
         // server message was received
         if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
@@ -139,6 +142,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                 result -> {
                     if (result) {
                         db.finishAttackingPhase();
+                        tmpHUDStage.setCurrentAttack(null);
                     }
                     boardStage.setInteractable(true);
                 });
@@ -213,7 +217,18 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
         showStartAttackDialog(fromTerritoryID, onTerritoryID);
-        // TODO: CHECK!!!!
-        db.attackStarted(fromTerritoryID, onTerritoryID);
+    }
+
+    @Override
+    public void attackStarted() {
+        tmpHUDStage.setCurrentAttack(db.getAttack());
+        tmpHUDStage.setPhaseSkipable(false);
+    }
+
+    @Override
+    public void attackFinished() {
+        // TODO: show result
+        tmpHUDStage.setCurrentAttack(db.getAttack());
+        tmpHUDStage.setPhaseSkipable(true);
     }
 }

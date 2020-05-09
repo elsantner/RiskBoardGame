@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import edu.aau.se2.model.listener.OnArmiesMovedListener;
 import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
+import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.model.listener.OnErrorListener;
 import edu.aau.se2.model.listener.OnGameStartListener;
@@ -95,6 +96,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private OnErrorListener errorListener;
     private OnPhaseChangedListener phaseChangedListener;
     private OnArmiesMovedListener armiesMovedListener;
+    private OnAttackUpdatedListener attackStartedListener;
 
     private Player thisPlayer;
     private TreeMap<Integer, Player> currentPlayers;
@@ -189,9 +191,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     public void setJoinedLobbyListener(OnJoinedLobbyListener l) {
         this.joinedLobbyListener = l;
     }
-    public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) {
-        this.armyReserveChangedListener = l;
-    }
+    public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) { this.armyReserveChangedListener = l; }
+    public void setAttackStartedListener(OnAttackUpdatedListener l) { this.attackStartedListener = l; }
 
     private void registerClientCallback() {
         this.client.registerCallback(msg -> {
@@ -229,10 +230,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private void handleAttackStartedMessage(AttackStartedMessage msg) {
-        log.info("Received AttackStartedMessage");
-        if (currentPhase != Phase.ATTACKING) {
-            setCurrentPhase(Phase.ATTACKING);
-            currentAttack = new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID());
+        currentAttack = new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID());
+        if (attackStartedListener != null) {
+            attackStartedListener.attackStarted();
         }
     }
 
@@ -465,9 +465,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
         if (currentPhase == Phase.ATTACKING) {
-            // currently unused as feature is not yet implemented
             log.info("Sending AttackStartedMessage");
-            client.sendMessage(new AttackStartedMessage(currentLobbyID, thisPlayer.getUid(), fromTerritoryID, onTerritoryID));
+            client.sendMessage(new AttackStartedMessage(currentLobbyID, thisPlayer.getUid(), fromTerritoryID, onTerritoryID, count));
         }
     }
 
@@ -571,5 +570,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public void closeConnection() {
         client.disconnect();
+    }
+
+    public Player getPlayerByTerritoryID(int territoryID) {
+        return currentPlayers.get(territoryData[territoryID].getOccupierPlayerID());
     }
 }

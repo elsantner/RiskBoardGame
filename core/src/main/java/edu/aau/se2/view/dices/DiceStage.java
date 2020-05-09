@@ -59,7 +59,6 @@ public class DiceStage extends AbstractStage {
         this.db = Database.getInstance();
         loadAssets();
         //setup();
-        showSkipButton();
     }
 
     public DiceStage(Viewport viewport, AbstractScreen screen, List<Integer> results, boolean attacker) {
@@ -69,7 +68,6 @@ public class DiceStage extends AbstractStage {
         this.db = Database.getInstance();
         loadAssets();
         //setup();
-        showSkipButton();
     }
 
     public DiceStage(Viewport viewport, Batch batch, AbstractScreen screen, List<Integer> results, boolean attacker) {
@@ -79,7 +77,6 @@ public class DiceStage extends AbstractStage {
         this.db = Database.getInstance();
         loadAssets();
         //setup();
-        showSkipButton();
     }
 
     public static List<Integer> rollDice(boolean attacker) {
@@ -94,7 +91,7 @@ public class DiceStage extends AbstractStage {
 
         if (phase == Database.Phase.ATTACKING && db.isThisPlayersTurn()) {
             // showing attacker view
-            if (db.getAttack().getAttackerDiceCount() == -1) {
+            if (db.getAttack() != null && db.getAttack().getAttackerDiceCount() == -1) {
                 clear(); // remove all actors
                 Territory fromTerritory = db.getTerritoryByID(db.getAttack().getFromTerritoryID());
                 int maxDiceCount = fromTerritory.getArmyCount() - 1;
@@ -130,27 +127,6 @@ public class DiceStage extends AbstractStage {
             // show results for other players
             // TODO animate dice until we receive result messages
         }
-        showSkipButton();
-    }
-
-    private void showSkipButton() {
-        Table outerTable = new Table();
-        outerTable.setWidth(getWidth());
-        outerTable.setHeight(getHeight());
-        outerTable.pad(120f);
-        outerTable.bottom();
-
-        TextButton skip = new TextButton("Attack", btnSkin);
-        skip.addListener(new ClickListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                db.attackStarted(5, 4);
-                return true;
-            }
-        });
-        outerTable.add(skip);
-
-        addActor(outerTable);
     }
 
     private void setup() {

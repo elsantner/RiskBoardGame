@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import edu.aau.se2.model.Database;
+import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.AbstractStage;
 
@@ -14,18 +15,31 @@ public class TempHUDStage extends AbstractStage {
     private PhaseDisplay phaseDisplay;
     private OnHUDInteractionListener hudInteractionListener;
     private Database db;
+    private AttackDisplay attackDisplay;
 
     public TempHUDStage(AbstractScreen screen, Viewport vp, OnHUDInteractionListener l) {
         super(vp, screen);
         this.db = Database.getInstance();
         this.hudInteractionListener = l;
         setupPhaseDisplay();
-        showAttackDisplay();
     }
 
-    private void showAttackDisplay() {
-        AttackDisplay attackDisplay = new AttackDisplay(getScreen().getGame().getAssetManager(),
-                "Player1", "Player2", "XXX", "YYY", 1);
+    public void setCurrentAttack(Attack attack) {
+        if (attack != null) {
+            String attackerName = db.getPlayerByTerritoryID(attack.getFromTerritoryID()).getNickname();
+            String defenderName = db.getPlayerByTerritoryID(attack.getToTerritoryID()).getNickname();
+            String fromTerritoryName = Territory.getByID(attack.getFromTerritoryID()).getTerritoryName();
+            String toTerritoryName = Territory.getByID(attack.getToTerritoryID()).getTerritoryName();
+            showAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName, attack.getAttackerDiceCount());
+        }
+        else {
+            attackDisplay.remove();
+        }
+    }
+
+    private void showAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount) {
+        attackDisplay = new AttackDisplay(getScreen().getGame().getAssetManager(),
+                attacker, defender, fromTerritory, toTerritory, armyCount);
         this.addActor(attackDisplay);
         attackDisplay.setWidth(Gdx.graphics.getWidth());
         attackDisplay.setHeight(Gdx.graphics.getHeight()/4f);
@@ -56,6 +70,12 @@ public class TempHUDStage extends AbstractStage {
         }
         else {
             phaseDisplay.setSkipButtonVisible(false);
+        }
+    }
+
+    public void setPhaseSkipable(boolean b) {
+        if (db.isThisPlayersTurn()) {
+            phaseDisplay.setSkipButtonVisible(b);
         }
     }
 }

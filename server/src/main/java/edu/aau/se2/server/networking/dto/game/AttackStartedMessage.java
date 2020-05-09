@@ -7,15 +7,15 @@ public class AttackStartedMessage extends InLobbyMessage {
     private int toTerritoryID;
     private int diceCount;
 
-    public AttackStartedMessage(int fromTerritoryID, int toTerritoryID) {
-        this.fromTerritoryID = fromTerritoryID;
-        this.toTerritoryID = toTerritoryID;
+    public AttackStartedMessage() {
+
     }
 
-    public AttackStartedMessage(int lobbyID, int fromPlayerID, int fromTerritoryID, int toTerritoryID) {
+    public AttackStartedMessage(int lobbyID, int fromPlayerID, int fromTerritoryID, int toTerritoryID, int diceCount) {
         super(lobbyID, fromPlayerID);
         this.fromTerritoryID = fromTerritoryID;
         this.toTerritoryID = toTerritoryID;
+        this.diceCount = diceCount;
     }
 
     public int getFromTerritoryID() {
