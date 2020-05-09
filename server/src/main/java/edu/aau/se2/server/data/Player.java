@@ -15,9 +15,7 @@ public class Player implements Serializable {
     public Player(int uid, String nickname) {
         this.uid = uid;
         this.nickname = nickname;
-        this.armyReserveCount = 0;
-        this.isReady = false;
-        this.colorID = -1;
+        reset();
     }
 
     public int getUid() {
@@ -69,5 +67,11 @@ public class Player implements Serializable {
 
     public void setReady(boolean ready) {
         isReady = ready;
+    }
+
+    public void reset() {
+        this.armyReserveCount = 0;
+        this.isReady = false;
+        this.colorID = -1;
     }
 }

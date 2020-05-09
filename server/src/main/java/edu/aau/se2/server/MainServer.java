@@ -145,6 +145,7 @@ public class MainServer implements PlayerLostConnectionListener {
         Player playerToLeave = ds.getPlayerByID(msg.getFromPlayerID());
         try {
             lobbyToLeave.leave(playerToLeave);
+            playerToLeave.reset();
             ds.updateLobby(lobbyToLeave);
             // if player could successfully leave the lobby, inform him and all remaining players
             server.broadcastMessage(new LeftLobbyMessage(), playerToLeave);
@@ -154,6 +155,7 @@ public class MainServer implements PlayerLostConnectionListener {
         catch (IllegalArgumentException ex) {
             // if player could not leave the lobby (host, game already started), close lobby and inform all players
             ds.removeLobby(lobbyToLeave.getLobbyID());
+            lobbyToLeave.resetPlayers();
             server.broadcastMessage(new LeftLobbyMessage(true), lobbyToLeave.getPlayers());
         }
     }
@@ -344,6 +346,7 @@ public class MainServer implements PlayerLostConnectionListener {
         try {
             if (playerLobby != null) {
                 playerLobby.leave(player);
+                player.reset();
                 ds.updateLobby(playerLobby);
                 // if player could successfully leave the lobby, inform all remaining players
                 server.broadcastMessage(new PlayersChangedMessage(playerLobby.getLobbyID(),
@@ -353,6 +356,7 @@ public class MainServer implements PlayerLostConnectionListener {
         catch (IllegalArgumentException ex) {
             // if player could not leave the lobby (host, game already started), close lobby and inform all remaining players
             ds.removeLobby(playerLobby.getLobbyID());
+            playerLobby.resetPlayers();
             server.broadcastMessage(new LeftLobbyMessage(true), playerLobby.getPlayers());
         }
     }

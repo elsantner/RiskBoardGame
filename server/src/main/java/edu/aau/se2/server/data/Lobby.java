@@ -202,4 +202,10 @@ public class Lobby {
     public boolean isPlayerJoined(int playerID) {
         return players.containsKey(playerID);
     }
+
+    public void resetPlayers() {
+        for (Player p: players.values()) {
+            p.reset();
+        }
+    }
 }
