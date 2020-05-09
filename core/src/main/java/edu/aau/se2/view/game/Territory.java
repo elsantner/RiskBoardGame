@@ -9,6 +9,9 @@ import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
+
+import java.util.Random;
+
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.server.logic.TerritoryHelper;
 
@@ -29,7 +32,7 @@ public class Territory extends Actor {
 
     public static void dispose() {
         initialized = false;
-        territories = null;
+        territories = new Territory[42];
     }
 
     public static void init(int screenWidth, int screenHeight, AssetManager assetManager) {
@@ -172,10 +175,14 @@ public class Territory extends Actor {
         this.name = name;
         this.armyPosition = armyPosition;
         this.armyColor = Color.CLEAR;
-        this.armyCount = 0;
-        this.font = new BitmapFont();
-        this.armyCirlce = assetManager.get(AssetName.ARMY_DISPLAY_CIRCLE);
+        this.armyCount = -1;
         this.isHighlighted = false;
+        getAssets(assetManager);
+    }
+
+    private void getAssets(AssetManager assetManager) {
+        this.font = assetManager.get(AssetName.FONT_3);
+        this.armyCirlce = assetManager.get(AssetName.ARMY_DISPLAY_CIRCLE);
     }
 
     public int getID() {
@@ -218,16 +225,16 @@ public class Territory extends Actor {
             // if highlighted draw white border
             if (isHighlighted) {
                 batch.setColor(Color.WHITE);
-                batch.draw(armyCirlce, armyPosition.x - 24, armyPosition.y - 24, 48, 48);
+                batch.draw(armyCirlce, armyPosition.x - 32, armyPosition.y - 32, 64, 64);
             }
             batch.setColor(armyColor);
-            batch.draw(armyCirlce, armyPosition.x - 16, armyPosition.y - 16);
+            batch.draw(armyCirlce, armyPosition.x - 24, armyPosition.y - 24, 48, 48);
             // center text in armyCircle (NOTE: These constants are dependent on the text and texture size)
-            int xOffsetText = 3;
+            int xOffsetText = 5;
             if (armyCount > 9) {
-                xOffsetText = 7;
+                xOffsetText = 12;
             }
-            font.draw(batch, Integer.toString(armyCount), armyPosition.x - xOffsetText, armyPosition.y + 5);
+            font.draw(batch, Integer.toString(armyCount), armyPosition.x - xOffsetText, armyPosition.y + 7);
         }
     }
 

@@ -69,7 +69,6 @@ public class RiskGame extends Game {
 			if (wasClosed) {
 				popupMessageDisplay.showMessage("Spiel geschlossen");
 			}
-
 			mainMenuScreen = new MainMenu(this);
 			setScreen(mainMenuScreen);
 		}));
@@ -125,7 +124,7 @@ public class RiskGame extends Game {
 		parameterFont1.fontFileName = "font/CenturyGothic.ttf";
 		parameterFont1.fontParameters.size = (int) (screenHeight * 0.05f);
 		parameterFont1.fontParameters.borderColor = Color.BLACK;
-        parameterFont1.fontParameters.borderWidth = 2;
+		parameterFont1.fontParameters.borderWidth = 2;
 		assetManager.load(AssetName.FONT_1, BitmapFont.class, parameterFont1);
 
 		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont2 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
@@ -134,6 +133,13 @@ public class RiskGame extends Game {
 		parameterFont2.fontParameters.borderColor = Color.BLACK;
 		parameterFont2.fontParameters.borderWidth = (screenHeight * 4) / 1080f;
 		assetManager.load(AssetName.FONT_2, BitmapFont.class, parameterFont2);
+
+		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont3 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
+		parameterFont3.fontFileName = "font/CenturyGothic.ttf";
+		parameterFont3.fontParameters.size = 20;
+		parameterFont3.fontParameters.borderColor = Color.BLACK;
+		parameterFont3.fontParameters.borderWidth = 1;
+		assetManager.load(AssetName.FONT_3, BitmapFont.class, parameterFont3);
 
 		assetManager.load(AssetName.PHASE_DISPLAY_BG, Texture.class);
 		assetManager.load(AssetName.UI_SKIN_1, Skin.class);

@@ -94,6 +94,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void dispose() {
         boardStage.dispose();
+        // clear all graphical territory data
+        Territory.dispose();
     }
 
     @Override
