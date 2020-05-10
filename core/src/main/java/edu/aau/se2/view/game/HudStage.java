@@ -18,13 +18,12 @@ import java.util.List;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
-import edu.aau.se2.model.listener.OnShowCardsListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.AbstractStage;
 import edu.aau.se2.view.asset.AssetName;
 
-public class HudStage extends AbstractStage implements OnNextTurnListener, OnShowCardsListener {
+public class HudStage extends AbstractStage implements OnNextTurnListener {
     private final Color[] playerColors = new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE};
     private String[] currentPlayerNames;
     private Color[] currentPlayerColors;
@@ -55,7 +54,13 @@ public class HudStage extends AbstractStage implements OnNextTurnListener, OnSho
         showCards = false;
 
         TextButton cards = new TextButton("Spielkarten", (Skin) screen.getGame().getAssetManager().get(AssetName.UI_SKIN_1));
-        cards.addListener(new ShowCardsButtonListener());
+        cards.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y){
+                showCards = !showCards;
+                System.out.println("###test" + showCards);
+            }
+        });
 
         //from temphud
         this.hudInteractionListener = l;
@@ -176,12 +181,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener, OnSho
                 }
             }
         }
-    }
-
-
-    @Override
-    public void changeShowCards() {
-        this.showCards = !this.showCards;
     }
 
     public boolean getShowCards(){return this.showCards; };
