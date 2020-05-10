@@ -5,7 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 
-public class ShowCardsButtonListener extends ClickListener {
+public class ShowCardsButtonListener extends ClickListener  {
     private static final String TAG = ShowCardsButtonListener.class.getName();
 
     public ShowCardsButtonListener() {
@@ -18,5 +18,4 @@ public class ShowCardsButtonListener extends ClickListener {
         System.out.println("### show cardStage here");
         return true;
     }
-
 }

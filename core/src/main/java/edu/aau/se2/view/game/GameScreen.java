@@ -72,6 +72,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         Gdx.gl.glClearColor(1, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        if(hudStage.getShowCards()){
+            // TODO render cards here
+        }
+
         boardStage.draw();
         hudStage.getViewport().apply();
         hudStage.update();

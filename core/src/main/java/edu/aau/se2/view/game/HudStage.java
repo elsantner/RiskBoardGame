@@ -34,7 +34,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener, OnSho
     private PhaseDisplay phaseDisplay;
     private OnHUDInteractionListener hudInteractionListener;
     private String yourTurn;
-    private boolean showCards = false;
+    private boolean showCards;
 
     //Labels
     private Label[] currentPlayerLabels;
@@ -52,6 +52,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener, OnSho
         occupiedTerritoriesCount = new int[currentPlayers.size()];
         playersCount = currentPlayers.size();
         setCurrentPlayersColorOnHud(currentPlayers);
+        showCards = false;
 
         TextButton cards = new TextButton("Spielkarten", (Skin) screen.getGame().getAssetManager().get(AssetName.UI_SKIN_1));
         cards.addListener(new ShowCardsButtonListener());
@@ -177,9 +178,12 @@ public class HudStage extends AbstractStage implements OnNextTurnListener, OnSho
         }
     }
 
+
     @Override
-    public void showCards(boolean showCards) {
-        this.showCards(showCards);
+    public void changeShowCards() {
+        this.showCards = !this.showCards;
     }
+
+    public boolean getShowCards(){return this.showCards; };
 }
 
