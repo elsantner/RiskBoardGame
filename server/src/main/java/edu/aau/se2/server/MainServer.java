@@ -25,6 +25,7 @@ import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
+import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
@@ -104,6 +105,8 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleDiceResultMessage((DiceResultMessage) arg);
                 } else if (arg instanceof AttackStartedMessage) {
                     handleAttackStartedMessage((AttackStartedMessage) arg);
+                } else if (arg instanceof OccupyTerritoryMessage) {
+                    handleOccupyTerritoryMessage((OccupyTerritoryMessage) arg);
                 }
             }
             catch (Exception ex) {
@@ -112,7 +115,27 @@ public class MainServer implements PlayerLostConnectionListener {
         });
     }
 
-    private void handleAttackStartedMessage(AttackStartedMessage msg) {
+    private synchronized void handleOccupyTerritoryMessage(OccupyTerritoryMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+        Territory territoryToOccupy = l.getTerritoryByID(msg.getTerritoryID());
+        Territory fromTerritory = l.getTerritoryByID(msg.getFromTerritoryID());
+
+        // if it's this players turn during an attack and army counts are fine
+        if (msg.getFromPlayerID() == l.getPlayerToAct().getUid() && l.attackRunning() &&
+                l.getCurrentAttack().isOccupyRequired() && territoryToOccupy.getArmyCount() == 0 &&
+                fromTerritory.getArmyCount() > msg.getArmyCount()) {
+
+            territoryToOccupy.setOccupierPlayerID(fromTerritory.getOccupierPlayerID());
+            territoryToOccupy.setArmyCount(msg.getArmyCount());
+            fromTerritory.subFromArmyCount(msg.getArmyCount());
+            l.setCurrentAttack(null);
+            ds.updateLobby(l);
+
+            server.broadcastMessage(msg, l.getPlayers());
+        }
+    }
+
+    private synchronized void handleAttackStartedMessage(AttackStartedMessage msg) {
         Lobby l = ds.getLobbyByID(msg.getLobbyID());
 
         if (l.getPlayerToAct().getUid() == msg.getFromPlayerID()) {

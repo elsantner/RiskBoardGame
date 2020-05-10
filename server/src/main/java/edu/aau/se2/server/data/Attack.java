@@ -10,6 +10,7 @@ public class Attack {
     private List<Integer> attackerDiceResults;
     private List<Integer> defenderDiceResults;
     private boolean cheated;
+    private boolean occupyRequired;
 
     public Attack(int fromTerritoryID, int toTerritoryID) {
         this.fromTerritoryID = fromTerritoryID;
@@ -62,5 +63,13 @@ public class Attack {
 
     public void setAttackerDiceCount(int attackerDiceCount) {
         this.attackerDiceCount = attackerDiceCount;
+    }
+
+    public boolean isOccupyRequired() {
+        return occupyRequired;
+    }
+
+    public void setOccupyRequired(boolean occupyRequired) {
+        this.occupyRequired = occupyRequired;
     }
 }
