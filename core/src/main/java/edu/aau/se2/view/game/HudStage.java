@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -16,20 +18,23 @@ import java.util.List;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
+import edu.aau.se2.model.listener.OnShowCardsListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.AbstractStage;
+import edu.aau.se2.view.asset.AssetName;
 
-public class HudStage extends AbstractStage implements OnNextTurnListener {
+public class HudStage extends AbstractStage implements OnNextTurnListener, OnShowCardsListener {
     private final Color[] playerColors = new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE};
     private String[] currentPlayerNames;
     private Color[] currentPlayerColors;
     private int[] occupiedTerritoriesCount;
     private int playersCount;
-    private Color arrayT[];
+    private Color[] arrayT = new Color[41];
     private PhaseDisplay phaseDisplay;
     private OnHUDInteractionListener hudInteractionListener;
     private String yourTurn;
+    private boolean showCards = false;
 
     //Labels
     private Label[] currentPlayerLabels;
@@ -38,7 +43,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     private Label[] occupiedTerritoriesLabel;
     private Label yourTurnLabel;
 
-
     public HudStage(AbstractScreen screen, Viewport vp, List<Player> currentPlayers, OnHUDInteractionListener l){
         super(vp, screen);
         currentPlayerNames = new String[currentPlayers.size()];
@@ -46,9 +50,11 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         currentPlayerLabels = new Label[currentPlayers.size()];
         occupiedTerritoriesLabel = new Label[currentPlayers.size()];
         occupiedTerritoriesCount = new int[currentPlayers.size()];
-        arrayT = new Color[41];
         playersCount = currentPlayers.size();
         setCurrentPlayersColorOnHud(currentPlayers);
+
+        TextButton cards = new TextButton("Spielkarten", (Skin) screen.getGame().getAssetManager().get(AssetName.UI_SKIN_1));
+        cards.addListener(new ShowCardsButtonListener());
 
         //from temphud
         this.hudInteractionListener = l;
@@ -76,6 +82,8 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             table.add(currentPlayerLabels[i]).expandX().right().padRight(15);
             table.row();
         }
+        table.row();
+        table.add(cards).expandY().left().padLeft(15).bottom();
         this.addActor(table);
     }
 
@@ -167,6 +175,11 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
                 }
             }
         }
+    }
+
+    @Override
+    public void showCards(boolean showCards) {
+        this.showCards(showCards);
     }
 }
 
