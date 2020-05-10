@@ -394,7 +394,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public boolean isThisPlayersTurn() {
-        return getCurrentPlayerToAct().getUid() == thisPlayer.getUid();
+        return getCurrentPlayerToAct() != null && getCurrentPlayerToAct().getUid() == thisPlayer.getUid();
     }
 
     public void setPlayerReady(boolean ready) {
