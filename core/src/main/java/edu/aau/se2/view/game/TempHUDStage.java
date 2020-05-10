@@ -22,6 +22,7 @@ public class TempHUDStage extends AbstractStage {
         this.db = Database.getInstance();
         this.hudInteractionListener = l;
         setupPhaseDisplay();
+        //showAttackDisplay("Player1", "Player2", "Ost-Australien", "West-Australien", 3);
     }
 
     public void setCurrentAttack(Attack attack) {
@@ -40,10 +41,10 @@ public class TempHUDStage extends AbstractStage {
     private void showAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount) {
         attackDisplay = new AttackDisplay(getScreen().getGame().getAssetManager(),
                 attacker, defender, fromTerritory, toTerritory, armyCount);
-        this.addActor(attackDisplay);
         attackDisplay.setWidth(Gdx.graphics.getWidth());
-        attackDisplay.setHeight(Gdx.graphics.getHeight()/4f);
+        attackDisplay.setHeight(Gdx.graphics.getHeight() * 0.25f);
         attackDisplay.setY(Gdx.graphics.getHeight() * 0.75f);
+        this.addActor(attackDisplay);
         attackDisplay.setOrigin(Align.center);
     }
 

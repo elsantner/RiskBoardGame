@@ -1,6 +1,7 @@
 package edu.aau.se2.view.asset;
 
 public abstract class AssetName {
+
     private AssetName() {
         // defeat instantiation
     }
@@ -24,4 +25,7 @@ public abstract class AssetName {
     public static final String TEX_LOGO = "logo.png";
     public static final String TEX_DICE_ATTACKER = "dices/dices_attacker.JPG";
     public static final String TEX_DICE_DEFENDER = "dices/dices_defender.JPG";
+    public static final String ATTACK_ARROW = "gameBoard/arrowAttack.png";
+    public static final String BG_ATTACK_DISPLAY = "gameBoard/backgroundBlackRoundEdges.png";
+    public static final String ICON_INFANTRY = "gameBoard/iconInfantry.png";
 }

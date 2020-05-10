@@ -154,6 +154,9 @@ public class RiskGame extends Game {
 		assetManager.load(AssetName.ARMY_DISPLAY_CIRCLE, Texture.class);
 		assetManager.load(AssetName.TEX_DICE_ATTACKER, Texture.class);
 		assetManager.load(AssetName.TEX_DICE_DEFENDER, Texture.class);
+		assetManager.load(AssetName.ATTACK_ARROW, Texture.class);
+		assetManager.load(AssetName.BG_ATTACK_DISPLAY, Texture.class);
+		assetManager.load(AssetName.ICON_INFANTRY, Texture.class);
 	}
 
 	@Override
