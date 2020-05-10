@@ -29,7 +29,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     private Color[] currentPlayerColors;
     private int[] occupiedTerritoriesCount;
     private int playersCount;
-    private Color[] arrayT = new Color[41];
+    private Color[] arrayT = new Color[42];
     private PhaseDisplay phaseDisplay;
     private OnHUDInteractionListener hudInteractionListener;
     private String yourTurn;
@@ -58,7 +58,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             @Override
             public void clicked(InputEvent event, float x, float y){
                 showCards = !showCards;
-                System.out.println("###test" + showCards);
             }
         });
 
