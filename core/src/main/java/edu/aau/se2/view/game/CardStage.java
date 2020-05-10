@@ -33,6 +33,9 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
     private ScrollPane scrollPane;
     private Label nameLabel;
     private AssetManager assetManager;
+    private static final String WILD1 = "card_wild1";
+    private static final String WILD2 = "card_wild2";
+    private static final String WILD_PATH = "cards/card_wild.png";
 
 
     public CardStage(AbstractScreen screen, Viewport viewport) {
@@ -90,18 +93,19 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
 
     public void addCard(String cardName) {
         Texture texture;
+        String filename = "cards/" + cardName + ".png";
 
-        if (cardName.equals("card_wild1") || cardName.equals("card_wild2")) {
-            if (assetManager.isLoaded("cards/card_wild.png")) {
-                texture = assetManager.get("cards/card_wild.png");
+        if (cardName.equals(WILD1) || cardName.equals(WILD2)) {
+            if (assetManager.isLoaded(WILD_PATH)) {
+                texture = assetManager.get(WILD_PATH);
             } else {
-                texture = assetManager.finishLoadingAsset("cards/card_wild.png");
+                texture = assetManager.finishLoadingAsset(WILD_PATH);
             }
         } else {
-            if (assetManager.isLoaded("cards/" + cardName + ".png")) {
-                texture = assetManager.get("cards/" + cardName + ".png");
+            if (assetManager.isLoaded(filename)) {
+                texture = assetManager.get(filename);
             } else {
-                texture = assetManager.finishLoadingAsset("cards/" + cardName + ".png");
+                texture = assetManager.finishLoadingAsset(filename);
             }
         }
 
@@ -113,9 +117,9 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
     public void singleNewCard(String cardName) {
 
         this.cardNames.add(cardName);
-        if (!assetManager.isLoaded("cards/card_wild.png") && (cardName.equals("card_wild1") || cardName.equals("card_wild2"))) {
-            assetManager.load(("cards/card_wild.png"), Texture.class);
-        } else if (!(cardName.equals("card_wild1") || cardName.equals("card_wild2"))) {
+        if (!assetManager.isLoaded(WILD_PATH) && (cardName.equals(WILD1) || cardName.equals(WILD2))) {
+            assetManager.load((WILD_PATH), Texture.class);
+        } else if (!(cardName.equals(WILD1) || cardName.equals(WILD2))) {
             assetManager.load(("cards/" + cardName + ".png"), Texture.class);
         }
         Collections.sort(cardNames);
