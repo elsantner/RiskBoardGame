@@ -8,6 +8,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import edu.aau.se2.server.data.Card;
 import edu.aau.se2.server.data.DataStore;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
@@ -26,9 +27,11 @@ import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
+import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
@@ -64,6 +67,7 @@ public class MainServer implements PlayerLostConnectionListener {
     public void start() throws IOException {
         server.start();
     }
+
     public void stop() {
         server.stop();
     }
@@ -91,15 +95,14 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleRequestLobbyListMessage((RequestLobbyListMessage) arg);
                 } else if (arg instanceof RequestJoinLobbyMessage) {
                     handleRequestJoinLobbyMessage((RequestJoinLobbyMessage) arg);
-                }else if (arg instanceof RequestLeaveLobby) {
+                } else if (arg instanceof RequestLeaveLobby) {
                     handleRequestLeaveLobby((RequestLeaveLobby) arg);
                 } else if (arg instanceof ArmyMovedMessage) {
                     handleArmyMovedMessage((ArmyMovedMessage) arg);
                 } else if (arg instanceof AttackingPhaseFinishedMessage) {
                     handleAttackingPhaseFinishedMessage((AttackingPhaseFinishedMessage) arg);
                 }
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 log.log(Level.SEVERE, "Exception: " + ex.getMessage(), ex);
             }
         });
@@ -151,8 +154,7 @@ public class MainServer implements PlayerLostConnectionListener {
             server.broadcastMessage(new LeftLobbyMessage(), playerToLeave);
             server.broadcastMessage(new PlayersChangedMessage(lobbyToLeave.getLobbyID(),
                     SERVER_PLAYER_ID, lobbyToLeave.getPlayers()), lobbyToLeave.getPlayers());
-        }
-        catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ex) {
             // if player could not leave the lobby (host, game already started), close lobby and inform all players
             ds.removeLobby(lobbyToLeave.getLobbyID());
             lobbyToLeave.resetPlayers();
@@ -168,16 +170,14 @@ public class MainServer implements PlayerLostConnectionListener {
             if (lobbyToJoin == null) {
                 errorCode = ErrorMessage.JOIN_LOBBY_CLOSED;
             } else if (ds.isPlayerInAnyLobby(msg.getFromPlayerID())) {
-                errorCode =  ErrorMessage.JOIN_LOBBY_ALREADY_JOINED;
+                errorCode = ErrorMessage.JOIN_LOBBY_ALREADY_JOINED;
             } else {
                 lobbyToJoin.join(ds.getPlayerByID(msg.getFromPlayerID()));
                 ds.updateLobby(lobbyToJoin);
             }
-        }
-        catch (NullPointerException ex) {
+        } catch (NullPointerException ex) {
             errorCode = ErrorMessage.JOIN_LOBBY_UNKNOWN;
-        }
-        catch (IllegalStateException ex) {
+        } catch (IllegalStateException ex) {
             errorCode = ErrorMessage.JOIN_LOBBY_FULL;
         }
 
@@ -187,8 +187,7 @@ public class MainServer implements PlayerLostConnectionListener {
                     lobbyToJoin.getPlayers(), lobbyToJoin.getHost()), ds.getPlayerByID(msg.getFromPlayerID()));
             server.broadcastMessage(new PlayersChangedMessage(lobbyToJoin.getLobbyID(),
                     SERVER_PLAYER_ID, lobbyToJoin.getPlayers()), lobbyToJoin.getPlayers());
-        }
-        else {
+        } else {
             // if error happened, inform just the requesting player
             server.broadcastMessage(new ErrorMessage(errorCode), ds.getPlayerByID(msg.getFromPlayerID()));
         }
@@ -196,7 +195,7 @@ public class MainServer implements PlayerLostConnectionListener {
 
     private synchronized void handleRequestLobbyListMessage(RequestLobbyListMessage msg) {
         List<LobbyListMessage.LobbyData> lobbyData = new ArrayList<>();
-        for (Lobby l: ds.getJoinableLobbyList()) {
+        for (Lobby l : ds.getJoinableLobbyList()) {
             lobbyData.add(new LobbyListMessage.LobbyData(l.getLobbyID(), l.getHost(), l.getPlayers().size()));
         }
         server.broadcastMessage(new LobbyListMessage(lobbyData), ds.getPlayerByID(msg.getFromPlayerID()));
@@ -207,6 +206,24 @@ public class MainServer implements PlayerLostConnectionListener {
         // only player to act can trigger next turn AND only if all new armies have been received and placed
         if (lobby.getPlayerToAct().getUid() == msg.getFromPlayerID() &&
                 lobby.hasCurrentPlayerToActPlacedNewArmies()) {
+
+            // now: at the end of turn give new random card to player
+            // todo: only give card if player has occupied new territory
+            int id = msg.getFromPlayerID();
+            Card c = lobby.getCardDeck().getRandomCard(id);
+
+            // test if there is a set for trading in (if yes -> ask player for trade at start of next turn)
+            lobby.getPlayerToAct().setTradableSet(lobby.getCardDeck().getCardSet(id));
+            boolean b = false;
+            if (lobby.getPlayerToAct().getTradableSet().length == 3  ) {
+                b = true;
+            }
+
+
+            if (c != null) { // if c is null, there are no cards left
+                // send name of new Card to player of last turn
+                server.broadcastMessage(new NewCardMessage(lobby.getLobbyID(), id, c.getCardName(), b), lobby.getPlayerToAct());
+            }
 
             lobby.nextPlayersTurn();
             ds.updateLobby(lobby);
@@ -222,10 +239,28 @@ public class MainServer implements PlayerLostConnectionListener {
         if (msg.getFromPlayerID() == lobby.getPlayerToAct().getUid()) {
             // generate new armies for player
             lobby.giveNewArmiesToPlayer(msg.getFromPlayerID());
+
+            // add armies, when player trades in set, +2 bonus armies on one territory if same id as card
+            int territoryIdForBonusArmies = -1;
+            if (msg.isExchangeSet()) {
+
+                Player p = lobby.getPlayerToAct();
+                p.setArmyReserveCount(p.getArmyReserveCount() + lobby.getCardDeck().tradeInSet(p.getTradableSet()));
+                territoryIdForBonusArmies = lobby.getCardDeck().getTerritoryIDForBonusArmies(p.getTradableSet(), lobby.getTerritoriesOccupiedByPlayer(p.getUid()));
+
+                if(territoryIdForBonusArmies != -1) {
+                    Territory t = lobby.getTerritoryByID(territoryIdForBonusArmies);
+                    t.addToArmyCount(2);
+                }
+
+                p.setTradableSet(null);
+
+                server.broadcastMessage(new RefreshCardsMessage(lobby.getLobbyID(), p.getUid(), lobby.getCardDeck().getCardNamesOfPlayer(p.getUid())), lobby.getPlayerToAct());
+            }
             ds.updateLobby(lobby);
 
             server.broadcastMessage(new NewArmiesMessage(lobby.getLobbyID(), msg.getFromPlayerID(),
-                    lobby.getPlayerToAct().getArmyReserveCount()), lobby.getPlayers());
+                    lobby.getPlayerToAct().getArmyReserveCount(), territoryIdForBonusArmies), lobby.getPlayers());
         }
     }
 
@@ -248,8 +283,7 @@ public class MainServer implements PlayerLostConnectionListener {
                 lobby.getPlayerToAct().getArmyReserveCount() >= msg.getArmyCountPlaced()) {
             if (!lobby.areInitialArmiesPlaced()) {
                 handleInitialArmyPlaced(msg);
-            }
-            else {
+            } else {
                 handleTurnArmyPlaced(msg);
             }
         }
@@ -257,6 +291,7 @@ public class MainServer implements PlayerLostConnectionListener {
 
     /**
      * Handles army placed during a normal turn
+     *
      * @param msg ArmyPlacedMessage
      */
     private synchronized void handleTurnArmyPlaced(ArmyPlacedMessage msg) {
@@ -267,7 +302,7 @@ public class MainServer implements PlayerLostConnectionListener {
             t.addToArmyCount(msg.getArmyCountPlaced());
 
             Player curPlayer = lobby.getPlayerToAct();
-            curPlayer.addToArmyReserveCount(msg.getArmyCountPlaced()*-1);
+            curPlayer.addToArmyReserveCount(msg.getArmyCountPlaced() * -1);
             ds.updateLobby(lobby);
 
             msg.setArmyCountRemaining(curPlayer.getArmyReserveCount());
@@ -278,6 +313,7 @@ public class MainServer implements PlayerLostConnectionListener {
 
     /**
      * Handles army placed during initial army placing phase
+     *
      * @param msg ArmyPlacedMessage
      */
     private synchronized void handleInitialArmyPlaced(ArmyPlacedMessage msg) {
@@ -291,7 +327,7 @@ public class MainServer implements PlayerLostConnectionListener {
             t.setOccupierPlayerID(msg.getFromPlayerID());
             t.addToArmyCount(msg.getArmyCountPlaced());
             Player curPlayer = lobby.getPlayerToAct();
-            curPlayer.addToArmyReserveCount(msg.getArmyCountPlaced()*-1);
+            curPlayer.addToArmyReserveCount(msg.getArmyCountPlaced() * -1);
             msg.setArmyCountRemaining(curPlayer.getArmyReserveCount());
             lobby.nextPlayersTurn();
             ds.updateLobby(lobby);
@@ -325,7 +361,7 @@ public class MainServer implements PlayerLostConnectionListener {
             // TODO: replace once "dice to decide starter" is implemented
             // send turn order and initiate initial army placing
             try {
-                synchronized(lobby) {
+                synchronized (lobby) {
                     lobby.wait(1000);
                 }
                 broadcastInitialArmyPlacingMessage(lobby);
@@ -352,8 +388,7 @@ public class MainServer implements PlayerLostConnectionListener {
                 server.broadcastMessage(new PlayersChangedMessage(playerLobby.getLobbyID(),
                         SERVER_PLAYER_ID, playerLobby.getPlayers()), playerLobby.getPlayers());
             }
-        }
-        catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ex) {
             // if player could not leave the lobby (host, game already started), close lobby and inform all remaining players
             ds.removeLobby(playerLobby.getLobbyID());
             playerLobby.resetPlayers();

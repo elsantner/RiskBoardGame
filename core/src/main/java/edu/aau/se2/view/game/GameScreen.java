@@ -23,6 +23,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
     private BoardStage boardStage;
     private TempHUDStage tmpHUDStage;
+    private CardStage cardStage;
     private Database db;
 
     public GameScreen(RiskGame game) {
@@ -33,16 +34,19 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         super(game);
         boardStage = new BoardStage(this, new FitViewport(width, height));
         tmpHUDStage = new TempHUDStage(this, new FitViewport(width, height), this);
+        cardStage = new CardStage(this, new FitViewport(width, height));
         db = Database.getInstance();
         boardStage.setListener(this);
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
         db.setPhaseChangedListener(this);
+        db.setCardsChangedListener(cardStage);
         // trigger player turn update because listener might not have been registered when
         // server message was received
         if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
             isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());
         }
+
     }
 
     public void setListener(OnBoardInteractionListener l) {
@@ -58,6 +62,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
         inputMultiplexer.addProcessor(tmpHUDStage);
+        inputMultiplexer.addProcessor(cardStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
@@ -68,7 +73,18 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         boardStage.draw();
+
+        //todo remove (add button in Hud to show cards)
+        /*
+        if (cardStage.isUpdated()) {
+            cardStage.updateActor();
+        }
+        cardStage.act();
+        cardStage.draw();
+        */
+
         tmpHUDStage.draw();
+
     }
 
     @Override
@@ -94,6 +110,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void dispose() {
         boardStage.dispose();
+        cardStage.dispose();
         // clear all graphical territory data
         Territory.dispose();
     }
@@ -107,7 +124,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private void showFinishTurnDialog() {
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        ConfirmDialog dialog = new ConfirmDialog(uiSkin,"Zug beenden",
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin, "Zug beenden",
                 "Moechten Sie Ihren Zug beenden?", "Ja", "Nein",
                 result -> {
                     if (result) {
@@ -151,17 +168,30 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         dialog.setOrigin(Align.center);
     }
 
+    private void showAskForCardExchange() {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin, "Kartentausch",
+                "Moechten Sie 3 Karten eintauschen?", "Ja", "Nein",
+                result -> {
+                    db.exchangeCards(result);
+                    boardStage.setInteractable(true);
+                });
+        showDialog(dialog);
+    }
+
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
-        // currently unused
+        if (db.getThisPlayer() != null && playerID == db.getThisPlayer().getUid() && db.getThisPlayer().isAskForCardExchange()) {
+            showAskForCardExchange();
+        }
     }
 
     @Override
     public void stageSkipButtonClicked() {
         if (db.getCurrentPhase() == Database.Phase.ATTACKING) {
             showSkipAttackingPhaseDialog();
-        }
-        else if (db.getCurrentPhase() == Database.Phase.MOVING) {
+        } else if (db.getCurrentPhase() == Database.Phase.MOVING) {
             showFinishTurnDialog();
         }
     }

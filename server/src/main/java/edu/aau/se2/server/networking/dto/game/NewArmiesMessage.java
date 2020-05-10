@@ -4,16 +4,17 @@ import edu.aau.se2.server.networking.dto.InLobbyMessage;
 
 public class NewArmiesMessage extends InLobbyMessage {
     private int newArmyCount;
-    // TODO: Add card information once cards are implemented
+    private int territoryIdForBonusArmies = -1;
 
 
     public NewArmiesMessage() {
         super();
     }
 
-    public NewArmiesMessage(int lobbyID, int fromPlayerID, int newArmyCount) {
+    public NewArmiesMessage(int lobbyID, int fromPlayerID, int newArmyCount, int territoryIdForBonusArmies) {
         super(lobbyID, fromPlayerID);
         this.newArmyCount = newArmyCount;
+        this.territoryIdForBonusArmies = territoryIdForBonusArmies;
     }
 
     public int getNewArmyCount() {
@@ -22,5 +23,9 @@ public class NewArmiesMessage extends InLobbyMessage {
 
     public void setNewArmyCount(int newArmyCount) {
         this.newArmyCount = newArmyCount;
+    }
+
+    public int getTerritoryIdForBonusArmies() {
+        return territoryIdForBonusArmies;
     }
 }

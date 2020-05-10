@@ -10,8 +10,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
 
-import java.util.Random;
-
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.server.logic.TerritoryHelper;
 
