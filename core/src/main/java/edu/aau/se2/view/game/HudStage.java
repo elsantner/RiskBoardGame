@@ -40,7 +40,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
 
 
     public HudStage(AbstractScreen screen, Viewport vp, List<Player> currentPlayers, OnHUDInteractionListener l){
-        //TODO: values from server
         super(vp, screen);
         currentPlayerNames = new String[currentPlayers.size()];
         currentPlayerColors = new Color[currentPlayers.size()];
@@ -63,17 +62,17 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         statisticsOpponentsLabel = new Label("Spieler", new Label.LabelStyle(generateFont(), Color.WHITE));
 
         //row 1
-        table.add(unitsLabel).padTop(5);
-        table.add(yourTurnLabel).padTop(5);
-        table.add(statisticsOpponentsLabel).padTop(5);
+        table.add(unitsLabel).width(vp.getScreenWidth()/3).padTop(5).padLeft(15);
+        table.add(yourTurnLabel).width(vp.getScreenWidth()/3).expandX().padTop(5);
+        table.add(statisticsOpponentsLabel).expandX().right().padTop(5).padRight(15);
         table.row();
         //remaining rows
         for(int i = 0; i < playersCount; i++){
             currentPlayerLabels[i] = new Label(currentPlayerNames[i], new Label.LabelStyle(generateFont(), Color.valueOf(currentPlayerColors[i].toString())));
             occupiedTerritoriesLabel[i] = new Label( "Territorien: " + occupiedTerritoriesCount[i] + " / 42", new Label.LabelStyle(generateFont(), Color.valueOf(currentPlayerColors[i].toString())));
-            table.add(occupiedTerritoriesLabel[i]);
-            table.add();
-            table.add(currentPlayerLabels[i]);
+            table.add(occupiedTerritoriesLabel[i]).width(vp.getScreenWidth()/3).padLeft(15);
+            table.add().width(vp.getScreenWidth()/3);
+            table.add(currentPlayerLabels[i]).expandX().right().padRight(15);
             table.row();
         }
         this.addActor(table);
@@ -146,7 +145,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     }
 
     public void setPlayerTerritoryCount(int territoryID, int playerColor){
-        //Color currentColor = this.playerColors[playerColor];
         this.arrayT[territoryID] = Territory.getByID(territoryID).getArmyColor();
 
         for(int i = 0; i < this.playersCount; i++){
@@ -159,7 +157,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
              ) {
             if(territoryColor != null){
                 if(territoryColor == this.playerColors[playerColor]){
-                    System.out.println("###playersCount" + this.playersCount);
                     for(int i = 0; i < this.playersCount; i++){
                         if(this.currentPlayerColors[i] == territoryColor){
                             this.occupiedTerritoriesCount[i] = this.occupiedTerritoriesCount[i] + 1;
