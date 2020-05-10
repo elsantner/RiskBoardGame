@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
+
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.server.logic.TerritoryHelper;
 
@@ -19,8 +20,8 @@ public class Territory extends Actor {
     private static Territory[] territories = new Territory[42];
     private static boolean initialized = false;
     // These values give the screen resolution when the coordinates of the territories where recorded
-    private static final int REFERENCE_WIDTH = 2392;
-    private static final int REFERENCE_HEIGHT = 1440;
+    public static final int REFERENCE_WIDTH = 2392;
+    public static final int REFERENCE_HEIGHT = 1440;
     private static final String ERR_MSG_NOT_INIT = "territories not initialized";
 
     public static boolean isNotInitialized() {
@@ -29,7 +30,7 @@ public class Territory extends Actor {
 
     public static void dispose() {
         initialized = false;
-        territories = null;
+        territories = new Territory[42];
     }
 
     public static void init(int screenWidth, int screenHeight, AssetManager assetManager) {
@@ -172,10 +173,14 @@ public class Territory extends Actor {
         this.name = name;
         this.armyPosition = armyPosition;
         this.armyColor = Color.CLEAR;
-        this.armyCount = 0;
-        this.font = new BitmapFont();
-        this.armyCirlce = assetManager.get(AssetName.ARMY_DISPLAY_CIRCLE);
+        this.armyCount = -1;
         this.isHighlighted = false;
+        getAssets(assetManager);
+    }
+
+    private void getAssets(AssetManager assetManager) {
+        this.font = assetManager.get(AssetName.FONT_3);
+        this.armyCirlce = assetManager.get(AssetName.ARMY_DISPLAY_CIRCLE);
     }
 
     public int getID() {
@@ -218,16 +223,19 @@ public class Territory extends Actor {
             // if highlighted draw white border
             if (isHighlighted) {
                 batch.setColor(Color.WHITE);
-                batch.draw(armyCirlce, armyPosition.x - 24, armyPosition.y - 24, 48, 48);
+                batch.draw(armyCirlce, armyPosition.x - (32 * getScaleX()), armyPosition.y - (32 * getScaleX()),
+                        64*getScaleX(), 64*getScaleX());
             }
             batch.setColor(armyColor);
-            batch.draw(armyCirlce, armyPosition.x - 16, armyPosition.y - 16);
+            batch.draw(armyCirlce, armyPosition.x - (24 * getScaleX()), armyPosition.y - (24 * getScaleX()),
+                    48*getScaleX(), 48*getScaleX());
             // center text in armyCircle (NOTE: These constants are dependent on the text and texture size)
-            int xOffsetText = 3;
+            int xOffsetText = (int) (5 * getScaleX());
             if (armyCount > 9) {
-                xOffsetText = 7;
+                xOffsetText = (int) (12 * getScaleX());
             }
-            font.draw(batch, Integer.toString(armyCount), armyPosition.x - xOffsetText, armyPosition.y + 5);
+            font.getData().setScale(getScaleX());
+            font.draw(batch, Integer.toString(armyCount), armyPosition.x - xOffsetText, armyPosition.y + (7*getScaleX()));
         }
     }
 

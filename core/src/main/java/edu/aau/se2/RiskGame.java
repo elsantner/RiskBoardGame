@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.view.PopupMessageDisplay;
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.game.GameScreen;
 import edu.aau.se2.view.game.Territory;
@@ -32,12 +33,21 @@ import edu.aau.se2.view.mainmenu.MainMenu;
 public class RiskGame extends Game {
 	private AssetManager assetManager;
 	private boolean isDoneLoadingAssets = false;
+	private PopupMessageDisplay popupMessageDisplay;
 
 	private GameScreen gameScreen;
 	private LobbyScreen lobbyScreen;
 	private LobbyListScreen lobbyListScreen;
 	private MainMenu mainMenuScreen;
 	private LoadingScreen loadingScreen;
+
+	public RiskGame(PopupMessageDisplay popupMessageDisplay) {
+		if (popupMessageDisplay == null) {
+			throw new NullPointerException("popupMessageDisplay must not be null");
+		}
+
+		this.popupMessageDisplay = popupMessageDisplay;
+	}
 
 	@Override
 	public void create () {
@@ -55,7 +65,10 @@ public class RiskGame extends Game {
             gameScreen = new GameScreen(this);
             setScreen(gameScreen);
         }));
-		db.setLeftLobbyListener(() -> Gdx.app.postRunnable(() -> {
+		db.setLeftLobbyListener((wasClosed) -> Gdx.app.postRunnable(() -> {
+			if (wasClosed) {
+				popupMessageDisplay.showMessage("Spiel geschlossen");
+			}
 			mainMenuScreen = new MainMenu(this);
 			setScreen(mainMenuScreen);
 		}));
@@ -76,6 +89,7 @@ public class RiskGame extends Game {
 			@Override
 			public void disconnected() {
 				Logger.getLogger("RiskGame").log(Level.SEVERE, "Connection lost");
+				popupMessageDisplay.showMessage("Verbindung verloren");
 				System.exit(-1);
 			}
 		});
@@ -83,6 +97,7 @@ public class RiskGame extends Game {
 			db.connectIfNotConnected();
 		} catch (IOException e) {
 			Logger.getLogger("RiskGame").log(Level.SEVERE, "Connection Error: ", e);
+			popupMessageDisplay.showMessage("Verbindungsfehler");
 			System.exit(-1);
 		}
 	}
@@ -94,6 +109,12 @@ public class RiskGame extends Game {
 	}
 
 	private void setupAssetManagerAllAssets() {
+		// if device is not yet rotated correctly (may happen during startup)
+		int screenHeight = Gdx.graphics.getHeight();
+		if (Gdx.graphics.getWidth() < Gdx.graphics.getHeight()) {
+			screenHeight = Gdx.graphics.getWidth();
+		}
+
         FreeTypeFontGenerator.setMaxTextureSize(2048);
 		FileHandleResolver resolver = new InternalFileHandleResolver();
 		assetManager.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
@@ -101,17 +122,24 @@ public class RiskGame extends Game {
 
 		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont1 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
 		parameterFont1.fontFileName = "font/CenturyGothic.ttf";
-		parameterFont1.fontParameters.size = 70;
+		parameterFont1.fontParameters.size = (int) (screenHeight * 0.05f);
 		parameterFont1.fontParameters.borderColor = Color.BLACK;
-        parameterFont1.fontParameters.borderWidth = 2;
+		parameterFont1.fontParameters.borderWidth = 2;
 		assetManager.load(AssetName.FONT_1, BitmapFont.class, parameterFont1);
 
 		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont2 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
 		parameterFont2.fontFileName = "font/CenturyGothic.ttf";
-		parameterFont2.fontParameters.size = (Gdx.graphics.getHeight() * 150) / 1080;
+		parameterFont2.fontParameters.size = (screenHeight * 150) / 1080;
 		parameterFont2.fontParameters.borderColor = Color.BLACK;
-		parameterFont2.fontParameters.borderWidth = (Gdx.graphics.getHeight() * 4) / 1080f;
+		parameterFont2.fontParameters.borderWidth = (screenHeight * 4) / 1080f;
 		assetManager.load(AssetName.FONT_2, BitmapFont.class, parameterFont2);
+
+		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont3 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
+		parameterFont3.fontFileName = "font/CenturyGothic.ttf";
+		parameterFont3.fontParameters.size = 20;
+		parameterFont3.fontParameters.borderColor = Color.BLACK;
+		parameterFont3.fontParameters.borderWidth = 1;
+		assetManager.load(AssetName.FONT_3, BitmapFont.class, parameterFont3);
 
 		assetManager.load(AssetName.PHASE_DISPLAY_BG, Texture.class);
 		assetManager.load(AssetName.UI_SKIN_1, Skin.class);
@@ -132,15 +160,21 @@ public class RiskGame extends Game {
 		// load assets
 		if(assetManager.update() && !isDoneLoadingAssets) {
 			isDoneLoadingAssets = true;
+			assetPostProcessing();
 			mainMenuScreen = new MainMenu(this);
 			setScreen(mainMenuScreen);
 		}
+	}
+
+	private void assetPostProcessing() {
+		((Skin)assetManager.get(AssetName.UI_SKIN_1)).getFont("default-font").getData().setScale(0.5f);
 	}
 
 	@Override
 	public void dispose () {
 		super.dispose();
 		try {
+			isDoneLoadingAssets = false;
 			assetManager.dispose();
 			Territory.dispose();
 			Database.getInstance().closeConnection();

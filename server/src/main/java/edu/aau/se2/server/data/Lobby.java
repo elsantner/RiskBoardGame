@@ -20,10 +20,12 @@ public class Lobby {
     private boolean isStarted;
     private boolean areInitialArmiesPlaced;
     private boolean hasCurrentPlayerToActReceivedNewArmies;
+    private CardDeck cardDeck;
 
     public Lobby(int lobbyID) {
         this.lobbyID = lobbyID;
         this.players = new TreeMap<>();
+        this.cardDeck = new CardDeck(lobbyID);
         this.isStarted = false;
         this.areInitialArmiesPlaced = false;
         initTerritories();
@@ -201,5 +203,25 @@ public class Lobby {
 
     public boolean isPlayerJoined(int playerID) {
         return players.containsKey(playerID);
+    }
+
+    public void resetPlayers() {
+        for (Player p: players.values()) {
+            p.reset();
+        }
+    }
+
+    public Territory[] getTerritoriesOccupiedByPlayer(int playerID){
+        ArrayList<Territory> terr = new ArrayList<>();
+
+        for (Territory t: this.territories
+             ) {
+            if(t.getOccupierPlayerID() == playerID) terr.add(t);
+        }
+        return terr.toArray(new Territory[0]);
+    }
+
+    public CardDeck getCardDeck() {
+        return cardDeck;
     }
 }

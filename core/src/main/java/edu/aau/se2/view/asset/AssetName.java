@@ -12,6 +12,7 @@ public abstract class AssetName {
     public static final String UI_SKIN_2 = "skin_glassy/glassy-ui.json";
     public static final String FONT_1 = "font/CenturyGothic1.ttf";
     public static final String FONT_2 = "font/CenturyGothic2.ttf";
+    public static final String FONT_3 = "font/CenturyGothic3.ttf";
     public static final String TEX_LOBBY_SCREEN = "lobby/lobbyScreen.png";
     public static final String TEX_LOBBY_2 = "lobby/lobby2.png";
     public static final String TEX_LOBBY_LINE = "lobby/line.png";

@@ -70,7 +70,6 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
         stage.stageToScreenCoordinates(new Vector2(0,0));
         Gdx.input.setInputProcessor(this.stage);
         skin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
-        skin.getFont("default-font").getData().setScale(0.5f);
 
         Table outerTable = new Table();
         outerTable.setX(stage.getViewport().getWorldWidth() * 0.8f);

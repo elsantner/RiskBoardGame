@@ -8,6 +8,9 @@ public class Player implements Serializable {
     private int colorID;
     private boolean isReady;
     private transient int armyReserveCount;
+    private Card[] tradableSet;
+    private boolean askForCardExchange;
+    private boolean exchangeCards;
 
     public Player() {
     }
@@ -15,9 +18,7 @@ public class Player implements Serializable {
     public Player(int uid, String nickname) {
         this.uid = uid;
         this.nickname = nickname;
-        this.armyReserveCount = 0;
-        this.isReady = false;
-        this.colorID = -1;
+        reset();
     }
 
     public int getUid() {
@@ -70,4 +71,37 @@ public class Player implements Serializable {
     public void setReady(boolean ready) {
         isReady = ready;
     }
+
+    public void reset() {
+        this.armyReserveCount = 0;
+        this.isReady = false;
+        this.colorID = -1;
+        this.askForCardExchange = false;
+        this.exchangeCards = false;
+    }
+
+    public Card[] getTradableSet() {
+        return tradableSet;
+    }
+
+    public void setTradableSet(Card[] tradableSet) {
+        this.tradableSet = tradableSet;
+    }
+
+    public boolean isAskForCardExchange() {
+        return askForCardExchange;
+    }
+
+    public void setAskForCardExchange(boolean askForCardExchange) {
+        this.askForCardExchange = askForCardExchange;
+    }
+
+    public boolean isExchangeCards() {
+        return exchangeCards;
+    }
+
+    public void setExchangeCards(boolean exchangeCards) {
+        this.exchangeCards = exchangeCards;
+    }
+
 }

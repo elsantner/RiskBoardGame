@@ -108,7 +108,7 @@ public class JoinLobbyTest {
                 countJoinedMessages.addAndGet(1);
                 clients[finalI].leaveLobby();       // leaf lobby again
             });
-            clients[i].setLeftLobbyListener(() -> {
+            clients[i].setLeftLobbyListener((wasClosed) -> {
                 countLeftMessages.addAndGet(1);
             });
 
