@@ -29,6 +29,7 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
     private OrthographicCamera cam;
     private OnBoardInteractionListener boardListener;
     private boolean interactable = true;
+    private boolean attackStartable = true;
     private Color[] playerColors;
     private Database.Phase phase;
     private Territory selectedTerritory;
@@ -155,7 +156,7 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
                     handleMoveArmies(t);
                 }
                 // if in attacking phase ...
-                else if (phase == Database.Phase.ATTACKING) {
+                else if (phase == Database.Phase.ATTACKING && attackStartable) {
                     handleAttack(t);
                 }
             }
@@ -325,5 +326,9 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
 
     public void setPhase(Database.Phase newPhase) {
         this.phase = newPhase;
+    }
+
+    public void attackStartable(boolean attackStartable) {
+        this.attackStartable = attackStartable;
     }
 }

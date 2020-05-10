@@ -16,6 +16,7 @@ import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.dices.DiceStage;
@@ -49,7 +50,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
         db.setPhaseChangedListener(this);
-        db.setAttackStartedListener(this);
+        db.setAttackUpdatedListener(this);
 
         // trigger player turn update because listener might not have been registered when
         // server message was received
@@ -177,6 +178,23 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         showDialog(dialog);
     }
 
+    private void showOccupyTerritoryDialog(int fromTerritoryID, int toTerritoryID) {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        String toTerritoryName = Territory.getByID(toTerritoryID).getTerritoryName();
+        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Territorium einnehmen",
+                String.format("Einheiten nach '%s' verschieben", toTerritoryName), 1,
+                db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
+
+                result -> {
+                    if (result > 0) {
+                        db.occupyTerritory(fromTerritoryID, toTerritoryID, result);
+                    }
+                    boardStage.setInteractable(true);
+                });
+        showDialog(dialog);
+    }
+
     private void showDialog(Dialog dialog) {
         dialog.show(tmpHUDStage);
         dialog.setOrigin(Align.center);
@@ -221,14 +239,24 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void attackStarted() {
-        tmpHUDStage.setCurrentAttack(db.getAttack());
+        attackUpdated();
         tmpHUDStage.setPhaseSkipable(false);
+        boardStage.attackStartable(false);
+    }
+
+    @Override
+    public void attackUpdated() {
+        Attack a = db.getAttack();
+        tmpHUDStage.setCurrentAttack(db.getAttack());
+        if (a.isOccupyRequired()) {
+            showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
+        }
     }
 
     @Override
     public void attackFinished() {
-        // TODO: show result
-        tmpHUDStage.setCurrentAttack(db.getAttack());
+        attackUpdated();
         tmpHUDStage.setPhaseSkipable(true);
+        boardStage.attackStartable(true);
     }
 }

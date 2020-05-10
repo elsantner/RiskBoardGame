@@ -29,6 +29,7 @@ import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
 import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
@@ -36,6 +37,7 @@ import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
+import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
@@ -96,7 +98,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private OnErrorListener errorListener;
     private OnPhaseChangedListener phaseChangedListener;
     private OnArmiesMovedListener armiesMovedListener;
-    private OnAttackUpdatedListener attackStartedListener;
+    private OnAttackUpdatedListener attackUpdatedListener;
 
     private Player thisPlayer;
     private TreeMap<Integer, Player> currentPlayers;
@@ -192,7 +194,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         this.joinedLobbyListener = l;
     }
     public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) { this.armyReserveChangedListener = l; }
-    public void setAttackStartedListener(OnAttackUpdatedListener l) { this.attackStartedListener = l; }
+    public void setAttackUpdatedListener(OnAttackUpdatedListener l) { this.attackUpdatedListener = l; }
 
     private void registerClientCallback() {
         this.client.registerCallback(msg -> {
@@ -224,15 +226,46 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             } else if (msg instanceof AttackingPhaseFinishedMessage) {
                 handleAttackingPhaseFinishedMessage();
             } else if (msg instanceof AttackStartedMessage) {
-                handleAttackStartedMessage((AttackStartedMessage)msg);
+                handleAttackStartedMessage((AttackStartedMessage) msg);
+            } else if (msg instanceof AttackResultMessage) {
+                handleAttackResultMessage((AttackResultMessage) msg);
+            } else if (msg instanceof OccupyTerritoryMessage) {
+                handleOccupyTerritoryMessage((OccupyTerritoryMessage) msg);
             }
         });
     }
 
+    private void handleOccupyTerritoryMessage(OccupyTerritoryMessage msg) {
+        // update territory state
+        territoryData[msg.getFromTerritoryID()].subFromArmyCount(msg.getArmyCount());
+        territoryData[msg.getTerritoryID()].setArmyCount(msg.getArmyCount());
+        territoryData[msg.getTerritoryID()].setOccupierPlayerID(msg.getFromPlayerID());
+
+        notifyTerritoryUpdateListener(territoryData[msg.getFromTerritoryID()]);
+        notifyTerritoryUpdateListener(territoryData[msg.getTerritoryID()]);
+
+        if (attackUpdatedListener != null) {
+            attackUpdatedListener.attackFinished();
+        }
+    }
+
+    // TODO: add actual logic (--> Carina)
+    private void handleAttackResultMessage(AttackResultMessage msg) {
+        this.currentAttack.setOccupyRequired(msg.isOccupyRequired());
+        if (attackUpdatedListener != null) {
+            attackUpdatedListener.attackUpdated();
+        }
+        if (!msg.isOccupyRequired()) {
+            if (attackUpdatedListener != null) {
+                attackUpdatedListener.attackFinished();
+            }
+        }
+    }
+
     private void handleAttackStartedMessage(AttackStartedMessage msg) {
-        currentAttack = new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID());
-        if (attackStartedListener != null) {
-            attackStartedListener.attackStarted();
+        currentAttack = new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount());
+        if (attackUpdatedListener != null) {
+            attackUpdatedListener.attackStarted();
         }
     }
 
@@ -574,5 +607,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public Player getPlayerByTerritoryID(int territoryID) {
         return currentPlayers.get(territoryData[territoryID].getOccupierPlayerID());
+    }
+
+    public void occupyTerritory(int territoryID, int fromTerritoryID, int armyCount) {
+        client.sendMessage(new OccupyTerritoryMessage(currentLobbyID, thisPlayer.getUid(), territoryID, fromTerritoryID, armyCount));
     }
 }

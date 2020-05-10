@@ -22,7 +22,8 @@ public class TempHUDStage extends AbstractStage {
         this.db = Database.getInstance();
         this.hudInteractionListener = l;
         setupPhaseDisplay();
-        //showAttackDisplay("Player1", "Player2", "Ost-Australien", "West-Australien", 3);
+        setupAttackDisplay();
+        //updateAttackDisplay("Player1", "Player2", "Ost-Australien", "West-Australien", 3);
     }
 
     public void setCurrentAttack(Attack attack) {
@@ -31,21 +32,26 @@ public class TempHUDStage extends AbstractStage {
             String defenderName = db.getPlayerByTerritoryID(attack.getToTerritoryID()).getNickname();
             String fromTerritoryName = Territory.getByID(attack.getFromTerritoryID()).getTerritoryName();
             String toTerritoryName = Territory.getByID(attack.getToTerritoryID()).getTerritoryName();
-            showAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName, attack.getAttackerDiceCount());
+            updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName, attack.getAttackerDiceCount());
+            attackDisplay.setVisible(true);
         }
         else {
-            attackDisplay.remove();
+            attackDisplay.setVisible(false);
         }
     }
 
-    private void showAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount) {
-        attackDisplay = new AttackDisplay(getScreen().getGame().getAssetManager(),
-                attacker, defender, fromTerritory, toTerritory, armyCount);
+    private void setupAttackDisplay() {
+        attackDisplay = new AttackDisplay(getScreen().getGame().getAssetManager());
         attackDisplay.setWidth(Gdx.graphics.getWidth());
         attackDisplay.setHeight(Gdx.graphics.getHeight() * 0.25f);
         attackDisplay.setY(Gdx.graphics.getHeight() * 0.75f);
         this.addActor(attackDisplay);
         attackDisplay.setOrigin(Align.center);
+        attackDisplay.setVisible(false);
+    }
+
+    private void updateAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount) {
+        attackDisplay.updateData(attacker, defender, fromTerritory, toTerritory, armyCount);
     }
 
     private void setupPhaseDisplay() {

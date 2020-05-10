@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
 import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
@@ -12,6 +13,7 @@ import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
+import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
@@ -58,6 +60,7 @@ public interface SerializationRegister {
         component.registerClass(AttackingPhaseFinishedMessage.class);
         component.registerClass(AttackStartedMessage.class);
         component.registerClass(DiceResultMessage.class);
-        component.registerClass(AttackStartedMessage.class);
+        component.registerClass(AttackResultMessage.class);
+        component.registerClass(OccupyTerritoryMessage.class);
     }
 }

@@ -26,11 +26,9 @@ public class AttackDisplay extends Group {
     private Texture attackArrow;
     private Drawable background;
 
-    public AttackDisplay(AssetManager assetManager, String attackerName, String defenderName,
-                         String attackerTerritoryName, String defenderTerritoryName, int count) {
+    public AttackDisplay(AssetManager assetManager) {
         this.assetManager = assetManager;
         getAssets();
-        setupTable(attackerName, defenderName, attackerTerritoryName, defenderTerritoryName, count);
     }
 
     private void getAssets() {
@@ -39,8 +37,13 @@ public class AttackDisplay extends Group {
         background = new TextureRegionDrawable(new TextureRegion(assetManager.get(AssetName.BG_ATTACK_DISPLAY, Texture.class)));
     }
 
-    private void setupTable(String attackerName, String defenderName,
+    private void setupDisplay(String attackerName, String defenderName,
                             String attackerTerritoryName, String defenderTerritoryName, int count) {
+        if (tableContainer != null) {
+            tableContainer.remove();
+            tableContainer = null;
+        }
+
         Label labelAttacker = new Label(attackerName,
                 new Label.LabelStyle(font, new Color(1, 1, 1, 1)));
         Label labelDefender = new Label(defenderName,
@@ -63,6 +66,7 @@ public class AttackDisplay extends Group {
 
         tableContainer = new Table();
         tableContainer.setFillParent(true);
+        tableContainer.setOrigin(Align.center);
 
         tableContent = new Table();
         tableContent.pad(width / 30f);
@@ -84,9 +88,7 @@ public class AttackDisplay extends Group {
         this.addActor(tableContainer);
     }
 
-    @Override
-    public void setOrigin (int alignment) {
-        super.setOrigin(alignment);
-        tableContainer.setOrigin(alignment);
+    public void updateData(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount) {
+        setupDisplay(attacker, defender, fromTerritory, toTerritory, armyCount);
     }
 }

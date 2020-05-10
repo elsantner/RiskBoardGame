@@ -17,6 +17,11 @@ public class Attack {
         this.toTerritoryID = toTerritoryID;
     }
 
+    public Attack(int fromTerritoryID, int toTerritoryID, int attackerDiceCount) {
+        this(fromTerritoryID, toTerritoryID);
+        this.attackerDiceCount = attackerDiceCount;
+    }
+
     public int getAttackerDiceCount() {
         return attackerDiceCount;
     }
