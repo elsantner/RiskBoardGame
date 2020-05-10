@@ -26,7 +26,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     private Color[] currentPlayerColors;
     private int[] occupiedTerritoriesCount;
     private int playersCount;
-    private Color arrayT[] = new Color[41];
+    private Color arrayT[];
     private PhaseDisplay phaseDisplay;
     private OnHUDInteractionListener hudInteractionListener;
     private String yourTurn;
@@ -46,6 +46,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         currentPlayerLabels = new Label[currentPlayers.size()];
         occupiedTerritoriesLabel = new Label[currentPlayers.size()];
         occupiedTerritoriesCount = new int[currentPlayers.size()];
+        arrayT = new Color[41];
         playersCount = currentPlayers.size();
         setCurrentPlayersColorOnHud(currentPlayers);
 
@@ -144,23 +145,24 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         }
     }
 
-    public void setPlayerTerritoryCount(int territoryID, int playerColor){
-        this.arrayT[territoryID] = Territory.getByID(territoryID).getArmyColor();
-
+    private void resetTerritoryCount(int playerColor){
         for(int i = 0; i < this.playersCount; i++){
             if(this.currentPlayerColors[i] == this.playerColors[playerColor]){
                 this.occupiedTerritoriesCount[i] = 0;
             }
         }
+    }
 
-       for (Color territoryColor : this.arrayT
+    public void setPlayerTerritoryCount(int territoryID, int playerColor){
+        this.arrayT[territoryID] = Territory.getByID(territoryID).getArmyColor();
+        resetTerritoryCount(playerColor);
+
+        for (Color territoryColor : this.arrayT
              ) {
-            if(territoryColor != null){
-                if(territoryColor == this.playerColors[playerColor]){
-                    for(int i = 0; i < this.playersCount; i++){
-                        if(this.currentPlayerColors[i] == territoryColor){
-                            this.occupiedTerritoriesCount[i] = this.occupiedTerritoriesCount[i] + 1;
-                        }
+            if(territoryColor != null && territoryColor == this.playerColors[playerColor]){
+                for(int i = 0; i < this.playersCount; i++){
+                    if(this.currentPlayerColors[i] == territoryColor){
+                        this.occupiedTerritoriesCount[i] = this.occupiedTerritoriesCount[i] + 1;
                     }
                 }
             }
