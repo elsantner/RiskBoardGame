@@ -1,8 +1,8 @@
 package edu.aau.se2.view.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
@@ -18,8 +18,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import edu.aau.se2.model.listener.OnCardsChangedListener;
+import edu.aau.se2.view.AbstractScreen;
+import edu.aau.se2.view.AbstractStage;
 
-public class CardStage extends Stage implements OnCardsChangedListener {
+public class CardStage extends AbstractStage implements OnCardsChangedListener {
 
     private static final String TAG = "CardStage";
     private Logger log;
@@ -29,16 +31,18 @@ public class CardStage extends Stage implements OnCardsChangedListener {
     private Table outer;
     private ArrayList<String> cardNames;
     private ScrollPane scrollPane;
-    private Skin skin;
     private Label nameLabel;
+    private AssetManager assetManager;
 
 
-    public CardStage(Viewport viewport) {
-        super(viewport);
-        skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+    public CardStage(AbstractScreen screen, Viewport viewport) {
+
+        super(viewport, screen);
+        Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
         nameLabel = new Label("", skin);
         this.updated = false;
         this.log = Logger.getLogger(TAG);
+        this.assetManager = this.getScreen().getGame().getAssetManager();
 
         /*
         This is a simple scrollable list of cards.
@@ -64,7 +68,6 @@ public class CardStage extends Stage implements OnCardsChangedListener {
     public void updateActor() {
 
         outer.remove();
-
         this.cardContainer = new Table();
 
         for (String s : cardNames.toArray(new String[0])
@@ -82,32 +85,42 @@ public class CardStage extends Stage implements OnCardsChangedListener {
 
         this.addActor(outer);
 
-
         this.updated = false;
     }
 
     public void addCard(String cardName) {
-
         Texture texture;
+
         if (cardName.equals("card_wild1") || cardName.equals("card_wild2")) {
-            texture = new Texture(Gdx.files.internal("cards/card_wild.png"));
+            if (assetManager.isLoaded("cards/card_wild.png")) {
+                texture = assetManager.get("cards/card_wild.png");
+            } else {
+                texture = assetManager.finishLoadingAsset("cards/card_wild.png");
+            }
         } else {
-            log.info(cardName);
-            texture = new Texture(Gdx.files.internal("cards/" + cardName + ".png"));
+            if (assetManager.isLoaded("cards/" + cardName + ".png")) {
+                texture = assetManager.get("cards/" + cardName + ".png");
+            } else {
+                texture = assetManager.finishLoadingAsset("cards/" + cardName + ".png");
+            }
         }
+
         Image im = new Image(texture);
         this.cardContainer.add(im).pad(0, 8f, 0, 8f);
     }
 
     @Override
     public void singleNewCard(String cardName) {
-        addCard(cardName);
+
         this.cardNames.add(cardName);
+        if (!assetManager.isLoaded("cards/card_wild.png") && (cardName.equals("card_wild1") || cardName.equals("card_wild2"))) {
+            assetManager.load(("cards/card_wild.png"), Texture.class);
+        } else if (!(cardName.equals("card_wild1") || cardName.equals("card_wild2"))) {
+            assetManager.load(("cards/" + cardName + ".png"), Texture.class);
+        }
         Collections.sort(cardNames);
         log.log(Level.INFO, "A Card has been added to the list: " + cardName);
-        this.cardContainer = new Table();
         this.updated = true;
-
     }
 
     @Override

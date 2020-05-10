@@ -3,12 +3,10 @@ package edu.aau.se2.view.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
@@ -36,7 +34,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         super(game);
         boardStage = new BoardStage(this, new FitViewport(width, height));
         tmpHUDStage = new TempHUDStage(this, new FitViewport(width, height), this);
-        cardStage = new CardStage(new StretchViewport(width, height));
+        cardStage = new CardStage(this, new FitViewport(width, height));
         db = Database.getInstance();
         boardStage.setListener(this);
         db.setTerritoryUpdateListener(this);
@@ -76,7 +74,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
         boardStage.draw();
 
-        /* todo remove (add button in Hud to show cards)
+        //todo remove (add button in Hud to show cards)
+        /*
         if (cardStage.isUpdated()) {
             cardStage.updateActor();
         }
