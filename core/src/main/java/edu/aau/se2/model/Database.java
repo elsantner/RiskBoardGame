@@ -243,6 +243,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
         notifyTerritoryUpdateListener(territoryData[msg.getFromTerritoryID()]);
         notifyTerritoryUpdateListener(territoryData[msg.getTerritoryID()]);
+        currentAttack = null;
 
         if (attackUpdatedListener != null) {
             attackUpdatedListener.attackFinished();
@@ -256,6 +257,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             attackUpdatedListener.attackUpdated();
         }
         if (!msg.isOccupyRequired()) {
+            currentAttack = null;
             if (attackUpdatedListener != null) {
                 attackUpdatedListener.attackFinished();
             }

@@ -2,6 +2,7 @@ package edu.aau.se2.view.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -14,16 +15,25 @@ public class SelectCountDialog extends Dialog {
     private int maxCount;
     private int currentCount;
     private Label lblCurrentCount;
+    private String text;
+    private Skin uiSkin;
+    private boolean abortAllowed = true;
 
     public SelectCountDialog(Skin uiSkin, String title, String text, int minCount, int maxCount, OnResultListener listener) {
         super(title, uiSkin);
         this.minCount = minCount;
         this.maxCount = maxCount;
         this.currentCount = minCount + (maxCount-minCount)/2;
+        this.text = text;
+        this.uiSkin = uiSkin;
+        this.listener = listener;
+    }
 
+    @Override
+    public Dialog show(Stage stage) {
         setupUI(uiSkin, text);
         this.setMovable(false);
-        this.listener = listener;
+        return super.show(stage);
     }
 
     private void setupUI(Skin uiSkin, String text) {
@@ -61,7 +71,9 @@ public class SelectCountDialog extends Dialog {
         getContentTable().add(btnPlus).center().minWidth(Gdx.graphics.getWidth()/15f);
         getContentTable().add(btnMinus).center().minWidth(Gdx.graphics.getWidth()/15f);
         this.button("OK", true);
-        this.button("Abbruch", false);
+        if (abortAllowed) {
+            this.button("Abbruch", false);
+        }
     }
 
     @Override
@@ -76,6 +88,10 @@ public class SelectCountDialog extends Dialog {
         }
         this.hide();
         this.remove();
+    }
+
+    public void setAbortAllowed(boolean abortAllowed) {
+        this.abortAllowed = abortAllowed;
     }
 
     public interface OnResultListener {

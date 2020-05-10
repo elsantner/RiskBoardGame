@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import edu.aau.se2.model.Database;
@@ -36,7 +37,16 @@ public class TempHUDStage extends AbstractStage {
             attackDisplay.setVisible(true);
         }
         else {
-            attackDisplay.setVisible(false);
+            // hide attack display 3 seconds later
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    // if no new attack has been started during wait
+                    if (db.getAttack() == null) {
+                        attackDisplay.setVisible(false);
+                    }
+                }
+            }, 3);
         }
     }
 

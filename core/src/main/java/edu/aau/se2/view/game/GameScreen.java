@@ -188,10 +188,11 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
                 result -> {
                     if (result > 0) {
-                        db.occupyTerritory(fromTerritoryID, toTerritoryID, result);
+                        db.occupyTerritory(toTerritoryID, fromTerritoryID, result);
                     }
                     boardStage.setInteractable(true);
                 });
+        dialog.setAbortAllowed(false);
         showDialog(dialog);
     }
 
@@ -247,8 +248,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void attackUpdated() {
         Attack a = db.getAttack();
-        tmpHUDStage.setCurrentAttack(db.getAttack());
-        if (a.isOccupyRequired()) {
+        tmpHUDStage.setCurrentAttack(a);
+        if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
             showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
         }
     }
