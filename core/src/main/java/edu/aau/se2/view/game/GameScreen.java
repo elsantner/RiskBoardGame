@@ -9,12 +9,15 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 import edu.aau.se2.RiskGame;
+import java.util.List;
+
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
+import edu.aau.se2.server.data.Player;
 
 /**
  * @author Elias
@@ -22,9 +25,10 @@ import edu.aau.se2.view.asset.AssetName;
 public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
         OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
     private BoardStage boardStage;
-    private TempHUDStage tmpHUDStage;
     private CardStage cardStage;
+    private HudStage hudStage;
     private Database db;
+    private InputMultiplexer inputMultiplexer;
 
     public GameScreen(RiskGame game) {
         this(game, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -33,10 +37,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public GameScreen(RiskGame game, int width, int height) {
         super(game);
         boardStage = new BoardStage(this, new FitViewport(width, height));
-        tmpHUDStage = new TempHUDStage(this, new FitViewport(width, height), this);
-        cardStage = new CardStage(this, new FitViewport(width, height));
         db = Database.getInstance();
+        cardStage = new CardStage(this, new FitViewport(width, height));
         boardStage.setListener(this);
+        hudStage = new HudStage(this, new FitViewport(width, height), db.getCurrentPlayers(), this);
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
         db.setPhaseChangedListener(this);
@@ -45,8 +49,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         // server message was received
         if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
             isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());
+            setPlayersDataOnHud(db.getCurrentPlayers());
         }
-
     }
 
     public void setListener(OnBoardInteractionListener l) {
@@ -61,7 +65,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public void show() {
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
-        inputMultiplexer.addProcessor(tmpHUDStage);
+        inputMultiplexer.addProcessor(hudStage);
         inputMultiplexer.addProcessor(cardStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
@@ -74,17 +78,17 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
         boardStage.draw();
 
-        //todo remove (add button in Hud to show cards)
-        /*
-        if (cardStage.isUpdated()) {
-            cardStage.updateActor();
+        if(hudStage.getShowCards()){
+            if (cardStage.isUpdated()) {
+                cardStage.updateActor();
+            }
+            cardStage.act();
+            cardStage.draw();
         }
-        cardStage.act();
-        cardStage.draw();
-        */
 
-        tmpHUDStage.draw();
-
+        hudStage.getViewport().apply();
+        hudStage.update();
+        hudStage.draw();
     }
 
     @Override
@@ -110,6 +114,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void dispose() {
         boardStage.dispose();
+        hudStage.dispose();
         cardStage.dispose();
         // clear all graphical territory data
         Territory.dispose();
@@ -117,8 +122,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void territoryUpdated(int territoryID, int armyCount, int colorID) {
+        int playerColor = db.getCurrentPlayerToAct().getColorID();
         boardStage.setArmyCount(territoryID, armyCount);
         boardStage.setArmyColor(territoryID, colorID);
+        hudStage.setPlayerTerritoryCount(territoryID, playerColor);
     }
 
     private void showFinishTurnDialog() {
@@ -164,7 +171,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     private void showDialog(Dialog dialog) {
-        dialog.show(tmpHUDStage);
+        dialog.show(hudStage);
         dialog.setOrigin(Align.center);
     }
 
@@ -182,6 +189,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
+        hudStage.isPlayersTurnNow(playerID, isThisPlayer);
         if (db.getThisPlayer() != null && playerID == db.getThisPlayer().getUid() && db.getThisPlayer().isAskForCardExchange()) {
             showAskForCardExchange();
         }
@@ -198,7 +206,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void phaseChanged(Database.Phase newPhase) {
-        tmpHUDStage.setPhase(newPhase);
+        hudStage.setPhase(newPhase);
         boardStage.setPhase(newPhase);
     }
 
@@ -215,5 +223,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID) {
         // TODO: implement attacking
+    }
+
+    public void setPlayersDataOnHud(List<Player> currentPlayers) {
+        hudStage.setCurrentPlayersColorOnHud(currentPlayers);
     }
 }
