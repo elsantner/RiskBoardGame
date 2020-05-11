@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import edu.aau.se2.model.listener.OnArmiesMovedListener;
 import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
 import edu.aau.se2.model.listener.OnAttackUpdatedListener;
+import edu.aau.se2.model.listener.OnCardsChangedListener;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.model.listener.OnErrorListener;
 import edu.aau.se2.model.listener.OnGameStartListener;
@@ -43,8 +44,13 @@ import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
+import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
+import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.game.NewCardMessage;
+import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
+import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
@@ -90,6 +96,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private OnPlayersChangedListener playersChangedListener;
     private OnTerritoryUpdateListener territoryUpdateListener;
     private OnNextTurnListener nextTurnListener;
+    private OnCardsChangedListener cardsChangedListener;
     private OnJoinedLobbyListener joinedLobbyListener;
     private OnConnectionChangedListener connectionChangedListener;
     private OnArmyReserveChangedListener armyReserveChangedListener;
@@ -167,7 +174,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private void initTerritoryData() {
         territoryData = new Territory[42];
-        for (int i=0; i<territoryData.length; i++) {
+        for (int i = 0; i < territoryData.length; i++) {
             territoryData[i] = new Territory(i);
         }
     }
@@ -190,6 +197,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     public void setNextTurnListener(OnNextTurnListener l) {
         this.nextTurnListener = l;
     }
+
+    public void setCardsChangedListener(OnCardsChangedListener l) {
+        this.cardsChangedListener = l;
+    }
+
     public void setJoinedLobbyListener(OnJoinedLobbyListener l) {
         this.joinedLobbyListener = l;
     }
@@ -217,10 +229,14 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleLeftLobbyMessage((LeftLobbyMessage) msg);
             } else if (msg instanceof NextTurnMessage) {
                 handleNextTurnMessage((NextTurnMessage) msg);
+            } else if (msg instanceof NewCardMessage) {
+                handleNewCardMessage((NewCardMessage) msg);
             } else if (msg instanceof NewArmiesMessage) {
                 handleNewArmiesMessage((NewArmiesMessage) msg);
             } else if (msg instanceof ArmyMovedMessage) {
                 handleArmyMovedMessage((ArmyMovedMessage) msg);
+            } else if (msg instanceof RefreshCardsMessage) {
+                handleRefreshCardsMessage((RefreshCardsMessage) msg);
             } else if (msg instanceof ErrorMessage) {
                 handleErrorMessage((ErrorMessage) msg);
             } else if (msg instanceof AttackingPhaseFinishedMessage) {
@@ -324,6 +340,14 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             setCurrentArmyReserve(msg.getNewArmyCount(), true);
             hasPlayerReceivedArmiesThisTurn = true;
         }
+
+        // add bonus armies to the correct territory, update for all players
+        if (msg.getTerritoryIdForBonusArmies() != -1 && territoryUpdateListener != null) {
+            territoryData[msg.getTerritoryIdForBonusArmies()].addToArmyCount(2);
+            territoryUpdateListener.territoryUpdated(msg.getTerritoryIdForBonusArmies(),
+                    territoryData[msg.getTerritoryIdForBonusArmies()].getArmyCount(),
+                    currentPlayers.get(msg.getFromPlayerID()).getColorID());
+        }
     }
 
     private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
@@ -335,9 +359,26 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             nextTurnListener.isPlayersTurnNow(currentTurnPlayerID,
                     thisPlayer.getUid() == currentTurnPlayerID);
         }
-        if (isThisPlayersTurn()) {
+        if (isThisPlayersTurn() && !thisPlayer.isAskForCardExchange()) {
             hasPlayerReceivedArmiesThisTurn = false;
-            exchangeCards();
+            exchangeCards(false);
+        }
+    }
+
+    private synchronized void handleNewCardMessage(NewCardMessage msg) {
+        // adds the new card to the players cards, shown by CardStage
+        if (msg.isAskForCardExchange()) {
+            this.thisPlayer.setAskForCardExchange(true);
+        }
+        if (cardsChangedListener != null) {
+            cardsChangedListener.singleNewCard(msg.getCardName());
+        }
+    }
+
+    private void handleRefreshCardsMessage(RefreshCardsMessage msg) {
+        // after set trade-in displayed cards need to be refreshed
+        if (cardsChangedListener != null) {
+            cardsChangedListener.refreshCards(msg.getCardNames());
         }
     }
 
@@ -359,7 +400,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void setCurrentPlayers(List<Player> players) {
         currentPlayers.clear();
-        for (Player p: players) {
+        for (Player p : players) {
             currentPlayers.put(p.getUid(), p);
         }
     }
@@ -410,7 +451,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private synchronized void handleStartGameMessage(StartGameMessage msg) {
         setCurrentArmyReserve(msg.getStartArmyCount(), true);
         if (gameStartListener != null) {
-            for (Player p: msg.getPlayers()) {
+            for (Player p : msg.getPlayers()) {
                 currentPlayers.put(p.getUid(), p);
             }
             gameStartListener.onGameStarted(msg.getPlayers(), msg.getStartArmyCount());
@@ -527,10 +568,15 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         return isConnected;
     }
 
-    // TODO: Change when cards are implemented
-    public void exchangeCards() {
+    public void exchangeCards(boolean exchangeCards) {
         log.info("Sending CardExchangeMessage");
-        client.sendMessage(new CardExchangeMessage(currentLobbyID, thisPlayer.getUid()));
+
+        if (exchangeCards) {
+            thisPlayer.setExchangeCards(true);
+            thisPlayer.setAskForCardExchange(false);
+        }
+
+        client.sendMessage(new CardExchangeMessage(currentLobbyID, thisPlayer.getUid(), exchangeCards));
     }
 
     private synchronized void setCurrentArmyReserve(int newValue, boolean isInitialCount) {

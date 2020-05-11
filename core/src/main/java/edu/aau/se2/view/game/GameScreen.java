@@ -11,6 +11,8 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import java.util.List;
 
 import edu.aau.se2.RiskGame;
+import java.util.List;
+
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
@@ -19,6 +21,7 @@ import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
+import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.dices.DiceStage;
 
 /**
@@ -29,7 +32,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private BoardStage boardStage;
     private TempHUDStage tmpHUDStage;
     private DiceStage diceStage;
+    private CardStage cardStage;
+    private HudStage hudStage;
     private Database db;
+    private InputMultiplexer inputMultiplexer;
 
     public GameScreen(RiskGame game) {
         this(game, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -38,8 +44,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public GameScreen(RiskGame game, int width, int height) {
         super(game);
         boardStage = new BoardStage(this, new FitViewport(width, height));
-
         db = Database.getInstance();
+        cardStage = new CardStage(this, new FitViewport(width, height));
 
         List<Integer> results = DiceStage.rollDice(true);
         diceStage = new DiceStage(new FitViewport(width, height), this, results, true);
@@ -47,15 +53,18 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         tmpHUDStage = new TempHUDStage(this, new FitViewport(width, height), this);
 
         boardStage.setListener(this);
+        hudStage = new HudStage(this, new FitViewport(width, height), db.getCurrentPlayers(), this);
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
         db.setPhaseChangedListener(this);
+        db.setCardsChangedListener(cardStage);
         db.setAttackUpdatedListener(this);
 
         // trigger player turn update because listener might not have been registered when
         // server message was received
         if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
             isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());
+            setPlayersDataOnHud(db.getCurrentPlayers());
         }
     }
 
@@ -73,6 +82,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
         inputMultiplexer.addProcessor(tmpHUDStage);
         inputMultiplexer.addProcessor(diceStage);
+        inputMultiplexer.addProcessor(hudStage);
+        inputMultiplexer.addProcessor(cardStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
@@ -86,6 +97,18 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         tmpHUDStage.draw();
         diceStage.act(delta);
         diceStage.draw();
+
+        if(hudStage.getShowCards()){
+            if (cardStage.isUpdated()) {
+                cardStage.updateActor();
+            }
+            cardStage.act();
+            cardStage.draw();
+        }
+
+        hudStage.getViewport().apply();
+        hudStage.update();
+        hudStage.draw();
     }
 
     @Override
@@ -111,20 +134,24 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void dispose() {
         boardStage.dispose();
+        hudStage.dispose();
+        cardStage.dispose();
         // clear all graphical territory data
         Territory.dispose();
     }
 
     @Override
     public void territoryUpdated(int territoryID, int armyCount, int colorID) {
+        int playerColor = db.getCurrentPlayerToAct().getColorID();
         boardStage.setArmyCount(territoryID, armyCount);
         boardStage.setArmyColor(territoryID, colorID);
+        hudStage.setPlayerTerritoryCount(territoryID, playerColor);
     }
 
     private void showFinishTurnDialog() {
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        ConfirmDialog dialog = new ConfirmDialog(uiSkin,"Zug beenden",
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin, "Zug beenden",
                 "Moechten Sie Ihren Zug beenden?", "Ja", "Nein",
                 result -> {
                     if (result) {
@@ -197,28 +224,42 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     private void showDialog(Dialog dialog) {
-        dialog.show(tmpHUDStage);
+        dialog.show(hudStage);
         dialog.setOrigin(Align.center);
+    }
+
+    private void showAskForCardExchange() {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        ConfirmDialog dialog = new ConfirmDialog(uiSkin, "Kartentausch",
+                "Moechten Sie 3 Karten eintauschen?", "Ja", "Nein",
+                result -> {
+                    db.exchangeCards(result);
+                    boardStage.setInteractable(true);
+                });
+        showDialog(dialog);
     }
 
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
-        // currently unused
+        hudStage.isPlayersTurnNow(playerID, isThisPlayer);
+        if (db.getThisPlayer() != null && playerID == db.getThisPlayer().getUid() && db.getThisPlayer().isAskForCardExchange()) {
+            showAskForCardExchange();
+        }
     }
 
     @Override
     public void stageSkipButtonClicked() {
         if (db.getCurrentPhase() == Database.Phase.ATTACKING) {
             showSkipAttackingPhaseDialog();
-        }
-        else if (db.getCurrentPhase() == Database.Phase.MOVING) {
+        } else if (db.getCurrentPhase() == Database.Phase.MOVING) {
             showFinishTurnDialog();
         }
     }
 
     @Override
     public void phaseChanged(Database.Phase newPhase) {
-        tmpHUDStage.setPhase(newPhase);
+        hudStage.setPhase(newPhase);
         boardStage.setPhase(newPhase);
         diceStage.setPhase(newPhase);
     }
@@ -259,5 +300,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         attackUpdated();
         tmpHUDStage.setPhaseSkipable(true);
         boardStage.attackStartable(true);
+    }
+
+    public void setPlayersDataOnHud(List<Player> currentPlayers) {
+        hudStage.setCurrentPlayersColorOnHud(currentPlayers);
     }
 }
