@@ -65,7 +65,7 @@ public class RiskGame extends Game {
             gameScreen = new GameScreen(this);
             setScreen(gameScreen);
         }));
-		db.setLeftLobbyListener((wasClosed) -> Gdx.app.postRunnable(() -> {
+		db.setLeftLobbyListener(wasClosed -> Gdx.app.postRunnable(() -> {
 			if (wasClosed) {
 				popupMessageDisplay.showMessage("Spiel geschlossen");
 			}
@@ -121,21 +121,21 @@ public class RiskGame extends Game {
 		assetManager.setLoader(BitmapFont.class, ".ttf", new FreetypeFontLoader(resolver));
 
 		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont1 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
-		parameterFont1.fontFileName = "font/CenturyGothic.ttf";
+		parameterFont1.fontFileName = AssetName.TTF_CENTURY_GOTHIC_LOCATION;
 		parameterFont1.fontParameters.size = (int) (screenHeight * 0.05f);
 		parameterFont1.fontParameters.borderColor = Color.BLACK;
 		parameterFont1.fontParameters.borderWidth = 2;
 		assetManager.load(AssetName.FONT_1, BitmapFont.class, parameterFont1);
 
 		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont2 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
-		parameterFont2.fontFileName = "font/CenturyGothic.ttf";
+		parameterFont2.fontFileName = AssetName.TTF_CENTURY_GOTHIC_LOCATION;
 		parameterFont2.fontParameters.size = (screenHeight * 150) / 1080;
 		parameterFont2.fontParameters.borderColor = Color.BLACK;
 		parameterFont2.fontParameters.borderWidth = (screenHeight * 4) / 1080f;
 		assetManager.load(AssetName.FONT_2, BitmapFont.class, parameterFont2);
 
 		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont3 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
-		parameterFont3.fontFileName = "font/CenturyGothic.ttf";
+		parameterFont3.fontFileName = AssetName.TTF_CENTURY_GOTHIC_LOCATION;
 		parameterFont3.fontParameters.size = 20;
 		parameterFont3.fontParameters.borderColor = Color.BLACK;
 		parameterFont3.fontParameters.borderWidth = 1;

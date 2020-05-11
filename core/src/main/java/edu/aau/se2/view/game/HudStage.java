@@ -41,8 +41,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
 
     //Labels
     private Label[] currentPlayerLabels;
-    private Label unitsLabel;
-    private Label statisticsOpponentsLabel;
     private Label[] occupiedTerritoriesLabel;
     private Label yourTurnLabel;
 
@@ -81,9 +79,9 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         table.top();
         table.setFillParent(true);
 
-        unitsLabel = new Label("Statistik", new Label.LabelStyle(generateFont(), Color.WHITE));
+        Label unitsLabel = new Label("Statistik", new Label.LabelStyle(generateFont(), Color.WHITE));
         yourTurnLabel= new Label(yourTurn, new Label.LabelStyle(generateFont(), Color.valueOf("#ff0000ff")));
-        statisticsOpponentsLabel = new Label("Spieler", new Label.LabelStyle(generateFont(), Color.WHITE));
+        Label statisticsOpponentsLabel = new Label("Spieler", new Label.LabelStyle(generateFont(), Color.WHITE));
 
         //row 1
         table.add(unitsLabel).width(vp.getScreenWidth()/3f).padTop(vp.getWorldHeight() * 0.01f).padLeft(vp.getWorldWidth() * 0.02f);
@@ -136,9 +134,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         generator.dispose();
         return font;
     }
-
-    @Override
-    public void dispose() { super.dispose(); }
 
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {

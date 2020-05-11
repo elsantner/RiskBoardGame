@@ -11,22 +11,17 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import java.util.List;
 
 import edu.aau.se2.RiskGame;
-import java.util.List;
-
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.server.data.Attack;
+import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
-import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.dices.DiceStage;
 
-/**
- * @author Elias
- */
 public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
         OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener, OnAttackUpdatedListener {
     private BoardStage boardStage;
@@ -34,7 +29,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private CardStage cardStage;
     private HudStage hudStage;
     private Database db;
-    private InputMultiplexer inputMultiplexer;
 
     public GameScreen(RiskGame game) {
         this(game, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());

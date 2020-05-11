@@ -6,6 +6,8 @@ public abstract class AssetName {
         // defeat instantiation
     }
 
+    public static final String TTF_CENTURY_GOTHIC_LOCATION = "font/CenturyGothic.ttf";
+
     public static final String RISK_BOARD = "gameBoard/riskBoard.png";
     public static final String ARMY_DISPLAY_CIRCLE = "gameBoard/armyCircle.png";
     public static final String PHASE_DISPLAY_BG = "gameBoard/hudBackground.png";
