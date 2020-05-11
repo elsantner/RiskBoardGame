@@ -83,7 +83,7 @@ public class AttackDisplay extends Group {
         Container<Table> container = new Container<>(tableContent);
         container.setBackground(background);
 
-        tableContainer.add(container).width(Gdx.graphics.getWidth() * 0.60f);
+        tableContainer.add(container).width(Gdx.graphics.getWidth() * 0.50f);
         tableContainer.row();
         this.addActor(tableContainer);
     }
