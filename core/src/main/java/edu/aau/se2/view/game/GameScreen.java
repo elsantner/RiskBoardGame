@@ -30,7 +30,6 @@ import edu.aau.se2.view.dices.DiceStage;
 public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
         OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener, OnAttackUpdatedListener {
     private BoardStage boardStage;
-    private TempHUDStage tmpHUDStage;
     private DiceStage diceStage;
     private CardStage cardStage;
     private HudStage hudStage;
@@ -49,8 +48,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
         List<Integer> results = DiceStage.rollDice(true);
         diceStage = new DiceStage(new FitViewport(width, height), this, results, true);
-        //db.sendAttackerResults(results, false);
-        tmpHUDStage = new TempHUDStage(this, new FitViewport(width, height), this);
 
         boardStage.setListener(this);
         hudStage = new HudStage(this, new FitViewport(width, height), db.getCurrentPlayers(), this);
@@ -80,7 +77,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public void show() {
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
-        inputMultiplexer.addProcessor(tmpHUDStage);
         inputMultiplexer.addProcessor(diceStage);
         inputMultiplexer.addProcessor(hudStage);
         inputMultiplexer.addProcessor(cardStage);
@@ -94,7 +90,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         boardStage.draw();
-        tmpHUDStage.draw();
         diceStage.act(delta);
         diceStage.draw();
 
@@ -170,7 +165,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                 result -> {
                     if (result) {
                         db.finishAttackingPhase();
-                        tmpHUDStage.setCurrentAttack(null);
+                        hudStage.setCurrentAttack(null);
                     }
                     boardStage.setInteractable(true);
                 });
@@ -282,14 +277,14 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void attackStarted() {
         attackUpdated();
-        tmpHUDStage.setPhaseSkipable(false);
+        hudStage.setPhaseSkipable(false);
         boardStage.attackStartable(false);
     }
 
     @Override
     public void attackUpdated() {
         Attack a = db.getAttack();
-        tmpHUDStage.setCurrentAttack(a);
+        hudStage.setCurrentAttack(a);
         if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
             showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
         }
@@ -298,7 +293,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void attackFinished() {
         attackUpdated();
-        tmpHUDStage.setPhaseSkipable(true);
+        hudStage.setPhaseSkipable(true);
         boardStage.attackStartable(true);
     }
 
