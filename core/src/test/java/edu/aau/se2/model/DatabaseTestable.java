@@ -188,4 +188,13 @@ public class DatabaseTestable extends Database {
         }
         return null;
     }
+
+    public Territory getDifferentMyTerritory(int territoryID) {
+        for (Territory t : getMyTerritories()) {
+            if (t.getId() != territoryID) {
+                return t;
+            }
+        }
+        return null;
+    }
 }
