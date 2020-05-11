@@ -47,7 +47,7 @@ public class AttackTest {
         Territory toTerritory = DatabaseTestable.getDifferentClient(dbs, clientToAct).getMyTerritories().get(0);
         clientToAct.attackStarted(fromTerritory.getId(), toTerritory.getId(), 1);
 
-        Thread.sleep(1500);
+        Thread.sleep(2000);
         for (DatabaseTestable db : dbs) {
             assertEquals(fromTerritory.getId(), db.getAttack().getFromTerritoryID());
             assertEquals(toTerritory.getId(), db.getAttack().getToTerritoryID());
