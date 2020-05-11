@@ -155,13 +155,15 @@ public class DatabaseSetupGameTest {
                 }
             });
             db.setPlayersChangedListener(newPlayers -> {
-                if (newPlayers.size() == NUM_CLIENTS && !setReady.get()) {
-                    setReady.set(true);
+                synchronized (server) {
+                    if (newPlayers.size() == NUM_CLIENTS && !setReady.get()) {
+                        setReady.set(true);
 
-                    clients.get(0).togglePlayerReady();
+                        clients.get(0).togglePlayerReady();
 
-                    for (Database c: clients) {
-                        c.setPlayerReady(true);
+                        for (Database c : clients) {
+                            c.setPlayerReady(true);
+                        }
                     }
                 }
             });
