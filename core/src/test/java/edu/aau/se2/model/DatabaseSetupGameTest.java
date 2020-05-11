@@ -85,9 +85,9 @@ public class DatabaseSetupGameTest {
     }
 
     private void startClients() throws IOException {
-        DatabaseTestSubclass.setServerAddress("localhost");
+        DatabaseTestable.setServerAddress("localhost");
         for (int i=0; i<NUM_CLIENTS; i++) {
-            Database db = new DatabaseTestSubclass();
+            Database db = new DatabaseTestable();
             clients.add(db);
             int finalI = i;
             db.setGameStartListener((players, initialArmyCount) -> clientsReceivedGameStarted.get(finalI).set(true));

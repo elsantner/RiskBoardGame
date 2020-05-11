@@ -64,7 +64,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private static final String TAG = "Database";
 
     private static Database instance = null;
-    private static String serverAddress = NetworkConstants.SERVER_IP;
+    protected static String serverAddress = NetworkConstants.SERVER_IP;
 
     /**
      * Gets the singleton instance of Database.
@@ -75,18 +75,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             instance = new Database();
         }
         return instance;
-    }
-
-    /**
-     * Sets the server address. This can only be done before a instance of Database is created.
-     * Note: This method is designed to be used for testing purposes only!
-     * @param serverAddress New server address
-     */
-    public static void setServerAddress(String serverAddress) {
-        if (instance != null) {
-            throw new IllegalStateException("can only set server address before ever calling getInstance()");
-        }
-        Database.serverAddress = serverAddress;
     }
 
     private Logger log;
@@ -659,5 +647,29 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public void occupyTerritory(int territoryID, int fromTerritoryID, int armyCount) {
         client.sendMessage(new OccupyTerritoryMessage(currentLobbyID, thisPlayer.getUid(), territoryID, fromTerritoryID, armyCount));
+    }
+
+    public List<Territory> getTerritoriesByPlayer(int playerID) {
+        List<Territory> territoriesOfPlayer = new ArrayList<>();
+        for (Territory territoryDatum : territoryData) {
+            if (territoryDatum.getOccupierPlayerID() == playerID) {
+                territoriesOfPlayer.add(territoryDatum);
+            }
+        }
+        return territoriesOfPlayer;
+    }
+
+    public List<Territory> getUnoccupiedTerritories() {
+        List<Territory> unoccupiedTerritories = new ArrayList<>();
+        for (Territory territoryDatum : territoryData) {
+            if (territoryDatum.getOccupierPlayerID() == -1) {
+                unoccupiedTerritories.add(territoryDatum);
+            }
+        }
+        return unoccupiedTerritories;
+    }
+
+    public List<Territory> getMyTerritories() {
+        return getTerritoriesByPlayer(thisPlayer.getUid());
     }
 }
