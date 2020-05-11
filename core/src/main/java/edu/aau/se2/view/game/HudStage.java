@@ -12,12 +12,14 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import java.util.List;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
+import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.AbstractStage;
@@ -31,19 +33,20 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     private int playersCount;
     private Color[] arrayT = new Color[42];
     private PhaseDisplay phaseDisplay;
+    private AttackDisplay attackDisplay;
     private OnHUDInteractionListener hudInteractionListener;
     private String yourTurn;
     private boolean showCards;
+    private Database db;
 
     //Labels
     private Label[] currentPlayerLabels;
-    private Label unitsLabel;
-    private Label statisticsOpponentsLabel;
     private Label[] occupiedTerritoriesLabel;
     private Label yourTurnLabel;
 
     public HudStage(AbstractScreen screen, Viewport vp, List<Player> currentPlayers, OnHUDInteractionListener l){
         super(vp, screen);
+        db = Database.getInstance();
         currentPlayerNames = new String[currentPlayers.size()];
         currentPlayerColors = new Color[currentPlayers.size()];
         currentPlayerLabels = new Label[currentPlayers.size()];
@@ -53,7 +56,18 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         setCurrentPlayersColorOnHud(currentPlayers);
         showCards = false;
 
-        TextButton cards = new TextButton("Spielkarten", (Skin) screen.getGame().getAssetManager().get(AssetName.UI_SKIN_1));
+        setupHUD();
+
+        this.hudInteractionListener = l;
+        setupPhaseDisplay();
+        setupAttackDisplay();
+        attackDisplay.setVisible(true);
+    }
+
+    private void setupHUD() {
+        Viewport vp = getViewport();
+
+        TextButton cards = new TextButton("Spielkarten", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1));
         cards.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y){
@@ -61,34 +75,30 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             }
         });
 
-        //from temphud
-        this.hudInteractionListener = l;
-        setupPhaseDisplay();
-
         Table table = new Table();
         table.top();
         table.setFillParent(true);
 
-        unitsLabel = new Label("Statistik", new Label.LabelStyle(generateFont(), Color.WHITE));
+        Label unitsLabel = new Label("Statistik", new Label.LabelStyle(generateFont(), Color.WHITE));
         yourTurnLabel= new Label(yourTurn, new Label.LabelStyle(generateFont(), Color.valueOf("#ff0000ff")));
-        statisticsOpponentsLabel = new Label("Spieler", new Label.LabelStyle(generateFont(), Color.WHITE));
+        Label statisticsOpponentsLabel = new Label("Spieler", new Label.LabelStyle(generateFont(), Color.WHITE));
 
         //row 1
-        table.add(unitsLabel).width(vp.getScreenWidth()/3).padTop(vp.getWorldHeight() * 0.01f).padLeft(vp.getWorldWidth() * 0.02f);
-        table.add(yourTurnLabel).width(vp.getScreenWidth()/3).expandX().padTop(vp.getWorldHeight() * 0.01f);
+        table.add(unitsLabel).width(vp.getScreenWidth()/3f).padTop(vp.getWorldHeight() * 0.01f).padLeft(vp.getWorldWidth() * 0.02f);
+        table.add(yourTurnLabel).width(vp.getScreenWidth()/3f).expandX().padTop(vp.getWorldHeight() * 0.01f);
         table.add(statisticsOpponentsLabel).expandX().right().padTop(vp.getWorldHeight() * 0.01f).padRight(vp.getWorldWidth() * 0.02f);
         table.row();
         //remaining rows
         for(int i = 0; i < playersCount; i++){
             currentPlayerLabels[i] = new Label(currentPlayerNames[i], new Label.LabelStyle(generateFont(), Color.valueOf(currentPlayerColors[i].toString())));
             occupiedTerritoriesLabel[i] = new Label( "Territorien: " + occupiedTerritoriesCount[i] + " / 42", new Label.LabelStyle(generateFont(), Color.valueOf(currentPlayerColors[i].toString())));
-            table.add(occupiedTerritoriesLabel[i]).width(vp.getScreenWidth()/3).padLeft(vp.getWorldWidth() * 0.02f);
-            table.add().width(vp.getScreenWidth()/3);
+            table.add(occupiedTerritoriesLabel[i]).width(vp.getScreenWidth()/3f).padLeft(vp.getWorldWidth() * 0.02f);
+            table.add().width(vp.getScreenWidth()/3f);
             table.add(currentPlayerLabels[i]).expandX().right().padRight(vp.getWorldWidth() * 0.02f);
             table.row();
         }
         table.row();
-        table.add(cards).expandY().left().padLeft(15).bottom();
+        table.add(cards).expandY().left().padLeft(vp.getWorldWidth() * 0.02f).bottom();
         this.addActor(table);
     }
 
@@ -126,9 +136,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     }
 
     @Override
-    public void dispose() { super.dispose(); }
-
-    @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
         this.setMessage(isThisPlayer);
     }
@@ -144,7 +151,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     public void setPhase(Database.Phase phase) {
         phaseDisplay.setPhase(phase);
         if ((phase == Database.Phase.ATTACKING || phase == Database.Phase.MOVING) &&
-                Database.getInstance().isThisPlayersTurn()) {
+                db.isThisPlayersTurn()) {
 
             phaseDisplay.setSkipButtonVisible(true);
             phaseDisplay.setSkipButtonListener(new ClickListener() {
@@ -157,6 +164,43 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         else {
             phaseDisplay.setSkipButtonVisible(false);
         }
+    }
+
+    public void setCurrentAttack(Attack attack) {
+        if (attack != null) {
+            String attackerName = db.getPlayerByTerritoryID(attack.getFromTerritoryID()).getNickname();
+            String defenderName = db.getPlayerByTerritoryID(attack.getToTerritoryID()).getNickname();
+            String fromTerritoryName = Territory.getByID(attack.getFromTerritoryID()).getTerritoryName();
+            String toTerritoryName = Territory.getByID(attack.getToTerritoryID()).getTerritoryName();
+            updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName, attack.getAttackerDiceCount());
+            attackDisplay.setVisible(true);
+        }
+        else {
+            // hide attack display 3 seconds later
+            Timer.schedule(new Timer.Task() {
+                @Override
+                public void run() {
+                    // if no new attack has been started during wait
+                    if (db.getAttack() == null) {
+                        attackDisplay.setVisible(false);
+                    }
+                }
+            }, 3);
+        }
+    }
+
+    private void setupAttackDisplay() {
+        attackDisplay = new AttackDisplay(getScreen().getGame().getAssetManager());
+        attackDisplay.setWidth(Gdx.graphics.getWidth());
+        attackDisplay.setHeight(Gdx.graphics.getHeight() * 0.25f);
+        attackDisplay.setY(Gdx.graphics.getHeight() * 0.75f);
+        this.addActor(attackDisplay);
+        attackDisplay.setOrigin(Align.center);
+        attackDisplay.setVisible(false);
+    }
+
+    private void updateAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount) {
+        attackDisplay.updateData(attacker, defender, fromTerritory, toTerritory, armyCount);
     }
 
     private void resetTerritoryCount(int playerColor){
@@ -183,6 +227,12 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         }
     }
 
-    public boolean getShowCards(){return this.showCards; };
+    public boolean getShowCards(){return this.showCards; }
+
+    public void setPhaseSkipable(boolean b) {
+        if (db.isThisPlayersTurn()) {
+            phaseDisplay.setSkipButtonVisible(b);
+        }
+    }
 }
 

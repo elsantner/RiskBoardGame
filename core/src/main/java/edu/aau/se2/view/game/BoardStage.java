@@ -29,6 +29,7 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
     private OrthographicCamera cam;
     private OnBoardInteractionListener boardListener;
     private boolean interactable = true;
+    private boolean attackStartable = true;
     private Color[] playerColors;
     private Database.Phase phase;
     private Territory selectedTerritory;
@@ -154,6 +155,10 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
                 else if (phase == Database.Phase.MOVING) {
                     handleMoveArmies(t);
                 }
+                // if in attacking phase ...
+                else if (phase == Database.Phase.ATTACKING && attackStartable) {
+                    handleAttack(t);
+                }
             }
             else if (t == null && selectedTerritory != null && count == 1) {
                 clearTerritorySelection();
@@ -167,10 +172,45 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
         return false;
     }
 
+    private void handleAttack(Territory t) {
+        // remember first clicked territory
+        edu.aau.se2.server.data.Territory clickedTerritory = db.getTerritoryByID(t.getID());
+        if (selectedTerritory == null) {
+            if (clickedTerritory.getOccupierPlayerID() == db.getThisPlayer().getUid() &&
+                    clickedTerritory.getArmyCount() > 1) {
+                // TODO: maybe appropriate error message if army count == 1 ?
+
+                selectedTerritory = t;
+                if (highlightAttackableTerritories(t) == 0) {
+                    clearTerritorySelection();
+                }
+            }
+        }
+        // move to second clicked territory if it is a neighbour of first clicked
+        else if (TerritoryHelper.areNeighbouring(selectedTerritory.getID(), t.getID()) &&
+                clickedTerritory.getOccupierPlayerID() != db.getThisPlayer().getUid()) {
+
+            boardListener.attackStarted(selectedTerritory.getID(), t.getID(), -1);
+            clearTerritorySelection();
+        }
+    }
+
+    private int highlightAttackableTerritories(Territory t) {
+        int highlightedCount = 0;
+        for (int territoryID: TerritoryHelper.getNeighbouringTerritories(t.getID())) {
+            Territory neighbour = Territory.getByID(territoryID);
+            if (db.getTerritoryByID(territoryID).getOccupierPlayerID() != db.getThisPlayer().getUid()) {
+                neighbour.setHighlighted(true);
+                highlightedCount++;
+            }
+        }
+        return highlightedCount;
+    }
+
     private void handleMoveArmies(Territory t) {
         // remember first clicked territory
+        edu.aau.se2.server.data.Territory clickedTerritory = db.getTerritoryByID(t.getID());
         if (selectedTerritory == null) {
-            edu.aau.se2.server.data.Territory clickedTerritory = db.getTerritoryByID(t.getID());
             if (clickedTerritory.getOccupierPlayerID() == db.getThisPlayer().getUid() &&
                     clickedTerritory.getArmyCount() > 1) {
 
@@ -181,7 +221,9 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
             }
         }
         // move to second clicked territory if it is a neighbour of first clicked
-        else if (TerritoryHelper.areNeighbouring(selectedTerritory.getID(), t.getID())) {
+        else if (TerritoryHelper.areNeighbouring(selectedTerritory.getID(), t.getID()) &&
+                clickedTerritory.getOccupierPlayerID() == db.getThisPlayer().getUid()) {
+
             boardListener.armyMoved(selectedTerritory.getID(), t.getID(), -1);
             clearTerritorySelection();
         }
@@ -284,5 +326,9 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
 
     public void setPhase(Database.Phase newPhase) {
         this.phase = newPhase;
+    }
+
+    public void attackStartable(boolean attackStartable) {
+        this.attackStartable = attackStartable;
     }
 }

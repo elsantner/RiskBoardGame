@@ -8,6 +8,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Card;
 import edu.aau.se2.server.data.DataStore;
 import edu.aau.se2.server.data.Lobby;
@@ -18,24 +19,27 @@ import edu.aau.se2.server.logic.DiceHelper;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
-import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
-import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
+import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
-import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
-import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
+import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
+import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
+import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
-import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
-import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
 
 public class MainServer implements PlayerLostConnectionListener {
@@ -51,8 +55,8 @@ public class MainServer implements PlayerLostConnectionListener {
         }
     }
 
-    private NetworkServerKryo server;
-    private DataStore ds;
+    protected NetworkServerKryo server;
+    protected DataStore ds;
     private Logger log;
 
     private void setupLogger() {
@@ -76,8 +80,12 @@ public class MainServer implements PlayerLostConnectionListener {
         ds = DataStore.getInstance();
         ds.setLostConnectionListener(this);
         setupLogger();
-        server = new NetworkServerKryo();
+        server = new NetworkServerKryo(ds);
         SerializationRegister.registerClassesForComponent(server);
+        registerCallbacks();
+    }
+
+    protected void registerCallbacks() {
         server.registerCallback(arg -> {
             try {
                 log.info("Received " + arg.getClass().getSimpleName());
@@ -101,11 +109,62 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleArmyMovedMessage((ArmyMovedMessage) arg);
                 } else if (arg instanceof AttackingPhaseFinishedMessage) {
                     handleAttackingPhaseFinishedMessage((AttackingPhaseFinishedMessage) arg);
+                } else if (arg instanceof DiceResultMessage) {
+                    handleDiceResultMessage((DiceResultMessage) arg);
+                } else if (arg instanceof AttackStartedMessage) {
+                    handleAttackStartedMessage((AttackStartedMessage) arg);
+                } else if (arg instanceof OccupyTerritoryMessage) {
+                    handleOccupyTerritoryMessage((OccupyTerritoryMessage) arg);
                 }
             } catch (Exception ex) {
+                ex.printStackTrace();
                 log.log(Level.SEVERE, "Exception: " + ex.getMessage(), ex);
             }
         });
+    }
+
+    private synchronized void handleOccupyTerritoryMessage(OccupyTerritoryMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+        Territory territoryToOccupy = l.getTerritoryByID(msg.getTerritoryID());
+        Territory fromTerritory = l.getTerritoryByID(msg.getFromTerritoryID());
+
+        // if it's this players turn during an attack and army counts are fine
+        if (l.isPlayersTurn(msg.getFromPlayerID()) && l.attackRunning() &&
+                l.getCurrentAttack().isOccupyRequired() && territoryToOccupy.getArmyCount() == 0 &&
+                fromTerritory.getArmyCount() > msg.getArmyCount()) {
+
+            territoryToOccupy.setOccupierPlayerID(fromTerritory.getOccupierPlayerID());
+            territoryToOccupy.setArmyCount(msg.getArmyCount());
+            fromTerritory.subFromArmyCount(msg.getArmyCount());
+            l.setCurrentAttack(null);
+            ds.updateLobby(l);
+
+            server.broadcastMessage(msg, l.getPlayers());
+        }
+    }
+
+    private synchronized void handleAttackStartedMessage(AttackStartedMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+
+        if (l.isPlayersTurn(msg.getFromPlayerID()) &&
+                l.isPlayersTerritory(l.getPlayerToAct().getUid(), msg.getFromTerritoryID()) &&
+                !l.isPlayersTerritory(l.getPlayerToAct().getUid(), msg.getToTerritoryID()) &&
+                l.getTerritoryByID(msg.getFromTerritoryID()).getArmyCount() > msg.getDiceCount()) {
+
+            l.setCurrentAttack(new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount()));
+            server.broadcastMessage(msg, l.getPlayers());
+        }
+    }
+
+    private synchronized void handleDiceResultMessage(DiceResultMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+
+        // if it's attackers turn and attack running, broadcast message to lobby
+        if (l.getPlayerToAct().getUid() == msg.getFromPlayerID() && l.attackRunning()) {
+            l.getCurrentAttack().setAttackerDiceResults(msg.getResults());
+            l.getCurrentAttack().setCheated(msg.isCheated());
+            server.broadcastMessage(new DiceResultMessage(msg), l.getPlayers());
+        }
     }
 
     private void handleAttackingPhaseFinishedMessage(AttackingPhaseFinishedMessage msg) {
@@ -291,7 +350,6 @@ public class MainServer implements PlayerLostConnectionListener {
 
     /**
      * Handles army placed during a normal turn
-     *
      * @param msg ArmyPlacedMessage
      */
     private synchronized void handleTurnArmyPlaced(ArmyPlacedMessage msg) {
@@ -313,7 +371,6 @@ public class MainServer implements PlayerLostConnectionListener {
 
     /**
      * Handles army placed during initial army placing phase
-     *
      * @param msg ArmyPlacedMessage
      */
     private synchronized void handleInitialArmyPlaced(ArmyPlacedMessage msg) {
@@ -349,24 +406,26 @@ public class MainServer implements PlayerLostConnectionListener {
         server.broadcastMessage(new PlayersChangedMessage(lobby.getLobbyID(),
                 SERVER_PLAYER_ID, lobby.getPlayers()), lobby.getPlayers());
 
-        if (!lobby.isStarted() && lobby.canStartGame()) {
-            lobby.setupForGameStart();
-            lobby.setStarted(true);
-            ds.updateLobby(lobby);
-            // start game
-            StartGameMessage sgm = new StartGameMessage(msg.getLobbyID(), SERVER_PLAYER_ID, lobby.getPlayers(),
-                    lobby.getPlayers().get(0).getArmyReserveCount());
-            server.broadcastMessage(sgm, lobby.getPlayers());
+        synchronized (lobby) {
+            if (!lobby.isStarted() && lobby.canStartGame()) {
+                lobby.setupForGameStart();
+                lobby.setStarted(true);
+                ds.updateLobby(lobby);
+                // start game
+                StartGameMessage sgm = new StartGameMessage(msg.getLobbyID(), SERVER_PLAYER_ID, lobby.getPlayers(),
+                        lobby.getPlayers().get(0).getArmyReserveCount());
+                server.broadcastMessage(sgm, lobby.getPlayers());
 
-            // TODO: replace once "dice to decide starter" is implemented
-            // send turn order and initiate initial army placing
-            try {
-                synchronized (lobby) {
-                    lobby.wait(1000);
+                // TODO: replace once "dice to decide starter" is implemented
+                // send turn order and initiate initial army placing
+                try {
+                    synchronized (lobby) {
+                        lobby.wait(1000);
+                    }
+                    broadcastInitialArmyPlacingMessage(lobby);
+                } catch (InterruptedException e) {
+                    broadcastInitialArmyPlacingMessage(lobby);
                 }
-                broadcastInitialArmyPlacingMessage(lobby);
-            } catch (InterruptedException e) {
-                broadcastInitialArmyPlacingMessage(lobby);
             }
         }
     }

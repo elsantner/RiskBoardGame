@@ -55,7 +55,7 @@ public class NetworkCommunicationIntegrationTest {
     private void startServer() throws IOException {
         AtomicBoolean first = new AtomicBoolean(true);
 
-        server = new NetworkServerKryo();
+        server = new NetworkServerKryo(new DataStoreTestable());
         registerClassesForComponent((NetworkServerKryo)server);
 
         server.start();

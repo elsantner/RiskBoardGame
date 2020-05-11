@@ -20,6 +20,7 @@ public class Lobby {
     private boolean isStarted;
     private boolean areInitialArmiesPlaced;
     private boolean hasCurrentPlayerToActReceivedNewArmies;
+    private Attack currentAttack;
     private CardDeck cardDeck;
 
     public Lobby(int lobbyID) {
@@ -28,6 +29,7 @@ public class Lobby {
         this.cardDeck = new CardDeck(lobbyID);
         this.isStarted = false;
         this.areInitialArmiesPlaced = false;
+        this.currentAttack = null;
         initTerritories();
     }
 
@@ -211,11 +213,22 @@ public class Lobby {
         }
     }
 
+    public boolean attackRunning() {
+        return currentAttack != null;
+    }
+
+    public Attack getCurrentAttack() {
+        return currentAttack;
+    }
+
+    public void setCurrentAttack(Attack currentAttack) {
+        this.currentAttack = currentAttack;
+    }
+
     public Territory[] getTerritoriesOccupiedByPlayer(int playerID){
         ArrayList<Territory> terr = new ArrayList<>();
 
-        for (Territory t: this.territories
-             ) {
+        for (Territory t: this.territories) {
             if(t.getOccupierPlayerID() == playerID) terr.add(t);
         }
         return terr.toArray(new Territory[0]);
@@ -223,5 +236,13 @@ public class Lobby {
 
     public CardDeck getCardDeck() {
         return cardDeck;
+    }
+
+    public boolean isPlayersTurn(int playerID) {
+        return getPlayerToAct() != null && getPlayerToAct().getUid() == playerID;
+    }
+
+    public boolean isPlayersTerritory(int playerID, int territoryID) {
+        return territories[territoryID].getOccupierPlayerID() == playerID;
     }
 }

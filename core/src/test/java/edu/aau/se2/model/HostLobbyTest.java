@@ -45,9 +45,9 @@ public class HostLobbyTest {
     }
 
     private void startClients() throws IOException {
-        DatabaseTestSubclass.setServerAddress("localhost");
-        Database db1 = new DatabaseTestSubclass();
-        Database db2 = new DatabaseTestSubclass();
+        DatabaseTestable.setServerAddress("localhost");
+        Database db1 = new DatabaseTestable();
+        Database db2 = new DatabaseTestable();
 
         db1.setJoinedLobbyListener((lobbyID, host, players) -> {
             client1ReceivedJoinedLobbyMessage.set(true);

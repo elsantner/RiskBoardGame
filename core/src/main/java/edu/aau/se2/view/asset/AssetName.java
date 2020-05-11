@@ -1,9 +1,12 @@
 package edu.aau.se2.view.asset;
 
 public abstract class AssetName {
+
     private AssetName() {
         // defeat instantiation
     }
+
+    public static final String TTF_CENTURY_GOTHIC_LOCATION = "font/CenturyGothic.ttf";
 
     public static final String RISK_BOARD = "gameBoard/riskBoard.png";
     public static final String ARMY_DISPLAY_CIRCLE = "gameBoard/armyCircle.png";
@@ -22,4 +25,9 @@ public abstract class AssetName {
     public static final String TEX_LOBBYLIST_LINE = "lobbylist/line.png";
     public static final String TEX_LOBBYLIST_OVERLAY = "lobbylist/lobbyMenuOverlay.png";
     public static final String TEX_LOGO = "logo.png";
+    public static final String TEX_DICE_ATTACKER = "dices/dices_attacker.JPG";
+    public static final String TEX_DICE_DEFENDER = "dices/dices_defender.JPG";
+    public static final String ATTACK_ARROW = "gameBoard/arrowAttack.png";
+    public static final String BG_ATTACK_DISPLAY = "gameBoard/backgroundBlackRoundEdges.png";
+    public static final String ICON_INFANTRY = "gameBoard/iconInfantry.png";
 }

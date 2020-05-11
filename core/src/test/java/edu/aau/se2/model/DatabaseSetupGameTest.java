@@ -16,14 +16,15 @@ import edu.aau.se2.server.MainServer;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.ArmyCountHelper;
+import edu.aau.se2.server.networking.MainServerTestable;
 
 
 public class DatabaseSetupGameTest {
-    private final int NUM_CLIENTS = 4;
+    private final int NUM_CLIENTS = 6;
     private final int TURNS_TO_PLAY = 16;
     private final int MOVE_EVERY_NTH_TURN = 4;
 
-    private MainServer server;
+    private MainServerTestable server;
     private ArrayList<Database> clients;
     private ArrayList<AtomicBoolean> clientsReceivedGameStarted;
     private ArrayList<Territory> unoccupiedTerritories;
@@ -61,10 +62,18 @@ public class DatabaseSetupGameTest {
     @Test
     public void testSetupGame() throws IOException, InterruptedException {
         startServer();
-        Thread.sleep(1000);
+        Thread.sleep(1500);
         startClients();
         // wait for server and client to handle messages
         Thread.sleep(5000);
+
+        Assert.assertTrue(server.getDataStore().getLobbies().get(0).isStarted());
+
+        int count = 0;
+        for (AtomicBoolean b: clientsReceivedGameStarted) {
+            if (b.get()) count++;
+        }
+        Assert.assertEquals(NUM_CLIENTS, count);
 
         for (AtomicBoolean b: clientsReceivedGameStarted) {
             Assert.assertTrue(b.get());
@@ -77,17 +86,18 @@ public class DatabaseSetupGameTest {
         // check if all moves were successful
         Assert.assertEquals(Math.ceil((float)TURNS_TO_PLAY/(float)MOVE_EVERY_NTH_TURN)*NUM_CLIENTS,
                 armyMovesCount.get(), 0);
+
     }
 
     private void startServer() throws IOException {
-        server = new MainServer();
+        server = new MainServerTestable();
         server.start();
     }
 
     private void startClients() throws IOException {
-        DatabaseTestSubclass.setServerAddress("localhost");
+        DatabaseTestable.setServerAddress("localhost");
         for (int i=0; i<NUM_CLIENTS; i++) {
-            Database db = new DatabaseTestSubclass();
+            Database db = new DatabaseTestable();
             clients.add(db);
             int finalI = i;
             db.setGameStartListener((players, initialArmyCount) -> clientsReceivedGameStarted.get(finalI).set(true));
@@ -155,13 +165,13 @@ public class DatabaseSetupGameTest {
                 }
             });
             db.setPlayersChangedListener(newPlayers -> {
-                if (newPlayers.size() == NUM_CLIENTS && !setReady.get()) {
-                    setReady.set(true);
+                synchronized (server) {
+                    if (newPlayers.size() == NUM_CLIENTS && !setReady.get()) {
+                        setReady.set(true);
 
-                    clients.get(0).togglePlayerReady();
-
-                    for (Database c: clients) {
-                        c.setPlayerReady(true);
+                        for (Database c : clients) {
+                            c.setPlayerReady(true);
+                        }
                     }
                 }
             });

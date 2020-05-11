@@ -1,6 +1,8 @@
 package edu.aau.se2.view.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -13,22 +15,36 @@ public class SelectCountDialog extends Dialog {
     private int maxCount;
     private int currentCount;
     private Label lblCurrentCount;
+    private String text;
+    private Skin uiSkin;
+    private boolean abortAllowed = true;
 
-    public SelectCountDialog(Skin uiSkin, String title, int minCount, int maxCount, OnResultListener listener) {
+    public SelectCountDialog(Skin uiSkin, String title, String text, int minCount, int maxCount, OnResultListener listener) {
         super(title, uiSkin);
         this.minCount = minCount;
         this.maxCount = maxCount;
         this.currentCount = minCount + (maxCount-minCount)/2;
-
-        setupUI(uiSkin);
-        this.setMovable(false);
+        this.text = text;
+        this.uiSkin = uiSkin;
         this.listener = listener;
     }
 
-    private void setupUI(Skin uiSkin) {
+    @Override
+    public Dialog show(Stage stage) {
+        setupUI(uiSkin, text);
+        this.setMovable(false);
+        return super.show(stage);
+    }
+
+    private void setupUI(Skin uiSkin, String text) {
+        this.pad(Gdx.graphics.getHeight()/50f);
+        getContentTable().padTop(Gdx.graphics.getHeight()/25f);
+        if (text != null) {
+            getContentTable().add(new Label(text, uiSkin)).center().colspan(2).row();
+        }
+
+        getContentTable().row().center().colspan(2);
         lblCurrentCount = new Label(Integer.toString(currentCount), uiSkin);
-        this.text(lblCurrentCount).center();
-        getContentTable().row().center();
         TextButton btnPlus = new TextButton ("+", uiSkin);
         TextButton btnMinus = new TextButton ("-", uiSkin);
         btnPlus.addListener(new ClickListener() {
@@ -51,10 +67,13 @@ public class SelectCountDialog extends Dialog {
             }
         });
 
-        getContentTable().add(btnPlus).center();
-        getContentTable().add(btnMinus).center();
+        getContentTable().add(lblCurrentCount).center().colspan(2).row();
+        getContentTable().add(btnPlus).center().minWidth(Gdx.graphics.getWidth()/15f);
+        getContentTable().add(btnMinus).center().minWidth(Gdx.graphics.getWidth()/15f);
         this.button("OK", true);
-        this.button("Abbruch", false);
+        if (abortAllowed) {
+            this.button("Abbruch", false);
+        }
     }
 
     @Override
@@ -69,6 +88,10 @@ public class SelectCountDialog extends Dialog {
         }
         this.hide();
         this.remove();
+    }
+
+    public void setAbortAllowed(boolean abortAllowed) {
+        this.abortAllowed = abortAllowed;
     }
 
     public interface OnResultListener {

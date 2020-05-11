@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import edu.aau.se2.model.listener.OnArmiesMovedListener;
 import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
+import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.model.listener.OnCardsChangedListener;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.model.listener.OnErrorListener;
@@ -22,31 +23,36 @@ import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
+import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
-import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
-import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
-import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
+import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
-import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
-import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
+import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
+import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
+import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
-import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
-import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkConstants;
 import edu.aau.se2.view.game.OnBoardInteractionListener;
@@ -55,11 +61,10 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private static final String TAG = "Database";
 
     private static Database instance = null;
-    private static String serverAddress = NetworkConstants.SERVER_IP;
+    protected static String serverAddress = NetworkConstants.SERVER_IP;
 
     /**
      * Gets the singleton instance of Database.
-     *
      * @return Database instance, or null if connection error occurred.
      */
     public static synchronized Database getInstance() {
@@ -67,19 +72,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             instance = new Database();
         }
         return instance;
-    }
-
-    /**
-     * Sets the server address. This can only be done before a instance of Database is created.
-     * Note: This method is designed to be used for testing purposes only!
-     *
-     * @param serverAddress New server address
-     */
-    public static void setServerAddress(String serverAddress) {
-        if (instance != null) {
-            throw new IllegalStateException("can only set server address before ever calling getInstance()");
-        }
-        Database.serverAddress = serverAddress;
     }
 
     private Logger log;
@@ -98,6 +90,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private OnErrorListener errorListener;
     private OnPhaseChangedListener phaseChangedListener;
     private OnArmiesMovedListener armiesMovedListener;
+    private OnAttackUpdatedListener attackUpdatedListener;
 
     private Player thisPlayer;
     private TreeMap<Integer, Player> currentPlayers;
@@ -111,6 +104,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private int currentArmyReserve;
     private Phase currentPhase;
+
+    private Attack currentAttack;
 
     protected Database() {
         resetLobby();
@@ -174,26 +169,16 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     public void setErrorListener(OnErrorListener l) {
         this.errorListener = l;
     }
-
     public void setLeftLobbyListener(OnLeftLobbyListener l) {
         this.onLeftLobbyListener = l;
     }
-
     public void setLobbyListChangedListener(OnLobbyListChangedListener l) { this.lobbyListChangedListener = l; }
-
     public void setConnectionChangedListener(OnConnectionChangedListener l) { this.connectionChangedListener = l; }
     public void setGameStartListener(OnGameStartListener l) {
         this.gameStartListener = l;
     }
-
-    public void setPlayersChangedListener(OnPlayersChangedListener l) {
-        this.playersChangedListener = l;
-    }
-
-    public void setTerritoryUpdateListener(OnTerritoryUpdateListener l) {
-        this.territoryUpdateListener = l;
-    }
-
+    public void setPlayersChangedListener(OnPlayersChangedListener l) { this.playersChangedListener = l; }
+    public void setTerritoryUpdateListener(OnTerritoryUpdateListener l) { this.territoryUpdateListener = l; }
     public void setNextTurnListener(OnNextTurnListener l) {
         this.nextTurnListener = l;
     }
@@ -205,10 +190,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     public void setJoinedLobbyListener(OnJoinedLobbyListener l) {
         this.joinedLobbyListener = l;
     }
-
-    public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) {
-        this.armyReserveChangedListener = l;
-    }
+    public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) { this.armyReserveChangedListener = l; }
+    public void setAttackUpdatedListener(OnAttackUpdatedListener l) { this.attackUpdatedListener = l; }
 
     private void registerClientCallback() {
         this.client.registerCallback(msg -> {
@@ -243,8 +226,50 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleErrorMessage((ErrorMessage) msg);
             } else if (msg instanceof AttackingPhaseFinishedMessage) {
                 handleAttackingPhaseFinishedMessage();
+            } else if (msg instanceof AttackStartedMessage) {
+                handleAttackStartedMessage((AttackStartedMessage) msg);
+            } else if (msg instanceof AttackResultMessage) {
+                handleAttackResultMessage((AttackResultMessage) msg);
+            } else if (msg instanceof OccupyTerritoryMessage) {
+                handleOccupyTerritoryMessage((OccupyTerritoryMessage) msg);
             }
         });
+    }
+
+    private void handleOccupyTerritoryMessage(OccupyTerritoryMessage msg) {
+        // update territory state
+        territoryData[msg.getFromTerritoryID()].subFromArmyCount(msg.getArmyCount());
+        territoryData[msg.getTerritoryID()].setArmyCount(msg.getArmyCount());
+        territoryData[msg.getTerritoryID()].setOccupierPlayerID(msg.getFromPlayerID());
+
+        notifyTerritoryUpdateListener(territoryData[msg.getFromTerritoryID()]);
+        notifyTerritoryUpdateListener(territoryData[msg.getTerritoryID()]);
+        currentAttack = null;
+
+        if (attackUpdatedListener != null) {
+            attackUpdatedListener.attackFinished();
+        }
+    }
+
+    // TODO: add actual logic (--> Carina)
+    private void handleAttackResultMessage(AttackResultMessage msg) {
+        this.currentAttack.setOccupyRequired(msg.isOccupyRequired());
+        if (attackUpdatedListener != null) {
+            attackUpdatedListener.attackUpdated();
+        }
+        if (!msg.isOccupyRequired()) {
+            currentAttack = null;
+            if (attackUpdatedListener != null) {
+                attackUpdatedListener.attackFinished();
+            }
+        }
+    }
+
+    private void handleAttackStartedMessage(AttackStartedMessage msg) {
+        currentAttack = new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount());
+        if (attackUpdatedListener != null) {
+            attackUpdatedListener.attackStarted();
+        }
     }
 
     private void handleAttackingPhaseFinishedMessage() {
@@ -273,7 +298,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                     currentPlayers.get(t.getOccupierPlayerID()).getColorID());
         }
     }
-
 
     private void handleErrorMessage(ErrorMessage msg) {
         if (errorListener != null) {
@@ -310,7 +334,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                     currentPlayers.get(msg.getFromPlayerID()).getColorID());
         }
     }
-
 
     private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
         initialArmyPlacementFinished = true;
@@ -420,6 +443,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
+    private synchronized void handleDiceResultMessage(DiceResultMessage msg) {
+        // TODO show result
+        log.info("Received DiceResultMessage");
+    }
+
     /**
      * Sets the current player to act to the next player according to turn order.
      * WARNING: This method should only be used during initial army placing phase.
@@ -448,6 +476,15 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public boolean isThisPlayersTurn() {
         return getCurrentPlayerToAct() != null && getCurrentPlayerToAct().getUid() == thisPlayer.getUid();
+    }
+
+    public boolean isThisPlayerDefender() {
+        if (currentAttack == null) return false;
+        return territoryData[currentAttack.getToTerritoryID()].getOccupierPlayerID() == thisPlayer.getUid();
+    }
+
+    public Attack getAttack() {
+        return currentAttack;
     }
 
     public void setPlayerReady(boolean ready) {
@@ -481,10 +518,16 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
+    public void sendAttackerResults(List<Integer> results, boolean cheated) {
+        log.info("Sending AttackerResults");
+        client.sendMessage(new DiceResultMessage(currentLobbyID, thisPlayer.getUid(), results, cheated));
+    }
+
     @Override
-    public void attackStarted(int fromTerritoryID, int onTerritoryID) {
+    public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
         if (currentPhase == Phase.ATTACKING) {
-            // currently unused as feature is not yet implemented
+            log.info("Sending AttackStartedMessage");
+            client.sendMessage(new AttackStartedMessage(currentLobbyID, thisPlayer.getUid(), fromTerritoryID, onTerritoryID, count));
         }
     }
 
@@ -593,5 +636,37 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public void closeConnection() {
         client.disconnect();
+    }
+
+    public Player getPlayerByTerritoryID(int territoryID) {
+        return currentPlayers.get(territoryData[territoryID].getOccupierPlayerID());
+    }
+
+    public void occupyTerritory(int territoryID, int fromTerritoryID, int armyCount) {
+        client.sendMessage(new OccupyTerritoryMessage(currentLobbyID, thisPlayer.getUid(), territoryID, fromTerritoryID, armyCount));
+    }
+
+    public List<Territory> getTerritoriesByPlayer(int playerID) {
+        List<Territory> territoriesOfPlayer = new ArrayList<>();
+        for (Territory territoryDatum : territoryData) {
+            if (territoryDatum.getOccupierPlayerID() == playerID) {
+                territoriesOfPlayer.add(territoryDatum);
+            }
+        }
+        return territoriesOfPlayer;
+    }
+
+    public List<Territory> getUnoccupiedTerritories() {
+        List<Territory> unoccupiedTerritories = new ArrayList<>();
+        for (Territory territoryDatum : territoryData) {
+            if (territoryDatum.getOccupierPlayerID() == -1) {
+                unoccupiedTerritories.add(territoryDatum);
+            }
+        }
+        return unoccupiedTerritories;
+    }
+
+    public List<Territory> getMyTerritories() {
+        return getTerritoriesByPlayer(thisPlayer.getUid());
     }
 }

@@ -8,27 +8,27 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
-import edu.aau.se2.RiskGame;
 import java.util.List;
 
+import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.server.data.Attack;
+import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
-import edu.aau.se2.server.data.Player;
+import edu.aau.se2.view.dices.DiceStage;
 
-/**
- * @author Elias
- */
 public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
-        OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener {
+        OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener, OnAttackUpdatedListener {
     private BoardStage boardStage;
+    private DiceStage diceStage;
     private CardStage cardStage;
     private HudStage hudStage;
     private Database db;
-    private InputMultiplexer inputMultiplexer;
 
     public GameScreen(RiskGame game) {
         this(game, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -39,12 +39,18 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         boardStage = new BoardStage(this, new FitViewport(width, height));
         db = Database.getInstance();
         cardStage = new CardStage(this, new FitViewport(width, height));
+
+        List<Integer> results = DiceStage.rollDice(true);
+        diceStage = new DiceStage(new FitViewport(width, height), this, results, true);
+
         boardStage.setListener(this);
         hudStage = new HudStage(this, new FitViewport(width, height), db.getCurrentPlayers(), this);
         db.setTerritoryUpdateListener(this);
         db.setNextTurnListener(this);
         db.setPhaseChangedListener(this);
         db.setCardsChangedListener(cardStage);
+        db.setAttackUpdatedListener(this);
+
         // trigger player turn update because listener might not have been registered when
         // server message was received
         if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
@@ -65,6 +71,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public void show() {
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
+        inputMultiplexer.addProcessor(diceStage);
         inputMultiplexer.addProcessor(hudStage);
         inputMultiplexer.addProcessor(cardStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
@@ -77,6 +84,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         boardStage.draw();
+        diceStage.act(delta);
+        diceStage.draw();
 
         if(hudStage.getShowCards()){
             if (cardStage.isUpdated()) {
@@ -150,6 +159,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                 result -> {
                     if (result) {
                         db.finishAttackingPhase();
+                        hudStage.setCurrentAttack(null);
                     }
                     boardStage.setInteractable(true);
                 });
@@ -159,7 +169,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private void showSelectCountDialog(int fromTerritoryID, int toTerritoryID) {
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Einheitenanzahl", 1,
+        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Einheitenanzahl", "Wie viele Einheiten wollen Sie verschieben?", 1,
                 db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
                 result -> {
                     if (result > 0) {
@@ -167,6 +177,38 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                     }
                     boardStage.setInteractable(true);
                 });
+        showDialog(dialog);
+    }
+
+    private void showStartAttackDialog(int fromTerritoryID, int onTerritoryID) {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Angriff starten", "Wuerfelanzahl waehlen", 1,
+                Math.min(db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1, 3),
+                result -> {
+                    if (result > 0) {
+                        db.attackStarted(fromTerritoryID, onTerritoryID, result);
+                    }
+                    boardStage.setInteractable(true);
+                });
+        showDialog(dialog);
+    }
+
+    private void showOccupyTerritoryDialog(int fromTerritoryID, int toTerritoryID) {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        String toTerritoryName = Territory.getByID(toTerritoryID).getTerritoryName();
+        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Territorium einnehmen",
+                String.format("Einheiten nach '%s' verschieben", toTerritoryName), 1,
+                db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
+
+                result -> {
+                    if (result > 0) {
+                        db.occupyTerritory(toTerritoryID, fromTerritoryID, result);
+                    }
+                    boardStage.setInteractable(true);
+                });
+        dialog.setAbortAllowed(false);
         showDialog(dialog);
     }
 
@@ -208,6 +250,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public void phaseChanged(Database.Phase newPhase) {
         hudStage.setPhase(newPhase);
         boardStage.setPhase(newPhase);
+        diceStage.setPhase(newPhase);
     }
 
     @Override
@@ -221,8 +264,31 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     @Override
-    public void attackStarted(int fromTerritoryID, int onTerritoryID) {
-        // TODO: implement attacking
+    public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
+        showStartAttackDialog(fromTerritoryID, onTerritoryID);
+    }
+
+    @Override
+    public void attackStarted() {
+        attackUpdated();
+        hudStage.setPhaseSkipable(false);
+        boardStage.attackStartable(false);
+    }
+
+    @Override
+    public void attackUpdated() {
+        Attack a = db.getAttack();
+        hudStage.setCurrentAttack(a);
+        if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
+            showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
+        }
+    }
+
+    @Override
+    public void attackFinished() {
+        attackUpdated();
+        hudStage.setPhaseSkipable(true);
+        boardStage.attackStartable(true);
     }
 
     public void setPlayersDataOnHud(List<Player> currentPlayers) {

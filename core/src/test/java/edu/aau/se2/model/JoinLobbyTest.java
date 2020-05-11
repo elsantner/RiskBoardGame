@@ -6,17 +6,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
-import edu.aau.se2.model.listener.OnJoinedLobbyListener;
-import edu.aau.se2.model.listener.OnLeftLobbyListener;
-import edu.aau.se2.model.listener.OnLobbyListChangedListener;
 import edu.aau.se2.server.MainServer;
 import edu.aau.se2.server.data.Player;
-import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 
 public class JoinLobbyTest {
     private static final int NUM_CLIENTS = 3;
@@ -57,10 +51,10 @@ public class JoinLobbyTest {
     }
 
     private void setupClients() throws IOException {
-        DatabaseTestSubclass.setServerAddress("localhost");
+        DatabaseTestable.setServerAddress("localhost");
 
         for (int i=0; i<NUM_CLIENTS; i++) {
-            clients[i] = new DatabaseTestSubclass();
+            clients[i] = new DatabaseTestable();
             clients[i].setErrorListener(errorCode -> errorCount.addAndGet(1));
         }
         clients[0].setConnectionChangedListener(new OnConnectionChangedListener() {
