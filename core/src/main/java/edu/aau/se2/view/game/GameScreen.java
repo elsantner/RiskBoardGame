@@ -11,17 +11,15 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import java.util.List;
 
 import edu.aau.se2.RiskGame;
-import java.util.List;
-
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.server.data.Attack;
+import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
-import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.dices.DiceStage;
 
 /**
@@ -46,9 +44,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         db = Database.getInstance();
         cardStage = new CardStage(this, new FitViewport(width, height));
 
-        List<Integer> results = DiceStage.rollDice(true);
-        diceStage = new DiceStage(new FitViewport(width, height), this, results, true);
-
         boardStage.setListener(this);
         hudStage = new HudStage(this, new FitViewport(width, height), db.getCurrentPlayers(), this);
         db.setTerritoryUpdateListener(this);
@@ -56,6 +51,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         db.setPhaseChangedListener(this);
         db.setCardsChangedListener(cardStage);
         db.setAttackUpdatedListener(this);
+
+        diceStage = new DiceStage(new FitViewport(width, height), this);
 
         // trigger player turn update because listener might not have been registered when
         // server message was received
@@ -200,6 +197,21 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         showDialog(dialog);
     }
 
+    private void showStartDefendDialog(int fromTerritoryID, int onTerritoryID) {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Verteidigen", "Wuerfelanzahl waehlen", 1,
+                Math.min(db.getTerritoryByID(onTerritoryID).getArmyCount(), 2),
+                result -> {
+                    if (result > 0) {
+                        db.sendDefenderDiceCount(result);
+                    }
+                    boardStage.setInteractable(true);
+                });
+        dialog.setAbortAllowed(false);
+        showDialog(dialog);
+    }
+
     private void showOccupyTerritoryDialog(int fromTerritoryID, int toTerritoryID) {
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
@@ -256,7 +268,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public void phaseChanged(Database.Phase newPhase) {
         hudStage.setPhase(newPhase);
         boardStage.setPhase(newPhase);
-        diceStage.setPhase(newPhase);
     }
 
     @Override
@@ -279,6 +290,17 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         attackUpdated();
         hudStage.setPhaseSkipable(false);
         boardStage.attackStartable(false);
+
+        Attack a = db.getAttack();
+        if (a != null && db.isThisPlayersTurn()) {
+            List<Integer> result = DiceStage.rollDice(a.getAttackerDiceCount());
+            db.sendAttackerResults(result, false);
+            diceStage.showResults(result, true);
+        }
+
+        if (a != null && db.isThisPlayerDefender()) {
+            showStartDefendDialog(a.getFromTerritoryID(), a.getToTerritoryID());
+        }
     }
 
     @Override
@@ -287,6 +309,19 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         hudStage.setCurrentAttack(a);
         if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
             showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
+        }
+
+        if (a != null && a.getDefenderDiceCount() != -1 && a.getDefenderDiceResults() == null && db.isThisPlayerDefender()) {
+            List<Integer> result = DiceStage.rollDice(a.getDefenderDiceCount());
+            db.sendDefenderResults(result);
+            diceStage.showResults(result, false);
+        } else if (a != null) {
+            if (a.getAttackerDiceResults() != null) {
+                diceStage.showResults(a.getAttackerDiceResults(), true);
+            }
+            if (a.getDefenderDiceResults() != null) {
+                diceStage.showResults(a.getDefenderDiceResults(), false);
+            }
         }
     }
 

@@ -16,7 +16,7 @@ public abstract class ArmyCountHelper {
     public static int getStartCount(int playerCount) {
         switch (playerCount) {
             case 2:
-                return 50;
+                return 2;
             case 3:
                 return 35;
             case 4:

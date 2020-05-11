@@ -2,6 +2,7 @@ package edu.aau.se2.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -19,26 +20,25 @@ import edu.aau.se2.server.logic.DiceHelper;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
 import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
+import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
-import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
-import edu.aau.se2.server.networking.dto.game.NewCardMessage;
-import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
-import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
@@ -114,11 +114,22 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleAttackStartedMessage((AttackStartedMessage) arg);
                 } else if (arg instanceof OccupyTerritoryMessage) {
                     handleOccupyTerritoryMessage((OccupyTerritoryMessage) arg);
+                } else if (arg instanceof DefenderDiceCountMessage) {
+                    handleDefenderDiceCountMessage((DefenderDiceCountMessage) arg);
                 }
             } catch (Exception ex) {
                 log.log(Level.SEVERE, "Exception: " + ex.getMessage(), ex);
             }
         });
+    }
+
+    private synchronized void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+
+        if (l.getCurrentAttack() != null) {
+            l.getCurrentAttack().setDefenderDiceCount(msg.getDiceCount());
+            server.broadcastMessage(msg, l.getPlayers());
+        }
     }
 
     private synchronized void handleOccupyTerritoryMessage(OccupyTerritoryMessage msg) {
@@ -158,6 +169,41 @@ public class MainServer implements PlayerLostConnectionListener {
             l.getCurrentAttack().setAttackerDiceResults(msg.getResults());
             l.getCurrentAttack().setCheated(msg.isCheated());
             server.broadcastMessage(new DiceResultMessage(msg), l.getPlayers());
+        } else if (l.attackRunning() && !msg.isFromAttacker()) {
+            l.getCurrentAttack().setDefenderDiceResults(msg.getResults());
+            server.broadcastMessage(msg, l.getPlayers());
+            attackFinished(l.getLobbyID());
+        }
+    }
+
+    private synchronized void attackFinished(int lobbyId) {
+        Lobby l = ds.getLobbyByID(lobbyId);
+
+        if (l.attackRunning()) {
+            // TODO auswertung
+            int armiesLostAttacker = 0;
+            int armiesLostDefender = 0;
+
+            List<Integer> attackerResults = l.getCurrentAttack().getAttackerDiceResults();
+            List<Integer> defenderResults = l.getCurrentAttack().getDefenderDiceResults();
+
+            attackerResults.sort(Integer::compareTo);
+            Collections.sort(attackerResults, Collections.reverseOrder());
+            defenderResults.sort(Integer::compareTo);
+            Collections.sort(defenderResults, Collections.reverseOrder());
+
+            for(int i = 0; i < Math.min(attackerResults.size(), defenderResults.size()); i++) {
+                if (attackerResults.get(i) < defenderResults.get(i)) {
+                    armiesLostAttacker++;
+                } else {
+                    armiesLostDefender++;
+                }
+            }
+
+            int defenderArmyCount = l.getTerritoryByID(l.getCurrentAttack().getToTerritoryID()).getArmyCount();
+
+            // TODO broadcast result
+            server.broadcastMessage(new AttackResultMessage(lobbyId, l.getPlayerToAct().getUid(), armiesLostAttacker, armiesLostDefender, l.getCurrentAttack().isCheated(), armiesLostDefender >= defenderArmyCount), l.getPlayers());
         }
     }
 
@@ -372,8 +418,8 @@ public class MainServer implements PlayerLostConnectionListener {
         Territory t = lobby.getTerritoryByID(msg.getOnTerritoryID());
         // during initial army placing phase, player can on place armies on unoccupied territories
         // or, if all territories are already occupied, on own territories
-        if ((!lobby.allTerritoriesOccupied() && t.isNotOccupied()) ||
-                (lobby.allTerritoriesOccupied() && t.getOccupierPlayerID() == msg.getFromPlayerID())) {
+        if ((/*!lobby.allTerritoriesOccupied() && */t.isNotOccupied()) ||
+                (/*lobby.allTerritoriesOccupied() && */ t.getOccupierPlayerID() == msg.getFromPlayerID())) {
 
             t.setOccupierPlayerID(msg.getFromPlayerID());
             t.addToArmyCount(msg.getArmyCountPlaced());

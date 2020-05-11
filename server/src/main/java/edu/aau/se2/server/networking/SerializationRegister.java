@@ -9,23 +9,21 @@ import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
 import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
+import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
-import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
-import edu.aau.se2.server.networking.dto.game.NewCardMessage;
-import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
-import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
@@ -70,5 +68,6 @@ public interface SerializationRegister {
         component.registerClass(DiceResultMessage.class);
         component.registerClass(AttackResultMessage.class);
         component.registerClass(OccupyTerritoryMessage.class);
+        component.registerClass(DefenderDiceCountMessage.class);
     }
 }

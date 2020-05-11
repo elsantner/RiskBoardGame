@@ -34,23 +34,21 @@ import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
 import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
+import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
-import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
-import edu.aau.se2.server.networking.dto.game.NewCardMessage;
-import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
-import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
@@ -247,8 +245,22 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleAttackResultMessage((AttackResultMessage) msg);
             } else if (msg instanceof OccupyTerritoryMessage) {
                 handleOccupyTerritoryMessage((OccupyTerritoryMessage) msg);
+            } else if (msg instanceof DiceResultMessage) {
+                handleDiceResultMessage((DiceResultMessage) msg);
+            } else if (msg instanceof DefenderDiceCountMessage) {
+                handleDefenderDiceCountMessage((DefenderDiceCountMessage) msg);
             }
         });
+    }
+
+    private void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
+        if (currentAttack != null) {
+            currentAttack.setDefenderDiceCount(msg.getDiceCount());
+
+            if (attackUpdatedListener != null) {
+                attackUpdatedListener.attackUpdated();
+            }
+        }
     }
 
     private void handleOccupyTerritoryMessage(OccupyTerritoryMessage msg) {
@@ -268,6 +280,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     // TODO: add actual logic (--> Carina)
     private void handleAttackResultMessage(AttackResultMessage msg) {
+        log.info("Attacker armies lost: " + msg.getArmiesLostAttacker());
+        log.info("Defender armies lost: " + msg.getArmiesLostDefender());
+
         this.currentAttack.setOccupyRequired(msg.isOccupyRequired());
         if (attackUpdatedListener != null) {
             attackUpdatedListener.attackUpdated();
@@ -459,8 +474,16 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private synchronized void handleDiceResultMessage(DiceResultMessage msg) {
-        // TODO show result
         log.info("Received DiceResultMessage");
+        if (currentAttack != null && msg.isFromAttacker()) {
+            currentAttack.setAttackerDiceResults(msg.getResults());
+        } else if(currentAttack != null) {
+            currentAttack.setDefenderDiceResults(msg.getResults());
+        }
+
+        if (attackUpdatedListener != null) {
+            attackUpdatedListener.attackUpdated();
+        }
     }
 
     /**
@@ -507,6 +530,12 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         client.sendMessage(new ReadyMessage(currentLobbyID, thisPlayer.getUid(), ready));
     }
 
+    public void sendDefenderDiceCount(int result) {
+        if (currentPhase == Phase.ATTACKING && currentAttack != null && isThisPlayerDefender()) {
+            client.sendMessage(new DefenderDiceCountMessage(currentLobbyID, thisPlayer.getUid(), result));
+        }
+    }
+
     public void togglePlayerReady() {
         log.info("Sending ReadyMessage");
         Player player = currentPlayers.get(thisPlayer.getUid());
@@ -535,7 +564,12 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     public void sendAttackerResults(List<Integer> results, boolean cheated) {
         log.info("Sending AttackerResults");
-        client.sendMessage(new DiceResultMessage(currentLobbyID, thisPlayer.getUid(), results, cheated));
+        client.sendMessage(new DiceResultMessage(currentLobbyID, thisPlayer.getUid(), results, cheated, true));
+    }
+
+    public void sendDefenderResults(List<Integer> results) {
+        log.info("Sending DefenderResults");
+        client.sendMessage(new DiceResultMessage(currentLobbyID, thisPlayer.getUid(), results, false, false));
     }
 
     @Override
