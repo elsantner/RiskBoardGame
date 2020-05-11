@@ -25,20 +25,17 @@ import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
-import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
-import edu.aau.se2.server.networking.dto.game.NewCardMessage;
-import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
-import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
@@ -58,8 +55,8 @@ public class MainServer implements PlayerLostConnectionListener {
         }
     }
 
-    private NetworkServerKryo server;
-    private DataStore ds;
+    protected NetworkServerKryo server;
+    protected DataStore ds;
     private Logger log;
 
     private void setupLogger() {
@@ -83,8 +80,12 @@ public class MainServer implements PlayerLostConnectionListener {
         ds = DataStore.getInstance();
         ds.setLostConnectionListener(this);
         setupLogger();
-        server = new NetworkServerKryo();
+        server = new NetworkServerKryo(ds);
         SerializationRegister.registerClassesForComponent(server);
+        registerCallbacks();
+    }
+
+    protected void registerCallbacks() {
         server.registerCallback(arg -> {
             try {
                 log.info("Received " + arg.getClass().getSimpleName());
@@ -116,6 +117,7 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleOccupyTerritoryMessage((OccupyTerritoryMessage) arg);
                 }
             } catch (Exception ex) {
+                ex.printStackTrace();
                 log.log(Level.SEVERE, "Exception: " + ex.getMessage(), ex);
             }
         });
@@ -127,7 +129,7 @@ public class MainServer implements PlayerLostConnectionListener {
         Territory fromTerritory = l.getTerritoryByID(msg.getFromTerritoryID());
 
         // if it's this players turn during an attack and army counts are fine
-        if (msg.getFromPlayerID() == l.getPlayerToAct().getUid() && l.attackRunning() &&
+        if (l.isPlayersTurn(msg.getFromPlayerID()) && l.attackRunning() &&
                 l.getCurrentAttack().isOccupyRequired() && territoryToOccupy.getArmyCount() == 0 &&
                 fromTerritory.getArmyCount() > msg.getArmyCount()) {
 
@@ -144,8 +146,12 @@ public class MainServer implements PlayerLostConnectionListener {
     private synchronized void handleAttackStartedMessage(AttackStartedMessage msg) {
         Lobby l = ds.getLobbyByID(msg.getLobbyID());
 
-        if (l.getPlayerToAct().getUid() == msg.getFromPlayerID()) {
-            l.setCurrentAttack(new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID()));
+        if (l.isPlayersTurn(msg.getFromPlayerID()) &&
+                l.isPlayersTerritory(l.getPlayerToAct().getUid(), msg.getFromTerritoryID()) &&
+                !l.isPlayersTerritory(l.getPlayerToAct().getUid(), msg.getToTerritoryID()) &&
+                l.getTerritoryByID(msg.getFromTerritoryID()).getArmyCount() > msg.getDiceCount()) {
+
+            l.setCurrentAttack(new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount()));
             server.broadcastMessage(msg, l.getPlayers());
         }
     }

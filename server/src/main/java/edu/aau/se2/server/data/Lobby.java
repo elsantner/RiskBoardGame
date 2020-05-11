@@ -228,8 +228,7 @@ public class Lobby {
     public Territory[] getTerritoriesOccupiedByPlayer(int playerID){
         ArrayList<Territory> terr = new ArrayList<>();
 
-        for (Territory t: this.territories
-             ) {
+        for (Territory t: this.territories) {
             if(t.getOccupierPlayerID() == playerID) terr.add(t);
         }
         return terr.toArray(new Territory[0]);
@@ -237,5 +236,13 @@ public class Lobby {
 
     public CardDeck getCardDeck() {
         return cardDeck;
+    }
+
+    public boolean isPlayersTurn(int playerID) {
+        return getPlayerToAct() != null && getPlayerToAct().getUid() == playerID;
+    }
+
+    public boolean isPlayersTerritory(int playerID, int territoryID) {
+        return territories[territoryID].getOccupierPlayerID() == playerID;
     }
 }
