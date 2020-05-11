@@ -406,24 +406,26 @@ public class MainServer implements PlayerLostConnectionListener {
         server.broadcastMessage(new PlayersChangedMessage(lobby.getLobbyID(),
                 SERVER_PLAYER_ID, lobby.getPlayers()), lobby.getPlayers());
 
-        if (!lobby.isStarted() && lobby.canStartGame()) {
-            lobby.setupForGameStart();
-            lobby.setStarted(true);
-            ds.updateLobby(lobby);
-            // start game
-            StartGameMessage sgm = new StartGameMessage(msg.getLobbyID(), SERVER_PLAYER_ID, lobby.getPlayers(),
-                    lobby.getPlayers().get(0).getArmyReserveCount());
-            server.broadcastMessage(sgm, lobby.getPlayers());
+        synchronized (lobby) {
+            if (!lobby.isStarted() && lobby.canStartGame()) {
+                lobby.setupForGameStart();
+                lobby.setStarted(true);
+                ds.updateLobby(lobby);
+                // start game
+                StartGameMessage sgm = new StartGameMessage(msg.getLobbyID(), SERVER_PLAYER_ID, lobby.getPlayers(),
+                        lobby.getPlayers().get(0).getArmyReserveCount());
+                server.broadcastMessage(sgm, lobby.getPlayers());
 
-            // TODO: replace once "dice to decide starter" is implemented
-            // send turn order and initiate initial army placing
-            try {
-                synchronized (lobby) {
-                    lobby.wait(1000);
+                // TODO: replace once "dice to decide starter" is implemented
+                // send turn order and initiate initial army placing
+                try {
+                    synchronized (lobby) {
+                        lobby.wait(1000);
+                    }
+                    broadcastInitialArmyPlacingMessage(lobby);
+                } catch (InterruptedException e) {
+                    broadcastInitialArmyPlacingMessage(lobby);
                 }
-                broadcastInitialArmyPlacingMessage(lobby);
-            } catch (InterruptedException e) {
-                broadcastInitialArmyPlacingMessage(lobby);
             }
         }
     }
