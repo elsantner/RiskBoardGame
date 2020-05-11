@@ -43,7 +43,7 @@ public class AttackTest {
     @Test
     public void testStartAttack() throws InterruptedException {
         DatabaseTestable clientToAct = DatabaseTestable.getClientToAct(dbs);
-        Territory fromTerritory = clientToAct.getMyTerritories().get(0);
+        Territory fromTerritory = clientToAct.getMyTerritory(2);
         Territory toTerritory = DatabaseTestable.getDifferentClient(dbs, clientToAct).getMyTerritories().get(0);
         clientToAct.attackStarted(fromTerritory.getId(), toTerritory.getId(), 1);
 

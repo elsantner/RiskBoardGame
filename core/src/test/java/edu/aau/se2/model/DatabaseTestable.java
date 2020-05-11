@@ -179,4 +179,13 @@ public class DatabaseTestable extends Database {
         Random rand = new Random();
         return territories.get(territories.size() > 1 ? rand.nextInt(territories.size()-1) : 0);
     }
+
+    public Territory getMyTerritory(int minArmyCount) {
+        for (Territory t : getMyTerritories()) {
+            if (t.getArmyCount() >= minArmyCount) {
+                return t;
+            }
+        }
+        return null;
+    }
 }

@@ -66,9 +66,9 @@ public class DatabaseSetupGameTest {
         // wait for server and client to handle messages
         Thread.sleep(5000);
 
-        /*for (AtomicBoolean b: clientsReceivedGameStarted) {
+        for (AtomicBoolean b: clientsReceivedGameStarted) {
             Assert.assertTrue(b.get());
-        }*/
+        }
         // check if all armies were placed (all clients count every ArmyPlacedMessage --> *NUM_CLIENTS*NUM_CLIENTS)
         Assert.assertEquals(ArmyCountHelper.getStartCount(NUM_CLIENTS)*NUM_CLIENTS*NUM_CLIENTS +        // initial armies
                 armiesReceivedInTurns.get()*NUM_CLIENTS +                                                        // turn armies
@@ -158,8 +158,6 @@ public class DatabaseSetupGameTest {
                 synchronized (server) {
                     if (newPlayers.size() == NUM_CLIENTS && !setReady.get()) {
                         setReady.set(true);
-
-                        clients.get(0).togglePlayerReady();
 
                         for (Database c : clients) {
                             c.setPlayerReady(true);
