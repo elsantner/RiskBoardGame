@@ -74,17 +74,17 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         statisticsOpponentsLabel = new Label("Spieler", new Label.LabelStyle(generateFont(), Color.WHITE));
 
         //row 1
-        table.add(unitsLabel).width(vp.getScreenWidth()/3).padTop(5).padLeft(15);
-        table.add(yourTurnLabel).width(vp.getScreenWidth()/3).expandX().padTop(5);
-        table.add(statisticsOpponentsLabel).expandX().right().padTop(5).padRight(15);
+        table.add(unitsLabel).width(vp.getScreenWidth()/3).padTop(vp.getWorldHeight() * 0.01f).padLeft(vp.getWorldWidth() * 0.02f);
+        table.add(yourTurnLabel).width(vp.getScreenWidth()/3).expandX().padTop(vp.getWorldHeight() * 0.01f);
+        table.add(statisticsOpponentsLabel).expandX().right().padTop(vp.getWorldHeight() * 0.01f).padRight(vp.getWorldWidth() * 0.02f);
         table.row();
         //remaining rows
         for(int i = 0; i < playersCount; i++){
             currentPlayerLabels[i] = new Label(currentPlayerNames[i], new Label.LabelStyle(generateFont(), Color.valueOf(currentPlayerColors[i].toString())));
             occupiedTerritoriesLabel[i] = new Label( "Territorien: " + occupiedTerritoriesCount[i] + " / 42", new Label.LabelStyle(generateFont(), Color.valueOf(currentPlayerColors[i].toString())));
-            table.add(occupiedTerritoriesLabel[i]).width(vp.getScreenWidth()/3).padLeft(15);
+            table.add(occupiedTerritoriesLabel[i]).width(vp.getScreenWidth()/3).padLeft(vp.getWorldWidth() * 0.02f);
             table.add().width(vp.getScreenWidth()/3);
-            table.add(currentPlayerLabels[i]).expandX().right().padRight(15);
+            table.add(currentPlayerLabels[i]).expandX().right().padRight(vp.getWorldWidth() * 0.02f);
             table.row();
         }
         table.row();
@@ -120,6 +120,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         FreeTypeFontParameter parameter = new FreeTypeFontParameter();
         parameter.size = 32;
         BitmapFont font = generator.generateFont(parameter);
+        font.getData().setScale((getViewport().getWorldWidth()*1.5f) / Territory.REFERENCE_WIDTH);
         generator.dispose();
         return font;
     }
