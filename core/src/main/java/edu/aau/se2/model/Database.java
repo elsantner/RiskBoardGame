@@ -266,11 +266,13 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
-    // TODO: add actual logic (--> Carina)
     private void handleAttackResultMessage(AttackResultMessage msg) {
         log.info("Attacker armies lost: " + msg.getArmiesLostAttacker());
         log.info("Defender armies lost: " + msg.getArmiesLostDefender());
 
+        this.currentAttack.setArmiesLostAttacker(msg.getArmiesLostAttacker());
+        this.currentAttack.setArmiesLostDefender(msg.getArmiesLostDefender());
+        this.currentAttack.setCheated(msg.isCheated());
         this.currentAttack.setOccupyRequired(msg.isOccupyRequired());
         if (attackUpdatedListener != null) {
             attackUpdatedListener.attackUpdated();

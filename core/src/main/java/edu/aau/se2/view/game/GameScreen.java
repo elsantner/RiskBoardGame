@@ -304,10 +304,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         Attack a = db.getAttack();
         hudStage.setCurrentAttack(a);
         if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
+            diceStage.hide();
             showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
-        }
-
-        if (a != null && a.getDefenderDiceCount() != -1 && a.getDefenderDiceResults() == null && db.isThisPlayerDefender()) {
+        } else if (a != null && a.getDefenderDiceCount() != -1 && a.getDefenderDiceResults() == null && db.isThisPlayerDefender()) {
             List<Integer> result = DiceStage.rollDice(a.getDefenderDiceCount());
             db.sendDefenderResults(result);
             diceStage.showResults(result, false);
@@ -317,6 +316,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
             }
             if (a.getDefenderDiceResults() != null) {
                 diceStage.showResults(a.getDefenderDiceResults(), false);
+            }
+
+            if(a.getArmiesLostAttacker() != -1 && a.getArmiesLostDefender() != -1) {
+                diceStage.showFinalResults(a.getArmiesLostAttacker(), a.getArmiesLostDefender(), a.isOccupyRequired(), a.isCheated());
             }
         }
     }

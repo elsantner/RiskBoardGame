@@ -189,7 +189,6 @@ public class MainServer implements PlayerLostConnectionListener {
         Lobby l = ds.getLobbyByID(lobbyId);
 
         if (l.attackRunning()) {
-            // TODO auswertung
             int armiesLostAttacker = 0;
             int armiesLostDefender = 0;
 
@@ -209,10 +208,23 @@ public class MainServer implements PlayerLostConnectionListener {
                 }
             }
 
-            int defenderArmyCount = l.getTerritoryByID(l.getCurrentAttack().getToTerritoryID()).getArmyCount();
+            Territory fromTerritory = l.getTerritoryByID(l.getCurrentAttack().getFromTerritoryID());
+            Territory toTerritory = l.getTerritoryByID(l.getCurrentAttack().getToTerritoryID());
 
-            // TODO broadcast result
-            server.broadcastMessage(new AttackResultMessage(lobbyId, l.getPlayerToAct().getUid(), armiesLostAttacker, armiesLostDefender, l.getCurrentAttack().isCheated(), armiesLostDefender >= defenderArmyCount), l.getPlayers());
+            fromTerritory.setArmyCount(Math.max(0, fromTerritory.getArmyCount() - armiesLostAttacker));
+            toTerritory.setArmyCount(Math.max(0, toTerritory.getArmyCount() - armiesLostDefender));
+
+            boolean occupyRequired = toTerritory.getArmyCount() == 0;
+            l.getCurrentAttack().setOccupyRequired(occupyRequired);
+            boolean wasCheated = l.getCurrentAttack().isCheated();
+
+            if (!occupyRequired) {
+                l.setCurrentAttack(null);
+            }
+
+            ds.updateLobby(l);
+
+            server.broadcastMessage(new AttackResultMessage(lobbyId, l.getPlayerToAct().getUid(), armiesLostAttacker, armiesLostDefender, wasCheated, occupyRequired), l.getPlayers());
         }
     }
 
@@ -427,8 +439,8 @@ public class MainServer implements PlayerLostConnectionListener {
         Territory t = lobby.getTerritoryByID(msg.getOnTerritoryID());
         // during initial army placing phase, player can on place armies on unoccupied territories
         // or, if all territories are already occupied, on own territories
-        if ((/*!lobby.allTerritoriesOccupied() && */t.isNotOccupied()) ||
-                (/*lobby.allTerritoriesOccupied() && */ t.getOccupierPlayerID() == msg.getFromPlayerID())) {
+        if ((!lobby.allTerritoriesOccupied() && t.isNotOccupied()) ||
+                (lobby.allTerritoriesOccupied() && t.getOccupierPlayerID() == msg.getFromPlayerID())) {
 
             t.setOccupierPlayerID(msg.getFromPlayerID());
             t.addToArmyCount(msg.getArmyCountPlaced());
