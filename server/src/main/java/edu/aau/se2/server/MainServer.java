@@ -58,8 +58,8 @@ public class MainServer implements PlayerLostConnectionListener {
         }
     }
 
-    private NetworkServerKryo server;
-    private DataStore ds;
+    protected NetworkServerKryo server;
+    protected DataStore ds;
     private Logger log;
 
     private void setupLogger() {
@@ -83,8 +83,12 @@ public class MainServer implements PlayerLostConnectionListener {
         ds = DataStore.getInstance();
         ds.setLostConnectionListener(this);
         setupLogger();
-        server = new NetworkServerKryo();
+        server = new NetworkServerKryo(ds);
         SerializationRegister.registerClassesForComponent(server);
+        registerCallbacks();
+    }
+
+    protected void registerCallbacks() {
         server.registerCallback(arg -> {
             try {
                 log.info("Received " + arg.getClass().getSimpleName());
@@ -118,6 +122,7 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleDefenderDiceCountMessage((DefenderDiceCountMessage) arg);
                 }
             } catch (Exception ex) {
+                ex.printStackTrace();
                 log.log(Level.SEVERE, "Exception: " + ex.getMessage(), ex);
             }
         });
@@ -138,7 +143,7 @@ public class MainServer implements PlayerLostConnectionListener {
         Territory fromTerritory = l.getTerritoryByID(msg.getFromTerritoryID());
 
         // if it's this players turn during an attack and army counts are fine
-        if (msg.getFromPlayerID() == l.getPlayerToAct().getUid() && l.attackRunning() &&
+        if (l.isPlayersTurn(msg.getFromPlayerID()) && l.attackRunning() &&
                 l.getCurrentAttack().isOccupyRequired() && territoryToOccupy.getArmyCount() == 0 &&
                 fromTerritory.getArmyCount() > msg.getArmyCount()) {
 
@@ -155,8 +160,12 @@ public class MainServer implements PlayerLostConnectionListener {
     private synchronized void handleAttackStartedMessage(AttackStartedMessage msg) {
         Lobby l = ds.getLobbyByID(msg.getLobbyID());
 
-        if (l.getPlayerToAct().getUid() == msg.getFromPlayerID()) {
-            l.setCurrentAttack(new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID()));
+        if (l.isPlayersTurn(msg.getFromPlayerID()) &&
+                l.isPlayersTerritory(l.getPlayerToAct().getUid(), msg.getFromTerritoryID()) &&
+                !l.isPlayersTerritory(l.getPlayerToAct().getUid(), msg.getToTerritoryID()) &&
+                l.getTerritoryByID(msg.getFromTerritoryID()).getArmyCount() > msg.getDiceCount()) {
+
+            l.setCurrentAttack(new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount()));
             server.broadcastMessage(msg, l.getPlayers());
         }
     }
@@ -446,24 +455,26 @@ public class MainServer implements PlayerLostConnectionListener {
         server.broadcastMessage(new PlayersChangedMessage(lobby.getLobbyID(),
                 SERVER_PLAYER_ID, lobby.getPlayers()), lobby.getPlayers());
 
-        if (!lobby.isStarted() && lobby.canStartGame()) {
-            lobby.setupForGameStart();
-            lobby.setStarted(true);
-            ds.updateLobby(lobby);
-            // start game
-            StartGameMessage sgm = new StartGameMessage(msg.getLobbyID(), SERVER_PLAYER_ID, lobby.getPlayers(),
-                    lobby.getPlayers().get(0).getArmyReserveCount());
-            server.broadcastMessage(sgm, lobby.getPlayers());
+        synchronized (lobby) {
+            if (!lobby.isStarted() && lobby.canStartGame()) {
+                lobby.setupForGameStart();
+                lobby.setStarted(true);
+                ds.updateLobby(lobby);
+                // start game
+                StartGameMessage sgm = new StartGameMessage(msg.getLobbyID(), SERVER_PLAYER_ID, lobby.getPlayers(),
+                        lobby.getPlayers().get(0).getArmyReserveCount());
+                server.broadcastMessage(sgm, lobby.getPlayers());
 
-            // TODO: replace once "dice to decide starter" is implemented
-            // send turn order and initiate initial army placing
-            try {
-                synchronized (lobby) {
-                    lobby.wait(1000);
+                // TODO: replace once "dice to decide starter" is implemented
+                // send turn order and initiate initial army placing
+                try {
+                    synchronized (lobby) {
+                        lobby.wait(1000);
+                    }
+                    broadcastInitialArmyPlacingMessage(lobby);
+                } catch (InterruptedException e) {
+                    broadcastInitialArmyPlacingMessage(lobby);
                 }
-                broadcastInitialArmyPlacingMessage(lobby);
-            } catch (InterruptedException e) {
-                broadcastInitialArmyPlacingMessage(lobby);
             }
         }
     }

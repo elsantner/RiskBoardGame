@@ -15,8 +15,8 @@ public class DataStore {
         return instance;
     }
 
-    private TreeMap<Integer, Lobby> lobbies;
-    private TreeMap<Integer, Player> playersOnline;
+    protected TreeMap<Integer, Lobby> lobbies;
+    protected TreeMap<Integer, Player> playersOnline;
     private int nextLobbyID;
     private int nextPlayerID;
     private PlayerLostConnectionListener lostConnectionListener;

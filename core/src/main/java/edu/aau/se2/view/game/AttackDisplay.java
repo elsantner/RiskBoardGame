@@ -21,7 +21,6 @@ public class AttackDisplay extends Group {
 
     private AssetManager assetManager;
     private BitmapFont font;
-    private Table tableContent;
     private Table tableContainer;
     private Texture attackArrow;
     private Drawable background;
@@ -68,7 +67,7 @@ public class AttackDisplay extends Group {
         tableContainer.setFillParent(true);
         tableContainer.setOrigin(Align.center);
 
-        tableContent = new Table();
+        Table tableContent = new Table();
         tableContent.pad(width / 30f);
 
         tableContent.add(labelAttacker).minHeight(font.getLineHeight());
@@ -83,7 +82,7 @@ public class AttackDisplay extends Group {
         Container<Table> container = new Container<>(tableContent);
         container.setBackground(background);
 
-        tableContainer.add(container).width(Gdx.graphics.getWidth() * 0.60f);
+        tableContainer.add(container).width(Gdx.graphics.getWidth() * 0.50f);
         tableContainer.row();
         this.addActor(tableContainer);
     }

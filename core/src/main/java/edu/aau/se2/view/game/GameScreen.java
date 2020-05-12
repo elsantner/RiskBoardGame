@@ -22,9 +22,6 @@ import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.dices.DiceStage;
 
-/**
- * @author Elias
- */
 public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
         OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener, OnAttackUpdatedListener {
     private BoardStage boardStage;
@@ -32,7 +29,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private CardStage cardStage;
     private HudStage hudStage;
     private Database db;
-    private InputMultiplexer inputMultiplexer;
 
     public GameScreen(RiskGame game) {
         this(game, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
