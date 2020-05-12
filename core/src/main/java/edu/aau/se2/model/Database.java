@@ -274,6 +274,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         this.currentAttack.setArmiesLostDefender(msg.getArmiesLostDefender());
         this.currentAttack.setCheated(msg.isCheated());
         this.currentAttack.setOccupyRequired(msg.isOccupyRequired());
+        territoryData[currentAttack.getFromTerritoryID()].subFromArmyCount(msg.getArmiesLostAttacker());
+        territoryData[currentAttack.getToTerritoryID()].subFromArmyCount(msg.getArmiesLostDefender());
+        notifyTerritoryUpdateListener(territoryData[currentAttack.getFromTerritoryID()]);
+        notifyTerritoryUpdateListener(territoryData[currentAttack.getToTerritoryID()]);
+
         if (attackUpdatedListener != null) {
             attackUpdatedListener.attackUpdated();
         }
