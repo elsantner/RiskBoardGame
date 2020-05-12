@@ -56,10 +56,9 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         setCurrentPlayersColorOnHud(currentPlayers);
         showCards = false;
 
-        setupHUD();
-
-        this.hudInteractionListener = l;
         setupPhaseDisplay();
+        setupHUD();
+        this.hudInteractionListener = l;
         setupAttackDisplay();
         attackDisplay.setVisible(true);
     }
