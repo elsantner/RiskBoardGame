@@ -87,7 +87,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         diceStage.act(delta);
         diceStage.draw();
 
-        if(hudStage.getShowCards()){
+        if (hudStage.getShowCards()) {
             if (cardStage.isUpdated()) {
                 cardStage.updateActor();
             }
