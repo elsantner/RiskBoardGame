@@ -1,7 +1,10 @@
 package edu.aau.se2.server.networking;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import edu.aau.se2.server.MainServer;
 import edu.aau.se2.server.data.Attack;
@@ -9,6 +12,7 @@ import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.logic.ArmyCountHelper;
 import edu.aau.se2.server.logic.DiceHelper;
+import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
 
@@ -58,18 +62,13 @@ public class MainServerTestable extends MainServer {
      * Creates a lobby (host = clients[0]) and lets all clients join.
      * @param clients Clients to setup lobby for
      * @return lobby ID
-     * @throws IOException If server connection failed
      */
-    public int setupLobby(List<NetworkClientKryo> clients) throws IOException {
+    public int setupLobby(List<NetworkClientKryo> clients) {
         if (!this.server.isRunning()) {
             throw new IllegalStateException("must start server before setting up lobby");
         }
         if (clients.size() > 6) {
             throw new IllegalArgumentException("too many clients");
-        }
-
-        for (NetworkClientKryo c : clients) {
-            c.connect("localhost");
         }
 
         List<Player> players = ((DataStoreTestable)ds).getPlayers();
@@ -78,6 +77,34 @@ public class MainServerTestable extends MainServer {
             l.join(players.get(i));
         }
         return l.getLobbyID();
+    }
+
+    /**
+     * Connects all given clients to the server.
+     * @param clients Clients to connect to server.
+     * @param timeoutMS Maximum waiting time for for finish in MS.
+     * @return Map of Client --> Player
+     * @throws IOException If connection fails.
+     * @throws TimeoutException If no finish within timeout.
+     */
+    public Map<NetworkClientKryo, Player> connect(List<NetworkClientKryo> clients, int timeoutMS) throws IOException, TimeoutException {
+        if (!this.server.isRunning()) {
+            throw new IllegalStateException("must start server before connecting clients");
+        }
+
+        Map<NetworkClientKryo, Player> players = new HashMap<>();
+
+        for (NetworkClientKryo c : clients) {
+            c.registerCallback(argument -> {
+                if (argument instanceof ConnectedMessage) {
+                    players.put(c, ((ConnectedMessage) argument).getPlayer());
+                }
+            });
+            c.connect("localhost");
+        }
+        // wait for all clients to connect
+        wait(() -> players.size() < clients.size(), timeoutMS);
+        return players;
     }
 
     /**
@@ -97,5 +124,21 @@ public class MainServerTestable extends MainServer {
 
     public DataStoreTestable getDataStore() {
         return (DataStoreTestable) ds;
+    }
+
+    private void wait(WaitingCondition condition, int timeoutMS) throws TimeoutException {
+        long startTime = System.currentTimeMillis();
+        while (!condition.isDone()) {
+            if ((System.currentTimeMillis() - startTime) > timeoutMS) {
+                throw new TimeoutException();
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {/*goto loop header*/}
+        }
+    }
+
+    private interface WaitingCondition {
+        boolean isDone();
     }
 }
