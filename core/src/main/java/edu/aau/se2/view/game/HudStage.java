@@ -233,6 +233,10 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         return this.showCards;
     }
 
+    public void setShowCards(boolean showCards) {
+        this.showCards = showCards;
+    }
+
     public void setPhaseSkipable(boolean b) {
         if (db.isThisPlayersTurn()) {
             phaseDisplay.setSkipButtonVisible(b);

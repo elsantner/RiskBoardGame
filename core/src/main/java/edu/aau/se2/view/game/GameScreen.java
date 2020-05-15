@@ -220,14 +220,23 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private void showAskForCardExchange() {
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
+
+        boolean state = hudStage.getShowCards();
+        if (!state) {
+            hudStage.setShowCards(true);
+        }
         ConfirmDialog dialog = new ConfirmDialog(uiSkin, "Kartentausch",
                 "Moechten Sie 3 Karten eintauschen?", "Ja", "Nein",
                 result -> {
                     db.exchangeCards(result);
+                    if (!state) {
+                        hudStage.setShowCards(false);
+                    }
                     boardStage.setInteractable(true);
                 });
-        showDialog(dialog);
+        dialog.show(hudStage).moveBy(0, hudStage.getViewport().getWorldHeight() * 0.1f);
     }
+
 
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
