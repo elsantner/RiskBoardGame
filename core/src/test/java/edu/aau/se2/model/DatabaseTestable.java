@@ -13,6 +13,7 @@ import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.Callback;
+import edu.aau.se2.server.networking.MainServerTestable;
 
 public class DatabaseTestable extends Database {
     public DatabaseTestable() {
@@ -53,42 +54,19 @@ public class DatabaseTestable extends Database {
         }
 
         // wait until initial army placement is finished
-        long startTime = System.currentTimeMillis();
-        while (!dbs[dbs.length - 1].isInitialArmyPlacementFinished()) {
-            if ((System.currentTimeMillis() - startTime) > timeoutMS) {
-                throw new TimeoutException("setup game did not finish within " + timeoutMS + " ms");
-            }
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                // to to loop header
-            }
-        }
+        wait(() -> dbs[dbs.length - 1].isInitialArmyPlacementFinished(), timeoutMS);
     }
 
     public static void placeTurnArmies(DatabaseTestable db, int timeoutMS) throws TimeoutException {
-        db.setArmyReserveChangedListener(new OnArmyReserveChangedListener() {
-            @Override
-            public void newArmyCount(int armyCount, boolean isInitialCount) {
-                if (armyCount > 0) {
-                    db.armyPlaced(db.getNextTerritoryToPlaceArmiesOn().getId(), 1);
-                }
+        db.setArmyReserveChangedListener((armyCount, isInitialCount) -> {
+            if (armyCount > 0) {
+                db.armyPlaced(db.getNextTerritoryToPlaceArmiesOn().getId(), 1);
             }
         });
         db.armyPlaced(db.getNextTerritoryToPlaceArmiesOn().getId(), 1);
 
         // wait until initial army placement is finished
-        long startTime = System.currentTimeMillis();
-        while (db.getCurrentArmyReserve() != 0) {
-            if ((System.currentTimeMillis() - startTime) > timeoutMS) {
-                throw new TimeoutException("setup game did not finish within " + timeoutMS + " ms");
-            }
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                // to to loop header
-            }
-        }
+        wait(() -> db.getCurrentArmyReserve() == 0, timeoutMS);
     }
 
     /**
@@ -112,17 +90,7 @@ public class DatabaseTestable extends Database {
         });
 
         // wait until all clients have joined
-        long startTime = System.currentTimeMillis();
-        while (joinCountRemaining.get() != 0) {
-            if ((System.currentTimeMillis() - startTime) > timeoutMS) {
-                throw new TimeoutException("setup lobby did not finish within " + timeoutMS + " ms");
-            }
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                // to to loop header
-            }
-        }
+        wait(() -> joinCountRemaining.get() == 0, timeoutMS);
     }
 
     private void connectAndHost(Callback<Integer> cb) throws IOException {
@@ -196,5 +164,21 @@ public class DatabaseTestable extends Database {
             }
         }
         return null;
+    }
+
+    private static void wait(WaitingCondition condition, int timeoutMS) throws TimeoutException {
+        long startTime = System.currentTimeMillis();
+        while (!condition.isDone()) {
+            if ((System.currentTimeMillis() - startTime) > timeoutMS) {
+                throw new TimeoutException();
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {/*goto loop header*/}
+        }
+    }
+
+    private interface WaitingCondition {
+        boolean isDone();
     }
 }

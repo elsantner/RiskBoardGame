@@ -12,29 +12,29 @@ import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.MainServer;
 import edu.aau.se2.server.data.Player;
 
-public class JoinLobbyTest {
+public class JoinLobbyTest extends AbstractDatabaseTest {
     private static final int NUM_CLIENTS = 3;
 
-    private MainServer server;
-    private Database[] clients;
     private AtomicInteger countJoinedMessages;
     private AtomicInteger countLeftMessages;
     private AtomicInteger errorCount;
 
+    public JoinLobbyTest() {
+        super(NUM_CLIENTS);
+    }
+
     @Before
-    public void setup() {
-        clients = new Database[NUM_CLIENTS];
+    public void setup() throws IOException {
         countJoinedMessages = new AtomicInteger(0);
         countLeftMessages = new AtomicInteger(0);
         errorCount = new AtomicInteger(0);
+        server.start();
     }
 
     @Test
     public void testJoinLobby() throws IOException, InterruptedException {
-        startServer();
-        Thread.sleep(1000);
         setupClients();
-        clients[0].connectIfNotConnected();
+        dbs[0].connectIfNotConnected();
 
         // wait for server and client to handle messages
         Thread.sleep(3000);
@@ -42,25 +42,18 @@ public class JoinLobbyTest {
         Assert.assertEquals(NUM_CLIENTS, countJoinedMessages.get());
         Assert.assertEquals(NUM_CLIENTS-1, countLeftMessages.get());
         Assert.assertEquals(2, errorCount.get());
-        Assert.assertEquals(1, clients[0].getCurrentPlayers().size());      // since all but the host have left again
+        Assert.assertEquals(1, dbs[0].getCurrentPlayers().size());      // since all but the host have left again
     }
 
-    private void startServer() throws IOException {
-        server = new MainServer();
-        server.start();
-    }
-
-    private void setupClients() throws IOException {
-        DatabaseTestable.setServerAddress("localhost");
+    private void setupClients() {
 
         for (int i=0; i<NUM_CLIENTS; i++) {
-            clients[i] = new DatabaseTestable();
-            clients[i].setErrorListener(errorCode -> errorCount.addAndGet(1));
+            dbs[i].setErrorListener(errorCode -> errorCount.addAndGet(1));
         }
-        clients[0].setConnectionChangedListener(new OnConnectionChangedListener() {
+        dbs[0].setConnectionChangedListener(new OnConnectionChangedListener() {
             @Override
             public void connected(Player thisPlayer) {
-                clients[0].hostLobby();
+                dbs[0].hostLobby();
             }
 
             @Override
@@ -68,10 +61,10 @@ public class JoinLobbyTest {
 
             }
         });
-        clients[0].setJoinedLobbyListener((lobbyID, host, players) -> {
+        dbs[0].setJoinedLobbyListener((lobbyID, host, players) -> {
             countJoinedMessages.addAndGet(1);
             // trigger first error: joining already joined lobby
-            clients[0].joinLobby(clients[0].getCurrentLobbyID());
+            dbs[0].joinLobby(dbs[0].getCurrentLobbyID());
             letClientsJoinLobby();
         });
     }
@@ -79,15 +72,15 @@ public class JoinLobbyTest {
     private void letClientsJoinLobby() {
         for (int i=1; i<NUM_CLIENTS; i++) {
             int finalI = i;
-            clients[i].setConnectionChangedListener(new OnConnectionChangedListener() {
+            dbs[i].setConnectionChangedListener(new OnConnectionChangedListener() {
                 @Override
                 public void connected(Player thisPlayer) {
                     // trigger second error: joining non-existent lobby
                     if (finalI == 1) {
-                        clients[1].joinLobby(999);
+                        dbs[1].joinLobby(999);
                     }
 
-                    clients[finalI].triggerLobbyListUpdate();
+                    dbs[finalI].triggerLobbyListUpdate();
                 }
 
                 @Override
@@ -95,19 +88,19 @@ public class JoinLobbyTest {
 
                 }
             });
-            clients[i].setLobbyListChangedListener(lobbyList -> clients[finalI].joinLobby(lobbyList.get(0).getLobbyID()));
+            dbs[i].setLobbyListChangedListener(lobbyList -> dbs[finalI].joinLobby(lobbyList.get(0).getLobbyID()));
 
-            clients[i].setJoinedLobbyListener((lobbyID, host, players) -> {
-                Assert.assertEquals(clients[0].getThisPlayer().getUid(), host.getUid());
+            dbs[i].setJoinedLobbyListener((lobbyID, host, players) -> {
+                Assert.assertEquals(dbs[0].getThisPlayer().getUid(), host.getUid());
                 countJoinedMessages.addAndGet(1);
-                clients[finalI].leaveLobby();       // leaf lobby again
+                dbs[finalI].leaveLobby();       // leaf lobby again
             });
-            clients[i].setLeftLobbyListener((wasClosed) -> {
+            dbs[i].setLeftLobbyListener((wasClosed) -> {
                 countLeftMessages.addAndGet(1);
             });
 
             try {
-                clients[i].connectIfNotConnected();
+                dbs[i].connectIfNotConnected();
             } catch (IOException e) {
                 e.printStackTrace();    // handling not important because test will fail if this ex is thrown
             }
@@ -116,6 +109,6 @@ public class JoinLobbyTest {
 
     @After
     public void teardown() {
-        server.stop();
+        disconnectAll();
     }
 }

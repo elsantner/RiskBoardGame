@@ -12,26 +12,17 @@ import edu.aau.se2.server.networking.MainServerTestable;
 
 import static org.junit.Assert.assertEquals;
 
-public class AttackTest {
+public class AttackTest extends AbstractDatabaseTest {
     private static final int NUM_CLIENTS = 3;
 
-    private MainServerTestable server;
-    private DatabaseTestable[] dbs;
+    public AttackTest() {
+        super(NUM_CLIENTS);
+    }
 
     @Before
     public void setup() throws IOException, TimeoutException {
-        server = new MainServerTestable();
         server.start();
-        setupClients();
         setupScenario();
-    }
-
-    private void setupClients() {
-        DatabaseTestable.setServerAddress("localhost");
-        dbs = new DatabaseTestable[NUM_CLIENTS];
-        for (int i=0; i<NUM_CLIENTS; i++) {
-            dbs[i] = new DatabaseTestable();
-        }
     }
 
     private void setupScenario() throws IOException, TimeoutException {
@@ -58,6 +49,6 @@ public class AttackTest {
 
     @After
     public void teardown() {
-        server.stop();
+        disconnectAll();
     }
 }
