@@ -79,7 +79,7 @@ public class TurnsTest extends AbstractServerTest {
                 clientPlayers.get(turnOrder.get(0)).getUid()));
         nextTurnMsgsSent.addAndGet(1);
 
-        Thread.sleep(2000);
+        Thread.sleep(4000);
         // check that all messages were received by all clients
         assertEquals(NUM_CLIENTS*NUM_TURNS, nextTurnMsgCount.get());
     }
