@@ -131,7 +131,7 @@ public class MainServer implements PlayerLostConnectionListener {
     private synchronized void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
         Lobby l = ds.getLobbyByID(msg.getLobbyID());
 
-        if (l.getCurrentAttack() != null) {
+        if (l.attackRunning() && l.getDefender().getUid() == msg.getFromPlayerID() && l.getTerritoryByID(l.getCurrentAttack().getToTerritoryID()).getArmyCount() >= msg.getDiceCount() && msg.getDiceCount() <= 2) {
             l.getCurrentAttack().setDefenderDiceCount(msg.getDiceCount());
             server.broadcastMessage(msg, l.getPlayers());
         }
@@ -163,7 +163,8 @@ public class MainServer implements PlayerLostConnectionListener {
         if (l.isPlayersTurn(msg.getFromPlayerID()) &&
                 l.isPlayersTerritory(l.getPlayerToAct().getUid(), msg.getFromTerritoryID()) &&
                 !l.isPlayersTerritory(l.getPlayerToAct().getUid(), msg.getToTerritoryID()) &&
-                l.getTerritoryByID(msg.getFromTerritoryID()).getArmyCount() > msg.getDiceCount()) {
+                l.getTerritoryByID(msg.getFromTerritoryID()).getArmyCount() > msg.getDiceCount() &&
+                msg.getDiceCount() <= 3) {
 
             l.setCurrentAttack(new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount()));
             server.broadcastMessage(msg, l.getPlayers());
@@ -174,13 +175,18 @@ public class MainServer implements PlayerLostConnectionListener {
         Lobby l = ds.getLobbyByID(msg.getLobbyID());
 
         // if it's attackers turn and attack running, broadcast message to lobby
-        if (l.getPlayerToAct().getUid() == msg.getFromPlayerID() && l.attackRunning()) {
+        if (l.getPlayerToAct().getUid() == msg.getFromPlayerID() && l.attackRunning() && msg.getResults().size() == l.getCurrentAttack().getAttackerDiceCount()) {
             l.getCurrentAttack().setAttackerDiceResults(msg.getResults());
             l.getCurrentAttack().setCheated(msg.isCheated());
             server.broadcastMessage(new DiceResultMessage(msg), l.getPlayers());
-        } else if (l.attackRunning() && !msg.isFromAttacker()) {
+        } else if (l.attackRunning() && l.getDefender().getUid() == msg.getFromPlayerID() && msg.getResults().size() == l.getCurrentAttack().getDefenderDiceCount()) {
             l.getCurrentAttack().setDefenderDiceResults(msg.getResults());
             server.broadcastMessage(msg, l.getPlayers());
+            try {
+                Thread.sleep(4000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             attackFinished(l.getLobbyID());
         }
     }

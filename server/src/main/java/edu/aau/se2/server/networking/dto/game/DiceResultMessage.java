@@ -18,6 +18,7 @@ public class DiceResultMessage extends InLobbyMessage {
         super(lobbyID, fromPlayerID);
         this.results = results;
         this.attacker = attacker;
+        this.cheated = false;
     }
 
     public DiceResultMessage(int lobbyID, int fromPlayerID, List<Integer> results, boolean cheated, boolean attacker) {
