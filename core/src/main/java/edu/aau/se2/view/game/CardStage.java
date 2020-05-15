@@ -1,12 +1,9 @@
 package edu.aau.se2.view.game;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -31,37 +28,31 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
     private Table outer;
     private ArrayList<String> cardNames;
     private ScrollPane scrollPane;
-    private Label nameLabel;
     private AssetManager assetManager;
     private static final String WILD1 = "card_wild1";
     private static final String WILD2 = "card_wild2";
     private static final String WILD_PATH = "cards/card_wild.png";
 
 
+    /**
+     * This is a simple scrollable list of cards.
+     * cardContainer: inner table of image actors
+     * the container is surrounded by a ScrollPane
+     * ScrollPane is inside outer table, that is added as actor
+     */
     public CardStage(AbstractScreen screen, Viewport viewport) {
-
         super(viewport, screen);
-        Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
-        nameLabel = new Label("", skin);
         this.updated = false;
         this.log = Logger.getLogger(TAG);
         this.assetManager = this.getScreen().getGame().getAssetManager();
-
-        /*
-        This is a simple scrollable list of cards.
-        cardContainer: inner table of image actors
-        the container is surrounded by a ScrollPane
-        ScrollPane is inside outer table, that is added as actor
-         */
 
         this.cardNames = new ArrayList<>();
         this.cardContainer = new Table();
 
         scrollPane = new ScrollPane(cardContainer);
-        outer = new Table();
+        outer = new Table().bottom();
         outer.setFillParent(true);
-        outer.add(nameLabel).expand();
-        outer.row();
+        //outer.setDebug(true);
 
         outer.add(scrollPane).fill().bottom().pad(0, 0, 20f, 0);
 
@@ -69,8 +60,7 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
     }
 
     public void updateActor() {
-
-        outer.remove();
+        outer.removeActor(scrollPane);
         this.cardContainer = new Table();
 
         for (String s : cardNames.toArray(new String[0])
@@ -79,14 +69,7 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
         }
 
         scrollPane = new ScrollPane(cardContainer);
-        outer = new Table();
-        outer.setFillParent(true);
-        outer.add(nameLabel).expand();
-        outer.row();
-
         outer.add(scrollPane).fill().bottom().pad(0, 0, 20f, 0);
-
-        this.addActor(outer);
 
         this.updated = false;
     }
@@ -115,7 +98,6 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
 
     @Override
     public void singleNewCard(String cardName) {
-
         this.cardNames.add(cardName);
         if (!assetManager.isLoaded(WILD_PATH) && (cardName.equals(WILD1) || cardName.equals(WILD2))) {
             assetManager.load((WILD_PATH), Texture.class);
