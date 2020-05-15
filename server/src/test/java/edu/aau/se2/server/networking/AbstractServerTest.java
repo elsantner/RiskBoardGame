@@ -2,7 +2,7 @@ package edu.aau.se2.server.networking;
 
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 
-public class AbstractServerTest {
+public abstract class AbstractServerTest {
     protected MainServerTestable server;
     protected NetworkClientKryo[] clients;
 
