@@ -57,6 +57,7 @@ public class TurnsTest extends AbstractServerTest {
     @Test
     public void testPlayTurns() throws InterruptedException {
         Lobby l = server.getDataStore().getLobbyByID(lobbyID);
+        server.setTurnArmiesPlaced(lobbyID);
 
         for (NetworkClientKryo client : clients) {
             client.registerCallback(msg -> {
@@ -68,18 +69,23 @@ public class TurnsTest extends AbstractServerTest {
                             ((NextTurnMessage) msg).getPlayerToActID() == clientPlayers.get(client).getUid()) {
 
                         server.setTurnArmiesPlaced(lobbyID);
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         client.sendMessage(new NextTurnMessage(lobbyID, clientPlayers.get(client).getUid()));
                         nextTurnMsgsSent.addAndGet(1);
                     }
                 }
             });
         }
-        server.setTurnArmiesPlaced(lobbyID);
+
         turnOrder.get(0).sendMessage(new NextTurnMessage(lobbyID,
                 clientPlayers.get(turnOrder.get(0)).getUid()));
         nextTurnMsgsSent.addAndGet(1);
 
-        Thread.sleep(4000);
+        Thread.sleep(500*NUM_TURNS);
         // check that all messages were received by all clients
         assertEquals(NUM_CLIENTS*NUM_TURNS, nextTurnMsgCount.get());
     }
