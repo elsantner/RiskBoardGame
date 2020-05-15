@@ -15,6 +15,8 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+
+import java.awt.SystemColor;
 import java.util.List;
 
 import edu.aau.se2.model.Database;
@@ -83,7 +85,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         Label unitsLabel = new Label("Statistik", new Label.LabelStyle(generateFont(), Color.WHITE));
         yourTurnLabel= new Label(yourTurn, new Label.LabelStyle(generateFont(), Color.valueOf("#ff0000ff")));
         Label statisticsOpponentsLabel = new Label("Spieler", new Label.LabelStyle(generateFont(), Color.WHITE));
-        armyReserveLabel = new Label("Deine Armeereserve: " + armyReserve, new Label.LabelStyle(generateFont(), Color.WHITE));
+        armyReserveLabel = new Label("Reserve: " + armyReserve, new Label.LabelStyle(generateFont(), Color.WHITE));
 
         //row 1
         table.add(unitsLabel).width(vp.getScreenWidth()/3f).padTop(vp.getWorldHeight() * 0.01f).padLeft(vp.getWorldWidth() * 0.02f);
@@ -100,7 +102,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             table.row();
         }
         table.row();
-        table.add(armyReserveLabel).width(vp.getScreenWidth()/3f).expandX().padTop(vp.getWorldHeight() * 0.01f);
+        table.add(armyReserveLabel).width(vp.getScreenWidth()/3f).padLeft(vp.getWorldWidth() * 0.02f);
         table.row();
         table.add(cards).expandY().left().padLeft(vp.getWorldWidth() * 0.02f).bottom();
         this.addActor(table);
@@ -110,7 +112,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         if(isPlayersTurn){
             this.yourTurn = "Deine Runde";
         } else {
-            this.yourTurn = "";
+            this.yourTurn = getCurrentPlayerNickname() + " ist am Zug";
         }
         this.armyReserve =  db.getCurrentArmyReserve();
     }
@@ -128,7 +130,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         for(int i = 0; i < this.playersCount; i++){
             occupiedTerritoriesLabel[i].setText("Territorien: " + this.occupiedTerritoriesCount[i] + " / 42");
         }
-        armyReserveLabel.setText("Deine Armeereserve: " + this.armyReserve);
+        armyReserveLabel.setText("Reserve: " + this.armyReserve);
     }
 
     private BitmapFont generateFont(){
@@ -242,9 +244,9 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         }
     }
 
-    public void getCurrentPlayerColor(){
-        int test = db.getThisPlayer().getColorID();
-        System.out.println("###color" + test);
+    private String getCurrentPlayerNickname(){
+        String currentPlayerName = db.getCurrentPlayerToAct().getNickname();
+        return currentPlayerName;
     }
 }
 
