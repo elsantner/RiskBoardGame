@@ -6,7 +6,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -29,8 +28,8 @@ public class OccupyTerritoryTest extends AbstractServerTest {
     private AtomicInteger countOccupyTerritoryMsgsReceived = new AtomicInteger(0);
 
     private int lobbyID;
-    private List<Integer> turnOrder;
-    private Map<Integer, Player> players;
+    private List<NetworkClientKryo> turnOrder;
+    private Map<NetworkClientKryo, Player> clientPlayers;
 
     public OccupyTerritoryTest() {
         super(NUM_CLIENTS);
@@ -40,14 +39,10 @@ public class OccupyTerritoryTest extends AbstractServerTest {
     public void setup() throws IOException, TimeoutException {
         // setup game until initial armies are placed
         server.start();
-        server.connect(Arrays.asList(clients), 5000);
+        clientPlayers = server.connect(Arrays.asList(clients), 5000);
         lobbyID = server.setupLobby(Arrays.asList(clients));
-        turnOrder = server.setupGame(lobbyID);
-
-        players = new HashMap<>();
-        for (Player p : server.getDataStore().getLobbyByID(lobbyID).getPlayers()) {
-            players.put(p.getUid(), p);
-        }
+        turnOrder = server.startGame(lobbyID, clientPlayers);
+        server.placeInitialArmies(lobbyID);
     }
 
     /**
@@ -56,10 +51,10 @@ public class OccupyTerritoryTest extends AbstractServerTest {
      */
     @Test
     public void testOccupy() throws InterruptedException {
-        Player attacker = players.get(turnOrder.get(0));
+        Player attacker = clientPlayers.get(turnOrder.get(0));
         Lobby l = server.getDataStore().getLobbyByID(lobbyID);
         Territory attackerTerritory = l.getTerritoriesOccupiedByPlayer(attacker.getUid())[0];
-        Territory defenderTerritory = l.getTerritoriesOccupiedByPlayer(players.get(turnOrder.get(1)).getUid())[0];
+        Territory defenderTerritory = l.getTerritoriesOccupiedByPlayer(clientPlayers.get(turnOrder.get(1)).getUid())[0];
         int attackerArmyCount = attackerTerritory.getArmyCount();
 
         for (NetworkClientKryo client : clients) {
@@ -88,9 +83,6 @@ public class OccupyTerritoryTest extends AbstractServerTest {
 
     @After
     public void tearDown() {
-        for (NetworkClientKryo c : clients) {
-            c.disconnect();
-        }
-        server.stop();
+        disconnectAll();
     }
 }

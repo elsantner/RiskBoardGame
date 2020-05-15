@@ -187,6 +187,6 @@ public class GetLobbyListAndJoinTest extends AbstractServerTest {
 
     @After
     public void teardown() {
-        server.stop();
+        disconnectAll();
     }
 }

@@ -6,7 +6,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -30,8 +29,8 @@ public class AttackStartTest extends AbstractServerTest {
     private AtomicInteger countAttackStartedMsgsReceived3 = new AtomicInteger(0);
 
     private int lobbyID;
-    private List<Integer> turnOrder;
-    private Map<Integer, Player> players;
+    private List<NetworkClientKryo> turnOrder;
+    private Map<NetworkClientKryo, Player> clientPlayers;
 
     public AttackStartTest() {
         super(NUM_CLIENTS);
@@ -41,14 +40,10 @@ public class AttackStartTest extends AbstractServerTest {
     public void setup() throws IOException, TimeoutException {
         // setup game until initial armies are placed
         server.start();
-        server.connect(Arrays.asList(clients), 5000);
+        clientPlayers = server.connect(Arrays.asList(clients), 5000);
         lobbyID = server.setupLobby(Arrays.asList(clients));
-        turnOrder = server.setupGame(lobbyID);
-
-        players = new HashMap<>();
-        for (Player p : server.getDataStore().getLobbyByID(lobbyID).getPlayers()) {
-            players.put(p.getUid(), p);
-        }
+        turnOrder = server.startGame(lobbyID, clientPlayers);
+        server.placeInitialArmies(lobbyID);
     }
 
     /**
@@ -57,7 +52,7 @@ public class AttackStartTest extends AbstractServerTest {
      */
     @Test
     public void testStartAttack() throws InterruptedException {
-        Player attacker = players.get(turnOrder.get(0));
+        Player attacker = clientPlayers.get(turnOrder.get(0));
         for (NetworkClientKryo client : clients) {
             client.registerCallback(msg -> {
                 if (msg instanceof AttackStartedMessage) {
@@ -69,7 +64,7 @@ public class AttackStartTest extends AbstractServerTest {
         Lobby l = server.getDataStore().getLobbyByID(lobbyID);
         clients[0].sendMessage(new AttackStartedMessage(lobbyID, attacker.getUid(),
                 l.getTerritoriesOccupiedByPlayer(attacker.getUid())[0].getId(),
-                l.getTerritoriesOccupiedByPlayer(players.get(turnOrder.get(1)).getUid())[0].getId(), 1));
+                l.getTerritoriesOccupiedByPlayer(clientPlayers.get(turnOrder.get(1)).getUid())[0].getId(), 1));
 
         Thread.sleep(1500);
         // check that all clients received the message
@@ -82,7 +77,7 @@ public class AttackStartTest extends AbstractServerTest {
      */
     @Test
     public void testStartAttackWrongTurn() throws InterruptedException {
-        Player attacker = players.get(turnOrder.get(1));
+        Player attacker = clientPlayers.get(turnOrder.get(1));
         for (NetworkClientKryo client : clients) {
             client.registerCallback(msg -> {
                 if (msg instanceof AttackStartedMessage) {
@@ -102,7 +97,7 @@ public class AttackStartTest extends AbstractServerTest {
      */
     @Test
     public void testStartAttackWrongTerritory() throws InterruptedException {
-        Player attacker = players.get(turnOrder.get(0));
+        Player attacker = clientPlayers.get(turnOrder.get(0));
         for (NetworkClientKryo client : clients) {
             client.registerCallback(msg -> {
                 if (msg instanceof AttackStartedMessage) {

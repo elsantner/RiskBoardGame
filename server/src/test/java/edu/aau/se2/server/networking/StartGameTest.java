@@ -33,7 +33,7 @@ import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 
 public class StartGameTest {
-    private static final int NUM_CLIENTS = 4;
+    /*private static final int NUM_CLIENTS = 4;
     private static final int TURNS_TO_PLAY = 8;
     private static final int MOVE_EVERY_NTH_TURN = 2;
 
@@ -272,5 +272,5 @@ public class StartGameTest {
             c.disconnect();
         }
         server.stop();
-    }
+    }*/
 }
