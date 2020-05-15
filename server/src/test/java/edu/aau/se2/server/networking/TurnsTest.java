@@ -13,8 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
-import edu.aau.se2.server.data.Territory;
-import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 
@@ -29,6 +28,7 @@ public class TurnsTest extends AbstractServerTest {
 
     private AtomicInteger nextTurnMsgCount;
     private AtomicInteger nextTurnMsgsSent;
+    private AtomicInteger attackingPhaseFinishedMsgCount;
 
     private int lobbyID;
     private Map<NetworkClientKryo, Player> clientPlayers;
@@ -42,6 +42,7 @@ public class TurnsTest extends AbstractServerTest {
     public void setup() throws IOException, TimeoutException {
         nextTurnMsgCount = new AtomicInteger(0);
         nextTurnMsgsSent = new AtomicInteger(0);
+        attackingPhaseFinishedMsgCount = new AtomicInteger(0);
         // setup game until initial armies are placed
         server.start();
         clientPlayers = server.connect(Arrays.asList(clients), 5000);
@@ -85,9 +86,34 @@ public class TurnsTest extends AbstractServerTest {
                 clientPlayers.get(turnOrder.get(0)).getUid()));
         nextTurnMsgsSent.addAndGet(1);
 
-        Thread.sleep(500*NUM_TURNS);
+        Thread.sleep(1000+500*NUM_TURNS);
         // check that all messages were received by all clients
         assertEquals(NUM_CLIENTS*NUM_TURNS, nextTurnMsgCount.get());
+    }
+
+    /**
+     * Test if skipping attack phase is correctly propagated to all clients in lobby.
+     * @throws InterruptedException
+     */
+    @Test
+    public void testSkipAttackingPhase() throws InterruptedException {
+        Lobby l = server.getDataStore().getLobbyByID(lobbyID);
+        server.setTurnArmiesPlaced(lobbyID);
+
+        for (NetworkClientKryo client : clients) {
+            client.registerCallback(msg -> {
+                if (msg instanceof AttackingPhaseFinishedMessage) {
+                    assertEquals(l.getPlayerToAct().getUid(), ((AttackingPhaseFinishedMessage) msg).getFromPlayerID());
+                    attackingPhaseFinishedMsgCount.addAndGet(1);
+                }
+            });
+        }
+        turnOrder.get(0).sendMessage(new AttackingPhaseFinishedMessage(lobbyID,
+                clientPlayers.get(turnOrder.get(0)).getUid()));
+
+        Thread.sleep(1000);
+        // check that all messages were received by all clients
+        assertEquals(NUM_CLIENTS, attackingPhaseFinishedMsgCount.get());
     }
 
     @After
