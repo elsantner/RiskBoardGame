@@ -32,7 +32,7 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
     private static final String WILD1 = "card_wild1";
     private static final String WILD2 = "card_wild2";
     private static final String WILD_PATH = "cards/card_wild.png";
-
+    private Viewport viewport = getViewport();
 
     /**
      * This is a simple scrollable list of cards.
@@ -48,14 +48,12 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
 
         this.cardNames = new ArrayList<>();
         this.cardContainer = new Table();
-
         scrollPane = new ScrollPane(cardContainer);
         outer = new Table().bottom();
         outer.setFillParent(true);
-        //outer.setDebug(true);
 
-        outer.add(scrollPane).fill().bottom().pad(0, 0, 20f, 0);
-
+        outer.pad(0, viewport.getWorldWidth() * 0.0075f, 0, viewport.getWorldWidth() * 0.0075f);
+        outer.add(scrollPane).bottom().pad(0, 0, 20f, 0);
         this.addActor(outer);
     }
 
@@ -69,7 +67,7 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
         }
 
         scrollPane = new ScrollPane(cardContainer);
-        outer.add(scrollPane).fill().bottom().pad(0, 0, 20f, 0);
+        outer.add(scrollPane).bottom().pad(0, 0, 20f, 0);
 
         this.updated = false;
     }
@@ -91,9 +89,8 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
                 texture = assetManager.finishLoadingAsset(filename);
             }
         }
-
         Image im = new Image(texture);
-        this.cardContainer.add(im).pad(0, 8f, 0, 8f);
+        this.cardContainer.add(im).pad(0, 8f, 0, 8f).height(viewport.getWorldHeight() / 2.2f).width((viewport.getWorldHeight() / 2.2f) / 1.568f);
     }
 
     @Override
