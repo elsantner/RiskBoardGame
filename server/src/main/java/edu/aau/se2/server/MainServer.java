@@ -45,7 +45,7 @@ import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
 public class MainServer implements PlayerLostConnectionListener {
     private static final String TAG = "Server";
 
-    private static final int SERVER_PLAYER_ID = 0;
+    protected static final int SERVER_PLAYER_ID = 0;
 
     public static void main(String[] args) {
         try {

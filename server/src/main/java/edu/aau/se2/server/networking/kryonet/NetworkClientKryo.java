@@ -4,18 +4,23 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import java.io.IOException;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import edu.aau.se2.server.networking.Callback;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.dto.BaseMessage;
 
 public class NetworkClientKryo implements NetworkClient, KryoNetComponent {
+    private Logger log;
     private Client client;
     private Callback<BaseMessage> callback;
 
     public NetworkClientKryo() {
+        setupLogger();
         client = new Client();
-
         client.addListener(new Listener() {
             @Override
             public void received(Connection connection, Object object) {
@@ -24,6 +29,17 @@ public class NetworkClientKryo implements NetworkClient, KryoNetComponent {
                 }
             }
         });
+    }
+
+    private void setupLogger() {
+        log = Logger.getLogger("Client");
+        if (log.getHandlers().length == 0) {
+            Handler handlerObj = new ConsoleHandler();
+            handlerObj.setLevel(Level.INFO);
+            log.addHandler(handlerObj);
+        }
+        log.setLevel(Level.INFO);
+        log.setUseParentHandlers(false);
     }
 
     @Override
@@ -50,6 +66,7 @@ public class NetworkClientKryo implements NetworkClient, KryoNetComponent {
 
     @Override
     public void sendMessage(BaseMessage message) {
+        log.info(String.format("[Client] Sending %s", message.getClass().getSimpleName()));
         client.sendTCP(message);
     }
 

@@ -9,22 +9,26 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.aau.se2.model.listener.OnAttackUpdatedListener;
+import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.server.data.Territory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
-public class AttackTest extends AbstractDatabaseTest {
+public class OccupyTest extends AbstractDatabaseTest {
     private static final int NUM_CLIENTS = 3;
 
-    private AtomicInteger attackStartedCount;
+    private AtomicInteger attackFinishedCount;
+    private AtomicInteger territoryUpdateCount;
 
-    public AttackTest() {
+    public OccupyTest() {
         super(NUM_CLIENTS);
     }
 
     @Before
     public void setup() throws IOException, TimeoutException {
-        attackStartedCount = new AtomicInteger(0);
+        attackFinishedCount = new AtomicInteger(0);
+        territoryUpdateCount = new AtomicInteger(0);
         server.start();
         setupScenario();
     }
@@ -37,16 +41,16 @@ public class AttackTest extends AbstractDatabaseTest {
     }
 
     /**
-     * Test starting of an attack.
+     * Test occupation after an attack.
      * @throws InterruptedException
      */
     @Test
-    public void testStartAttack() throws InterruptedException {
+    public void testOccupyTerritory() throws InterruptedException {
         for (DatabaseTestable db : dbs) {
             db.setAttackUpdatedListener(new OnAttackUpdatedListener() {
                 @Override
                 public void attackStarted() {
-                    attackStartedCount.addAndGet(1);
+                    // unused
                 }
 
                 @Override
@@ -56,24 +60,23 @@ public class AttackTest extends AbstractDatabaseTest {
 
                 @Override
                 public void attackFinished() {
-                    // unused
+                    assertNull(db.getAttack());
+                    attackFinishedCount.addAndGet(1);
                 }
             });
+            db.setTerritoryUpdateListener((territoryID, armyCount, colorID) -> territoryUpdateCount.addAndGet(1));
         }
 
         DatabaseTestable clientToAct = DatabaseTestable.getClientToAct(dbs);
         Territory fromTerritory = clientToAct.getMyTerritory(2);
         Territory toTerritory = DatabaseTestable.getDifferentClient(dbs, clientToAct).getMyTerritories().get(0);
-        clientToAct.attackStarted(fromTerritory.getId(), toTerritory.getId(), 1);
+
+        server.setupPreOccupy(dbs[0].getCurrentLobbyID(), fromTerritory.getId(), toTerritory.getId());
+        clientToAct.occupyTerritory(toTerritory.getId(), fromTerritory.getId(), 1);
 
         Thread.sleep(2000);
-        for (DatabaseTestable db : dbs) {
-            assertEquals(fromTerritory.getId(), db.getAttack().getFromTerritoryID());
-            assertEquals(toTerritory.getId(), db.getAttack().getToTerritoryID());
-            assertEquals(1, db.getAttack().getAttackerDiceCount());
-            assertEquals(Database.Phase.ATTACKING, db.getCurrentPhase());
-        }
-        assertEquals(NUM_CLIENTS, attackStartedCount.get());
+        assertEquals(NUM_CLIENTS, attackFinishedCount.get());
+        assertEquals(NUM_CLIENTS*2, territoryUpdateCount.get());
     }
 
     @After

@@ -6,9 +6,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.aau.se2.server.data.Lobby;
@@ -16,45 +16,43 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
-;
-
-public class AttackStartTest {
+/**
+ * Test starting attacks on territories.
+ */
+public class AttackStartTest extends AbstractServerTest {
     private static final int NUM_CLIENTS = 3;
 
     private AtomicInteger countAttackStartedMsgsReceived1 = new AtomicInteger(0);
     private AtomicInteger countAttackStartedMsgsReceived2 = new AtomicInteger(0);
     private AtomicInteger countAttackStartedMsgsReceived3 = new AtomicInteger(0);
 
-    private MainServerTestable server;
-    private NetworkClientKryo[] clients;
     private int lobbyID;
-    private List<Integer> turnOrder;
-    private Map<Integer, Player> players;
+    private List<NetworkClientKryo> turnOrder;
+    private Map<NetworkClientKryo, Player> clientPlayers;
 
-    @Before
-    public void setup() throws IOException, InterruptedException {
-        // setup game until initial armies are placed
-        server = new MainServerTestable();
-        server.start();
-        clients = new NetworkClientKryo[NUM_CLIENTS];
-        for (int i=0; i<NUM_CLIENTS; i++) {
-            clients[i] = new NetworkClientKryo();
-            SerializationRegister.registerClassesForComponent(clients[i]);
-        }
-        lobbyID = server.setupLobby(Arrays.asList(clients));
-        turnOrder = server.setupGame(lobbyID);
-
-        players = new HashMap<>();
-        for (Player p : server.getDataStore().getLobbyByID(lobbyID).getPlayers()) {
-            players.put(p.getUid(), p);
-        }
+    public AttackStartTest() {
+        super(NUM_CLIENTS);
     }
 
+    @Before
+    public void setup() throws IOException, TimeoutException {
+        // setup game until initial armies are placed
+        server.start();
+        clientPlayers = server.connect(Arrays.asList(clients), 5000);
+        lobbyID = server.setupLobby(Arrays.asList(clients));
+        turnOrder = server.startGame(lobbyID, clientPlayers);
+        server.placeInitialArmies(lobbyID);
+    }
+
+    /**
+     * Test the starting of an attack by the player to act on an opponents territory.
+     * @throws InterruptedException
+     */
     @Test
     public void testStartAttack() throws InterruptedException {
-        Player attacker = players.get(turnOrder.get(0));
+        Player attacker = clientPlayers.get(turnOrder.get(0));
         for (NetworkClientKryo client : clients) {
             client.registerCallback(msg -> {
                 if (msg instanceof AttackStartedMessage) {
@@ -66,15 +64,20 @@ public class AttackStartTest {
         Lobby l = server.getDataStore().getLobbyByID(lobbyID);
         clients[0].sendMessage(new AttackStartedMessage(lobbyID, attacker.getUid(),
                 l.getTerritoriesOccupiedByPlayer(attacker.getUid())[0].getId(),
-                l.getTerritoriesOccupiedByPlayer(players.get(turnOrder.get(1)).getUid())[0].getId(), 1));
+                l.getTerritoriesOccupiedByPlayer(clientPlayers.get(turnOrder.get(1)).getUid())[0].getId(), 1));
 
         Thread.sleep(1500);
+        // check that all clients received the message
         assertEquals(NUM_CLIENTS, countAttackStartedMsgsReceived1.get());
     }
 
+    /**
+     * Test the starting of an attack by a player who's turn it is NOT. (Should not work.)
+     * @throws InterruptedException
+     */
     @Test
     public void testStartAttackWrongTurn() throws InterruptedException {
-        Player attacker = players.get(turnOrder.get(1));
+        Player attacker = clientPlayers.get(turnOrder.get(1));
         for (NetworkClientKryo client : clients) {
             client.registerCallback(msg -> {
                 if (msg instanceof AttackStartedMessage) {
@@ -88,9 +91,13 @@ public class AttackStartTest {
         assertEquals(0, countAttackStartedMsgsReceived2.get());
     }
 
+    /**
+     * Test the starting of an attack by the player to act from a territory to the same territory. (Should not work.)
+     * @throws InterruptedException
+     */
     @Test
     public void testStartAttackWrongTerritory() throws InterruptedException {
-        Player attacker = players.get(turnOrder.get(0));
+        Player attacker = clientPlayers.get(turnOrder.get(0));
         for (NetworkClientKryo client : clients) {
             client.registerCallback(msg -> {
                 if (msg instanceof AttackStartedMessage) {
@@ -106,9 +113,6 @@ public class AttackStartTest {
 
     @After
     public void tearDown() {
-        for (NetworkClientKryo c : clients) {
-            c.disconnect();
-        }
-        server.stop();
+        disconnectAll();
     }
 }
