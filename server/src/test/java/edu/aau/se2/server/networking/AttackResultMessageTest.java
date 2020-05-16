@@ -7,14 +7,15 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
 import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
@@ -25,47 +26,43 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-public class AttackResultMessageTest {
+public class AttackResultMessageTest extends AbstractServerTest {
     private static final int NUM_CLIENTS = 3;
 
     private AtomicInteger countAttackResultMsgsReceived1 = new AtomicInteger(0);
     private AtomicInteger countAttackResultMsgsReceived2 = new AtomicInteger(0);
     private AtomicInteger countAttackResultMsgsReceived3 = new AtomicInteger(0);
 
-    private MainServerTestable server;
-    private NetworkClientKryo[] clients;
+    private Map<NetworkClientKryo, Player> clientPlayers;
     private int lobbyID;
-    private List<Integer> turnOrder;
-    private Map<Integer, Player> players;
+    private List<NetworkClientKryo> turnOrder ;
+
+    private Map<Integer, List<Territory>> playerOccupiedTerritories;
+
+    public AttackResultMessageTest() {
+        super(NUM_CLIENTS);
+    }
 
     @Before
-    public void setup() throws IOException, InterruptedException {
+    public void setup() throws IOException, InterruptedException, TimeoutException {
         // setup game until initial armies are placed
-        server = new MainServerTestable();
         server.start();
-        clients = new NetworkClientKryo[NUM_CLIENTS];
-        for (int i=0; i<NUM_CLIENTS; i++) {
-            clients[i] = new NetworkClientKryo();
-            SerializationRegister.registerClassesForComponent(clients[i]);
-        }
+        clientPlayers = server.connect(Arrays.asList(clients), 5000);
         lobbyID = server.setupLobby(Arrays.asList(clients));
-        turnOrder = server.setupGame(lobbyID);
+        turnOrder = server.startGame(lobbyID, clientPlayers);
 
-        players = new HashMap<>();
-        for (Player p : server.getDataStore().getLobbyByID(lobbyID).getPlayers()) {
-            players.put(p.getUid(), p);
-        }
+        playerOccupiedTerritories = server.placeInitialArmies(lobbyID);
 
-        Player attacker = players.get(turnOrder.get(0));
-        Player defender = players.get(turnOrder.get(1));
-        Lobby l = server.getDataStore().getLobbyByID(lobbyID);
+        Player attacker = clientPlayers.get(turnOrder.get(0));
+        Player defender = clientPlayers.get(turnOrder.get(1));
+
         clients[0].sendMessage(new AttackStartedMessage(lobbyID, attacker.getUid(),
-                l.getTerritoriesOccupiedByPlayer(attacker.getUid())[0].getId(),
-                l.getTerritoriesOccupiedByPlayer(defender.getUid())[0].getId(), 1));
+                playerOccupiedTerritories.get(attacker.getUid()).get(0).getId(),
+                playerOccupiedTerritories.get(defender.getUid()).get(0).getId(), 1));
 
         Thread.sleep(1500);
 
-        //l = server.getDataStore().getLobbyByID(lobbyID);
+        Lobby l = server.getDataStore().getLobbyByID(lobbyID);
         assertTrue(l.attackRunning());
         List<Integer> results = new ArrayList<>();
         results.add(2);
@@ -78,7 +75,7 @@ public class AttackResultMessageTest {
     @Test
     public void testAttackResultWinningDefender() throws InterruptedException {
 
-        Player defender = players.get(turnOrder.get(1));
+        Player defender = clientPlayers.get(turnOrder.get(1));
         for (NetworkClientKryo client : clients) {
             client.registerCallback(msg -> {
                 if (msg instanceof AttackResultMessage) {
@@ -109,7 +106,7 @@ public class AttackResultMessageTest {
     @Test
     public void testAttackResultWinningAttacker() throws InterruptedException {
 
-        Player defender = players.get(turnOrder.get(1));
+        Player defender = clientPlayers.get(turnOrder.get(1));
         for (NetworkClientKryo client : clients) {
             client.registerCallback(msg -> {
                 if (msg instanceof AttackResultMessage) {
@@ -140,7 +137,7 @@ public class AttackResultMessageTest {
     @Test
     public void testAttackResultDraw() throws InterruptedException {
 
-        Player defender = players.get(turnOrder.get(1));
+        Player defender = clientPlayers.get(turnOrder.get(1));
         for (NetworkClientKryo client : clients) {
             client.registerCallback(msg -> {
                 if (msg instanceof AttackResultMessage) {
@@ -170,9 +167,6 @@ public class AttackResultMessageTest {
 
     @After
     public void tearDown() {
-        for (NetworkClientKryo c : clients) {
-            c.disconnect();
-        }
-        server.stop();
+        disconnectAll();
     }
 }
