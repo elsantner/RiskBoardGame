@@ -2,6 +2,7 @@ package edu.aau.se2.view.lobbylist;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -19,8 +20,8 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import java.util.List;
 
-import edu.aau.se2.model.Database;
 import edu.aau.se2.RiskGame;
+import edu.aau.se2.model.Database;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
@@ -91,15 +92,14 @@ public class LobbyListScreen extends AbstractScreen {
         this.stage = new Stage(new StretchViewport(1920,1080));
         stage.stageToScreenCoordinates(new Vector2(0,0));
         Gdx.input.setInputProcessor(this.stage);
-        final Skin skin = assetManager.get(AssetName.UI_SKIN_1);
-        skin.getFont("default-font").getData().setScale(0.5f);
+        final Skin skin = assetManager.get(AssetName.UI_SKIN_2);
 
         Table lobbyListTable = new Table();
         lobbyListTable.setBounds(0,0,1600, 1600);
 
         for (LobbyListMessage.LobbyData l: lobbyData) {
-            Label text = new Label(l.getHost().getNickname(), skin);
-            Label text2 = new Label("Players: " + l.getPlayerCount(), skin);
+            Label text = new Label(l.getHost().getNickname(), skin, "font-big", Color.BLACK);
+            Label text2 = new Label("Players: " + l.getPlayerCount(), skin, "font-big", Color.BLACK);
             TextButton text3 = new TextButton("Beitreten", skin);
             text3.addListener(new ClickListener() {
                 @Override

@@ -278,57 +278,62 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
-        showStartAttackDialog(fromTerritoryID, onTerritoryID);
+        Gdx.app.postRunnable(() -> showStartAttackDialog(fromTerritoryID, onTerritoryID));
     }
 
     @Override
     public void attackStarted() {
         attackUpdated();
-        hudStage.setPhaseSkipable(false);
-        boardStage.attackStartable(false);
 
-        Attack a = db.getAttack();
-        if (a != null && db.isThisPlayersTurn()) {
-            List<Integer> result = DiceStage.rollDice(a.getAttackerDiceCount());
-            db.sendAttackerResults(result, false);
-            diceStage.showResults(result, true);
-        }
+        Gdx.app.postRunnable(() -> {
+            hudStage.setPhaseSkipable(false);
+            boardStage.attackStartable(false);
 
-        if (a != null && db.isThisPlayerDefender()) {
-            showStartDefendDialog(a.getToTerritoryID());
-        }
+            Attack a = db.getAttack();
+            if (a != null && db.isThisPlayersTurn()) {
+                List<Integer> result = DiceStage.rollDice(a.getAttackerDiceCount());
+                db.sendAttackerResults(result, false);
+                diceStage.showResults(result, true);
+            }
+
+            if (a != null && db.isThisPlayerDefender()) {
+                showStartDefendDialog(a.getToTerritoryID());
+            }
+        });
     }
 
     @Override
     public void attackUpdated() {
         Attack a = db.getAttack();
         hudStage.setCurrentAttack(a);
-        if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
-            diceStage.hide();
-            showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
-        } else if (a != null && a.getDefenderDiceCount() != -1 && a.getDefenderDiceResults() == null && db.isThisPlayerDefender()) {
-            List<Integer> result = DiceStage.rollDice(a.getDefenderDiceCount());
-            db.sendDefenderResults(result);
-            diceStage.showResults(result, false);
-        } else if (a != null) {
-            if (a.getAttackerDiceResults() != null) {
-                diceStage.showResults(a.getAttackerDiceResults(), true);
+        Gdx.app.postRunnable(() -> {
+            if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
+                diceStage.hide();
+                showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
+            } else if (a != null && a.getDefenderDiceCount() != -1 && a.getDefenderDiceResults() == null && db.isThisPlayerDefender()) {
+                List<Integer> result = DiceStage.rollDice(a.getDefenderDiceCount());
+                db.sendDefenderResults(result);
+                diceStage.showResults(result, false);
+            } else if (a != null) {
+                if (a.getAttackerDiceResults() != null) {
+                    diceStage.showResults(a.getAttackerDiceResults(), true);
+                }
+                if (a.getDefenderDiceResults() != null) {
+                    diceStage.showResults(a.getDefenderDiceResults(), false);
+                }
             }
-            if (a.getDefenderDiceResults() != null) {
-                diceStage.showResults(a.getDefenderDiceResults(), false);
-            }
-
-            if(a.getArmiesLostAttacker() != -1 && a.getArmiesLostDefender() != -1) {
-                diceStage.showFinalResults(a.getArmiesLostAttacker(), a.getArmiesLostDefender(), a.isOccupyRequired(), a.isCheated());
-            }
-        }
+        });
     }
 
     @Override
     public void attackFinished() {
         attackUpdated();
-        hudStage.setPhaseSkipable(true);
-        boardStage.attackStartable(true);
+
+        Gdx.app.postRunnable(() -> {
+            hudStage.setPhaseSkipable(true);
+            boardStage.attackStartable(true);
+            diceStage.hide();
+        });
     }
 
     public void setPlayersDataOnHud(List<Player> currentPlayers) {
