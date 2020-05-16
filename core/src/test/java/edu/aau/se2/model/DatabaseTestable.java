@@ -54,14 +54,14 @@ public class DatabaseTestable extends Database {
     public static void startLobby(DatabaseTestable[] dbs, int timeoutMS) throws TimeoutException {
         AtomicInteger msgsReceived = new AtomicInteger(0);
         for (DatabaseTestable db : dbs) {
-            db.setNextTurnListener((playerID, isThisPlayer) -> msgsReceived.addAndGet(1));
+            db.getListeners().setNextTurnListener((playerID, isThisPlayer) -> msgsReceived.addAndGet(1));
             db.setPlayerReady(true);
         }
 
         // wait until initial army placement is finished
         wait(() -> msgsReceived.get() == dbs.length, timeoutMS);
         for (DatabaseTestable db : dbs) {
-            db.setNextTurnListener(null);
+            db.getListeners().setNextTurnListener(null);
         }
     }
 
@@ -81,7 +81,7 @@ public class DatabaseTestable extends Database {
         DatabaseTestable clientToAct = getClientToAct(dbs);
         clientToAct.armyPlaced(clientToAct.getNextTerritoryToPlaceArmiesOn().getId(), 1);
         // this listener is called with isInitialCount==true once all initial armies are placed and the first proper turn has started
-        clientToAct.setArmyReserveChangedListener((armyCount, isInitialCount) -> {
+        clientToAct.getListeners().setArmyReserveChangedListener((armyCount, isInitialCount) -> {
             if (isInitialCount) {
                 firstTurnArmiesReceived.set(true);
             }
@@ -90,9 +90,9 @@ public class DatabaseTestable extends Database {
         // wait until initial army placement is finished
         wait(firstTurnArmiesReceived::get, timeoutMS);
         for (DatabaseTestable db : dbs) {
-            db.setNextTurnListener(null);
+            db.getListeners().setNextTurnListener(null);
         }
-        clientToAct.setArmyReserveChangedListener(null);
+        clientToAct.getListeners().setArmyReserveChangedListener(null);
     }
 
     /**
@@ -102,7 +102,7 @@ public class DatabaseTestable extends Database {
      * @throws TimeoutException If timeout is exceeded
      */
     public static void placeTurnArmies(DatabaseTestable db, int timeoutMS) throws TimeoutException {
-        db.setArmyReserveChangedListener((armyCount, isInitialCount) -> {
+        db.getListeners().setArmyReserveChangedListener((armyCount, isInitialCount) -> {
             if (armyCount > 0) {
                 db.armyPlaced(db.getNextTerritoryToPlaceArmiesOn().getId(), 1);
             }
@@ -111,7 +111,7 @@ public class DatabaseTestable extends Database {
 
         // wait until army placement is finished
         wait(() -> db.getCurrentArmyReserve() == 0, timeoutMS);
-        db.setArmyReserveChangedListener(null);
+        db.getListeners().setArmyReserveChangedListener(null);
     }
 
     /**
@@ -139,12 +139,12 @@ public class DatabaseTestable extends Database {
         // wait until all clients have joined
         wait(() -> joinCountRemaining.get() == 0, timeoutMS);
         for (DatabaseTestable db : dbs) {
-            db.setConnectionChangedListener(null);
+            db.getListeners().setConnectionChangedListener(null);
         }
     }
 
     private void connectAndHost(Callback<Integer> cb) throws IOException {
-        setConnectionChangedListener(new OnConnectionChangedListener() {
+        getListeners().setConnectionChangedListener(new OnConnectionChangedListener() {
             @Override
             public void connected(Player thisPlayer) {
                 hostLobby();
@@ -155,12 +155,12 @@ public class DatabaseTestable extends Database {
 
             }
         });
-        setJoinedLobbyListener((lobbyID, host, players) -> cb.callback(lobbyID));
+        getListeners().setJoinedLobbyListener((lobbyID, host, players) -> cb.callback(lobbyID));
         connect();
     }
 
     public void connectAndJoin(int lobbyID, Callback<Void> cb) throws IOException {
-        setConnectionChangedListener(new OnConnectionChangedListener() {
+        getListeners().setConnectionChangedListener(new OnConnectionChangedListener() {
             @Override
             public void connected(Player thisPlayer) {
                 joinLobby(lobbyID);
@@ -171,12 +171,12 @@ public class DatabaseTestable extends Database {
 
             }
         });
-        setJoinedLobbyListener((lID, host, players) -> cb.callback(null));
+        getListeners().setJoinedLobbyListener((lID, host, players) -> cb.callback(null));
         connect();
     }
 
     public void setupInitialArmyPlacingListener() {
-        setNextTurnListener((playerID, isThisPlayer) -> {
+        getListeners().setNextTurnListener((playerID, isThisPlayer) -> {
             if (isThisPlayer && !isInitialArmyPlacementFinished()) {
                 armyPlaced(getNextTerritoryToPlaceArmiesOn().getId(), 1);
             }

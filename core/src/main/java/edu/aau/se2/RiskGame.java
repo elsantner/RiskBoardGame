@@ -61,27 +61,27 @@ public class RiskGame extends Game {
 
         Database db = Database.getInstance();
 
-		db.setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
+		db.getListeners().setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
             gameScreen = new GameScreen(this);
             setScreen(gameScreen);
         }));
-		db.setLeftLobbyListener(wasClosed -> Gdx.app.postRunnable(() -> {
+		db.getListeners().setLeftLobbyListener(wasClosed -> Gdx.app.postRunnable(() -> {
 			if (wasClosed) {
 				popupMessageDisplay.showMessage("Spiel geschlossen");
 			}
 			mainMenuScreen = new MainMenu(this);
 			setScreen(mainMenuScreen);
 		}));
-		db.setJoinedLobbyListener((lobbyID, host, players) -> Gdx.app.postRunnable(() -> {
+		db.getListeners().setJoinedLobbyListener((lobbyID, host, players) -> Gdx.app.postRunnable(() -> {
 			lobbyScreen = new LobbyScreen(this);
 			setScreen(lobbyScreen);
 		}));
-		db.setLobbyListChangedListener(lobbyList -> Gdx.app.postRunnable(() -> {
+		db.getListeners().setLobbyListChangedListener(lobbyList -> Gdx.app.postRunnable(() -> {
 			lobbyListScreen = new LobbyListScreen(this, lobbyList);
 			setScreen(lobbyListScreen);
 		}));
 
-		db.setConnectionChangedListener(new OnConnectionChangedListener() {
+		db.getListeners().setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override
 			public void connected(Player thisPlayer) {
 			}

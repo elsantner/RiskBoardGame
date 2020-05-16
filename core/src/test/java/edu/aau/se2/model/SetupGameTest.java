@@ -40,8 +40,8 @@ public class SetupGameTest extends AbstractDatabaseTest {
     @Test
     public void testSetupGame() throws InterruptedException {
         for (DatabaseTestable db : dbs) {
-            db.setTerritoryUpdateListener((territoryID, armyCount, colorID) -> territoryUpdateCount.addAndGet(1));
-            db.setNextTurnListener((playerID, isThisPlayer) -> {
+            db.getListeners().setTerritoryUpdateListener((territoryID, armyCount, colorID) -> territoryUpdateCount.addAndGet(1));
+            db.getListeners().setNextTurnListener((playerID, isThisPlayer) -> {
                 if (isThisPlayer && !db.isInitialArmyPlacementFinished()) {
                     assertEquals(Database.Phase.NONE, db.getCurrentPhase());
                     db.armyPlaced(db.getNextTerritoryToPlaceArmiesOn().getId(), 1);

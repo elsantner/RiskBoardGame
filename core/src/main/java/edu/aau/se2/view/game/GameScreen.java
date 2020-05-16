@@ -45,11 +45,11 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
         boardStage.setListener(this);
         hudStage = new HudStage(this, new FitViewport(width, height), db.getCurrentPlayers(), this);
-        db.setTerritoryUpdateListener(this);
-        db.setNextTurnListener(this);
-        db.setPhaseChangedListener(this);
-        db.setCardsChangedListener(cardStage);
-        db.setAttackUpdatedListener(this);
+        db.getListeners().setTerritoryUpdateListener(this);
+        db.getListeners().setNextTurnListener(this);
+        db.getListeners().setPhaseChangedListener(this);
+        db.getListeners().setCardsChangedListener(cardStage);
+        db.getListeners().setAttackUpdatedListener(this);
 
         // trigger player turn update because listener might not have been registered when
         // server message was received

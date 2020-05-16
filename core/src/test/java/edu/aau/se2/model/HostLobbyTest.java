@@ -43,11 +43,11 @@ public class HostLobbyTest extends AbstractDatabaseTest {
     }
 
     private void startClients() throws IOException {
-        dbs[0].setJoinedLobbyListener((lobbyID, host, players) -> {
+        dbs[0].getListeners().setJoinedLobbyListener((lobbyID, host, players) -> {
             client1ReceivedJoinedLobbyMessage.set(true);
             client1LobbyID = lobbyID;
         });
-        dbs[0].setConnectionChangedListener(new OnConnectionChangedListener() {
+        dbs[0].getListeners().setConnectionChangedListener(new OnConnectionChangedListener() {
             @Override
             public void connected(Player thisPlayer) {
                 Assert.assertTrue(dbs[0].isConnected());
@@ -60,11 +60,11 @@ public class HostLobbyTest extends AbstractDatabaseTest {
             }
         });
 
-        dbs[1].setJoinedLobbyListener((lobbyID, host, players) -> {
+        dbs[1].getListeners().setJoinedLobbyListener((lobbyID, host, players) -> {
             client2ReceivedJoinedLobbyMessage.set(true);
             client2LobbyID = lobbyID;
         });
-        dbs[1].setConnectionChangedListener(new OnConnectionChangedListener() {
+        dbs[1].getListeners().setConnectionChangedListener(new OnConnectionChangedListener() {
             @Override
             public void connected(Player thisPlayer) {
                 Assert.assertTrue(dbs[1].isConnected());

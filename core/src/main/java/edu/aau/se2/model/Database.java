@@ -77,20 +77,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private Logger log;
     private NetworkClientKryo client;
     private boolean isConnected;
-    private OnGameStartListener gameStartListener;
-    private OnPlayersChangedListener playersChangedListener;
-    private OnTerritoryUpdateListener territoryUpdateListener;
-    private OnNextTurnListener nextTurnListener;
-    private OnCardsChangedListener cardsChangedListener;
-    private OnJoinedLobbyListener joinedLobbyListener;
-    private OnConnectionChangedListener connectionChangedListener;
-    private OnArmyReserveChangedListener armyReserveChangedListener;
-    private OnLobbyListChangedListener lobbyListChangedListener;
-    private OnLeftLobbyListener onLeftLobbyListener;
-    private OnErrorListener errorListener;
-    private OnPhaseChangedListener phaseChangedListener;
-    private OnArmiesMovedListener armiesMovedListener;
-    private OnAttackUpdatedListener attackUpdatedListener;
+    private ListenerManager listenerManager;
 
     private Player thisPlayer;
     private TreeMap<Integer, Player> currentPlayers;
@@ -101,10 +88,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private boolean initialArmyPlacementFinished;
     private int currentTurnPlayerID;
     private boolean hasPlayerReceivedArmiesThisTurn;
-
     private int currentArmyReserve;
     private Phase currentPhase;
-
     private Attack currentAttack;
 
     protected Database() {
@@ -116,6 +101,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         SerializationRegister.registerClassesForComponent(client);
         registerClientCallback();
         setupLogger();
+        this.listenerManager = new ListenerManager();
     }
 
     public enum Phase {
@@ -164,34 +150,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
-    public void setArmiesMovedListener(OnArmiesMovedListener l) { this.armiesMovedListener = l; }
-    public void setPhaseChangedListener(OnPhaseChangedListener l) { this.phaseChangedListener = l; }
-    public void setErrorListener(OnErrorListener l) {
-        this.errorListener = l;
+    public ListenerManager getListeners() {
+        return this.listenerManager;
     }
-    public void setLeftLobbyListener(OnLeftLobbyListener l) {
-        this.onLeftLobbyListener = l;
-    }
-    public void setLobbyListChangedListener(OnLobbyListChangedListener l) { this.lobbyListChangedListener = l; }
-    public void setConnectionChangedListener(OnConnectionChangedListener l) { this.connectionChangedListener = l; }
-    public void setGameStartListener(OnGameStartListener l) {
-        this.gameStartListener = l;
-    }
-    public void setPlayersChangedListener(OnPlayersChangedListener l) { this.playersChangedListener = l; }
-    public void setTerritoryUpdateListener(OnTerritoryUpdateListener l) { this.territoryUpdateListener = l; }
-    public void setNextTurnListener(OnNextTurnListener l) {
-        this.nextTurnListener = l;
-    }
-
-    public void setCardsChangedListener(OnCardsChangedListener l) {
-        this.cardsChangedListener = l;
-    }
-
-    public void setJoinedLobbyListener(OnJoinedLobbyListener l) {
-        this.joinedLobbyListener = l;
-    }
-    public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) { this.armyReserveChangedListener = l; }
-    public void setAttackUpdatedListener(OnAttackUpdatedListener l) { this.attackUpdatedListener = l; }
 
     private void registerClientCallback() {
         this.client.registerCallback(msg -> {
@@ -245,31 +206,22 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         notifyTerritoryUpdateListener(territoryData[msg.getFromTerritoryID()]);
         notifyTerritoryUpdateListener(territoryData[msg.getTerritoryID()]);
         currentAttack = null;
-
-        if (attackUpdatedListener != null) {
-            attackUpdatedListener.attackFinished();
-        }
+        listenerManager.notifyAttackFinishedListener();
     }
 
     // TODO: add actual logic (--> Carina)
     private void handleAttackResultMessage(AttackResultMessage msg) {
         this.currentAttack.setOccupyRequired(msg.isOccupyRequired());
-        if (attackUpdatedListener != null) {
-            attackUpdatedListener.attackUpdated();
-        }
+        listenerManager.notifyAttackUpdatedListener();
         if (!msg.isOccupyRequired()) {
             currentAttack = null;
-            if (attackUpdatedListener != null) {
-                attackUpdatedListener.attackFinished();
-            }
+            listenerManager.notifyAttackFinishedListener();
         }
     }
 
     private void handleAttackStartedMessage(AttackStartedMessage msg) {
         currentAttack = new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount());
-        if (attackUpdatedListener != null) {
-            attackUpdatedListener.attackStarted();
-        }
+        listenerManager.notifyAttackStartedListener();
     }
 
     private void handleAttackingPhaseFinishedMessage() {
@@ -282,41 +234,28 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         // update territory state
         territoryData[msg.getFromTerritoryID()].subFromArmyCount(msg.getArmyCountMoved());
         territoryData[msg.getToTerritoryID()].addToArmyCount(msg.getArmyCountMoved());
+        listenerManager.notifyArmiesMovedListener(msg.getFromPlayerID(), msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getArmyCountMoved());
 
-        if (armiesMovedListener != null) {
-            armiesMovedListener.armiesMoved(msg.getFromPlayerID(), msg.getFromTerritoryID(),
-                    msg.getToTerritoryID(), msg.getArmyCountMoved());
-        }
         notifyTerritoryUpdateListener(territoryData[msg.getFromTerritoryID()]);
         notifyTerritoryUpdateListener(territoryData[msg.getToTerritoryID()]);
     }
 
     private void notifyTerritoryUpdateListener(Territory t) {
-        if (territoryUpdateListener != null) {
-            territoryUpdateListener.territoryUpdated(t.getId(),
-                    t.getArmyCount(),
-                    currentPlayers.get(t.getOccupierPlayerID()).getColorID());
-        }
+        listenerManager.notifyTerritoryUpdateListener(t.getId(), t.getArmyCount(),
+                currentPlayers.get(t.getOccupierPlayerID()).getColorID());
     }
 
     private void handleErrorMessage(ErrorMessage msg) {
-        if (errorListener != null) {
-            errorListener.onError(msg.getErrorCode());
-        }
+        listenerManager.notifyErrorListener(msg.getErrorCode());
     }
 
     private void handleLeftLobbyMessage(LeftLobbyMessage msg) {
         resetLobby();
-        if (onLeftLobbyListener != null) {
-            onLeftLobbyListener.leftLobby(msg.isWasClosed());
-        }
+        listenerManager.notifyLeftLobbyListener(msg.isWasClosed());
     }
 
     private void handleLobbyListMessage(LobbyListMessage msg) {
-        List<LobbyListMessage.LobbyData> lobbyList = msg.getLobbies();
-        if (lobbyListChangedListener != null) {
-            lobbyListChangedListener.lobbyListChanged(lobbyList);
-        }
+        listenerManager.notifyLobbyListChangedListener(msg.getLobbies());
     }
 
     private synchronized void handleNewArmiesMessage(NewArmiesMessage msg) {
@@ -327,9 +266,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
 
         // add bonus armies to the correct territory, update for all players
-        if (msg.getTerritoryIdForBonusArmies() != -1 && territoryUpdateListener != null) {
+        if (msg.getTerritoryIdForBonusArmies() != -1) {
             territoryData[msg.getTerritoryIdForBonusArmies()].addToArmyCount(2);
-            territoryUpdateListener.territoryUpdated(msg.getTerritoryIdForBonusArmies(),
+            listenerManager.notifyTerritoryUpdateListener(msg.getTerritoryIdForBonusArmies(),
                     territoryData[msg.getTerritoryIdForBonusArmies()].getArmyCount(),
                     currentPlayers.get(msg.getFromPlayerID()).getColorID());
         }
@@ -340,10 +279,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         currentTurnPlayerID = msg.getPlayerToActID();
         setCurrentPhase(Phase.PLACING);
 
-        if (nextTurnListener != null) {
-            nextTurnListener.isPlayersTurnNow(currentTurnPlayerID,
-                    thisPlayer.getUid() == currentTurnPlayerID);
-        }
+        listenerManager.notifyNextTurnListener(currentTurnPlayerID, thisPlayer.getUid() == currentTurnPlayerID);
         if (isThisPlayersTurn() && !thisPlayer.isAskForCardExchange()) {
             hasPlayerReceivedArmiesThisTurn = false;
             exchangeCards(false);
@@ -355,32 +291,24 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         if (msg.isAskForCardExchange()) {
             this.thisPlayer.setAskForCardExchange(true);
         }
-        if (cardsChangedListener != null) {
-            cardsChangedListener.singleNewCard(msg.getCardName());
-        }
+        listenerManager.notifySingleNewCardListener(msg.getCardName());
     }
 
     private void handleRefreshCardsMessage(RefreshCardsMessage msg) {
         // after set trade-in displayed cards need to be refreshed
-        if (cardsChangedListener != null) {
-            cardsChangedListener.refreshCards(msg.getCardNames());
-        }
+        listenerManager.notifyRefreshCardListener(msg.getCardNames());
     }
 
     private synchronized void handleJoinedLobbyMessage(JoinedLobbyMessage msg) {
         this.currentLobbyID = msg.getLobbyID();
         setCurrentPlayers(msg.getPlayers());
-        if (joinedLobbyListener != null) {
-            joinedLobbyListener.joinedLobby(msg.getLobbyID(), msg.getHost(), msg.getPlayers());
-        }
+        listenerManager.notifyJoinedLobbyListener(msg.getLobbyID(), msg.getHost(), msg.getPlayers());
     }
 
     private synchronized void handleConnectedMessage(ConnectedMessage msg) {
         thisPlayer = msg.getPlayer();
         isConnected = true;
-        if (connectionChangedListener != null) {
-            connectionChangedListener.connected(thisPlayer);
-        }
+        listenerManager.notifyConnectedListener(thisPlayer);
     }
 
     private synchronized void setCurrentPlayers(List<Player> players) {
@@ -392,17 +320,13 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void handlePlayersChangedMessage(PlayersChangedMessage msg) {
         setCurrentPlayers(msg.getPlayers());
-        if (playersChangedListener != null) {
-            playersChangedListener.playersChanged(new ArrayList<>(currentPlayers.values()));
-        }
+        listenerManager.notifyPlayersChangedListener(new ArrayList<>(currentPlayers.values()));
     }
 
     private synchronized void handleInitialArmyPlacingMessage(InitialArmyPlacingMessage msg) {
         turnOrder = msg.getPlayerOrder();
         currentTurnPlayerID = turnOrder.get(0);
-        if (nextTurnListener != null) {
-            nextTurnListener.isPlayersTurnNow(turnOrder.get(0), thisPlayer.getUid() == turnOrder.get(0));
-        }
+        listenerManager.notifyNextTurnListener(turnOrder.get(0), thisPlayer.getUid() == turnOrder.get(0));
     }
 
     private synchronized void handleArmyPlacedMessage(ArmyPlacedMessage msg) {
@@ -421,10 +345,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         // if this message is part of initial army placement, initiate next turn
         if (!initialArmyPlacementFinished) {
             nextPlayersTurn();
-            if (nextTurnListener != null) {
-                nextTurnListener.isPlayersTurnNow(currentTurnPlayerID,
-                        thisPlayer.getUid() == currentTurnPlayerID);
-            }
+            listenerManager.notifyNextTurnListener(currentTurnPlayerID,
+                    thisPlayer.getUid() == currentTurnPlayerID);
         }
         else {
             if (msg.getArmyCountRemaining() == 0) {
@@ -435,12 +357,10 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void handleStartGameMessage(StartGameMessage msg) {
         setCurrentArmyReserve(msg.getStartArmyCount(), true);
-        if (gameStartListener != null) {
-            for (Player p : msg.getPlayers()) {
-                currentPlayers.put(p.getUid(), p);
-            }
-            gameStartListener.onGameStarted(msg.getPlayers(), msg.getStartArmyCount());
+        for (Player p : msg.getPlayers()) {
+            currentPlayers.put(p.getUid(), p);
         }
+        listenerManager.notifyGameStartListener(msg.getPlayers(), msg.getStartArmyCount());
     }
 
     private synchronized void handleDiceResultMessage(DiceResultMessage msg) {
@@ -536,9 +456,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     @Override
     public void disconnected() {
         isConnected = false;
-        if (connectionChangedListener != null) {
-            connectionChangedListener.disconnected();
-        }
+        listenerManager.notifyDisconnectedListener();
     }
 
     public boolean isConnected() {
@@ -556,9 +474,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void setCurrentArmyReserve(int newValue, boolean isInitialCount) {
         this.currentArmyReserve = newValue;
-        if (armyReserveChangedListener != null) {
-            armyReserveChangedListener.newArmyCount(this.currentArmyReserve, isInitialCount);
-        }
+        listenerManager.notifyArmyReserveChangedListener(this.currentArmyReserve, isInitialCount);
     }
 
     public synchronized void finishTurn() {
@@ -591,8 +507,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public synchronized void returnToMainMenu() {
-        if (onLeftLobbyListener != null)
-            onLeftLobbyListener.leftLobby(false);
+        listenerManager.notifyLeftLobbyListener(false);
     }
 
     public int getCurrentLobbyID() {
@@ -605,9 +520,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private void setCurrentPhase(Phase phase) {
         this.currentPhase = phase;
-        if (phaseChangedListener != null) {
-            phaseChangedListener.phaseChanged(phase);
-        }
+        listenerManager.notifyPhaseChangedListener(phase);
     }
 
     public Phase getCurrentPhase() {

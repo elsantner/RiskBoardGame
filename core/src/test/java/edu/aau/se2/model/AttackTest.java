@@ -43,7 +43,7 @@ public class AttackTest extends AbstractDatabaseTest {
     @Test
     public void testStartAttack() throws InterruptedException {
         for (DatabaseTestable db : dbs) {
-            db.setAttackUpdatedListener(new OnAttackUpdatedListener() {
+            db.getListeners().setAttackUpdatedListener(new OnAttackUpdatedListener() {
                 @Override
                 public void attackStarted() {
                     attackStartedCount.addAndGet(1);

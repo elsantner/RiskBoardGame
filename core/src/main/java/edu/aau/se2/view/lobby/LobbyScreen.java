@@ -47,7 +47,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     public LobbyScreen(RiskGame game) {
         super(game);
         db = Database.getInstance();
-        db.setPlayersChangedListener(this);
+        db.getListeners().setPlayersChangedListener(this);
 
         users = db.getCurrentPlayers();
 

@@ -56,21 +56,21 @@ public class MoveArmiesTest extends AbstractDatabaseTest {
         int armiesCount = fromTerritory.getArmyCount()-1;
 
         for (DatabaseTestable db : dbs) {
-            db.setArmiesMovedListener((playerID, fromTerritoryID, toTerritoryID, count) -> {
+            db.getListeners().setArmiesMovedListener((playerID, fromTerritoryID, toTerritoryID, count) -> {
                 assertEquals(fromTerritory.getId(), fromTerritoryID);
                 assertEquals(toTerritory.getId(), toTerritoryID);
                 assertEquals(armiesCount, count);
                 armiesMovedCount.addAndGet(1);
             });
-            db.setTerritoryUpdateListener((territoryID, armyCount, colorID) -> territoryUpdateCount.addAndGet(1));
-            db.setPhaseChangedListener(newPhase -> {
+            db.getListeners().setTerritoryUpdateListener((territoryID, armyCount, colorID) -> territoryUpdateCount.addAndGet(1));
+            db.getListeners().setPhaseChangedListener(newPhase -> {
                 assertThat(newPhase, anyOf(is(Database.Phase.MOVING), is(Database.Phase.PLACING)));
                 phaseChangedCount.addAndGet(1);
                 if (newPhase == Database.Phase.MOVING && db.isThisPlayersTurn()) {
                     db.armyMoved(fromTerritory.getId(), toTerritory.getId(), armiesCount);
                 }
             });
-            db.setNextTurnListener((playerID, isThisPlayer) -> nextTurnCount.addAndGet(1));
+            db.getListeners().setNextTurnListener((playerID, isThisPlayer) -> nextTurnCount.addAndGet(1));
         }
 
         clientToAct.finishAttackingPhase();

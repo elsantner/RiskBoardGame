@@ -47,7 +47,7 @@ public class OccupyTest extends AbstractDatabaseTest {
     @Test
     public void testOccupyTerritory() throws InterruptedException {
         for (DatabaseTestable db : dbs) {
-            db.setAttackUpdatedListener(new OnAttackUpdatedListener() {
+            db.getListeners().setAttackUpdatedListener(new OnAttackUpdatedListener() {
                 @Override
                 public void attackStarted() {
                     // unused
@@ -64,7 +64,7 @@ public class OccupyTest extends AbstractDatabaseTest {
                     attackFinishedCount.addAndGet(1);
                 }
             });
-            db.setTerritoryUpdateListener((territoryID, armyCount, colorID) -> territoryUpdateCount.addAndGet(1));
+            db.getListeners().setTerritoryUpdateListener((territoryID, armyCount, colorID) -> territoryUpdateCount.addAndGet(1));
         }
 
         DatabaseTestable clientToAct = DatabaseTestable.getClientToAct(dbs);
