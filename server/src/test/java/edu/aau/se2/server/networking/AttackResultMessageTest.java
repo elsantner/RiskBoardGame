@@ -97,7 +97,7 @@ public class AttackResultMessageTest {
         results.add(3);
         clients[1].sendMessage(new DiceResultMessage(lobbyID, defender.getUid(), results,false));
 
-        Thread.sleep(5500);
+        Thread.sleep(6000);
 
         Attack attack = server.getDataStore().getLobbyByID(lobbyID).getCurrentAttack();
         assertNull(attack);
@@ -128,7 +128,7 @@ public class AttackResultMessageTest {
         results.add(1);
         clients[1].sendMessage(new DiceResultMessage(lobbyID, defender.getUid(), results,false));
 
-        Thread.sleep(5500);
+        Thread.sleep(6000);
 
         Attack attack = server.getDataStore().getLobbyByID(lobbyID).getCurrentAttack();
         assertNull(attack);
@@ -159,7 +159,7 @@ public class AttackResultMessageTest {
         results.add(2);
         clients[1].sendMessage(new DiceResultMessage(lobbyID, defender.getUid(), results,false));
 
-        Thread.sleep(5500);
+        Thread.sleep(6000);
 
         Attack attack = server.getDataStore().getLobbyByID(lobbyID).getCurrentAttack();
         assertNull(attack);

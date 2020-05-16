@@ -183,9 +183,9 @@ public class MainServer implements PlayerLostConnectionListener {
             l.getCurrentAttack().setDefenderDiceResults(msg.getResults());
             server.broadcastMessage(msg, l.getPlayers());
             try {
-                Thread.sleep(4000);
+                wait(4000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                log.severe(e.getMessage());
             }
             attackFinished(l.getLobbyID());
         }

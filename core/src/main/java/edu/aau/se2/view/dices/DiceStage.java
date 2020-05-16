@@ -101,10 +101,10 @@ public class DiceStage extends AbstractStage {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("font/CenturyGothic.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = 32;
-        BitmapFont font = generator.generateFont(parameter);
-        font.getData().setScale((getViewport().getWorldWidth()*1.5f) / Territory.REFERENCE_WIDTH);
+        BitmapFont generatedFont = generator.generateFont(parameter);
+        generatedFont.getData().setScale((getViewport().getWorldWidth()*1.5f) / Territory.REFERENCE_WIDTH);
         generator.dispose();
-        return font;
+        return generatedFont;
     }
 
     private void loadAssets() {

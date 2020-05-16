@@ -193,7 +193,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         showDialog(dialog);
     }
 
-    private void showStartDefendDialog(int fromTerritoryID, int onTerritoryID) {
+    private void showStartDefendDialog(int onTerritoryID) {
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
         SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Verteidigen", "Wuerfelanzahl waehlen", 1,
@@ -295,7 +295,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         }
 
         if (a != null && db.isThisPlayerDefender()) {
-            showStartDefendDialog(a.getFromTerritoryID(), a.getToTerritoryID());
+            showStartDefendDialog(a.getToTerritoryID());
         }
     }
 
