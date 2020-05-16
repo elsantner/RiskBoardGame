@@ -87,6 +87,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         diceStage.act(delta);
         diceStage.draw();
 
+        hudStage.getViewport().apply();
+        hudStage.update();
+        hudStage.draw();
+
         if (hudStage.getShowCards()) {
             if (cardStage.isUpdated()) {
                 cardStage.updateActor();
@@ -94,10 +98,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
             cardStage.act();
             cardStage.draw();
         }
-
-        hudStage.getViewport().apply();
-        hudStage.update();
-        hudStage.draw();
     }
 
     @Override
@@ -213,7 +213,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     private void showDialog(Dialog dialog) {
-        dialog.show(hudStage);
+        dialog.show(hudStage).moveBy(0, hudStage.getViewport().getWorldHeight() * 0.1f);
         dialog.setOrigin(Align.center);
     }
 
@@ -234,7 +234,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                     }
                     boardStage.setInteractable(true);
                 });
-        dialog.show(hudStage).moveBy(0, hudStage.getViewport().getWorldHeight() * 0.1f);
+        showDialog(dialog);
     }
 
 

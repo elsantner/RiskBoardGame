@@ -51,7 +51,7 @@ public class PhaseDisplay extends Group {
         table.setFillParent(true);
         // Table: [empty cell expandX] [cell with PhaseName centered] [empty cell expandX] [End-Turn Button]
         table.add().expandX();
-        table.add(label).minHeight(font.getLineHeight()).center().padLeft(viewport.getWorldWidth() * 0.077f).bottom().padBottom(viewport.getWorldHeight() * 0.01f);
+        table.add(label).minHeight(font.getLineHeight()).center().padLeft(viewport.getWorldWidth() * 0.077f).bottom().padBottom(viewport.getWorldHeight() * 0.012f);
         table.add().expandX();
         table.add(buttonSkipStage).height(viewport.getWorldHeight() * 0.132f).width(viewport.getWorldWidth() * 0.077f).right()
                 .padRight(viewport.getWorldWidth() * 0.015f).bottom().padBottom(viewport.getWorldHeight() * 0.006f);

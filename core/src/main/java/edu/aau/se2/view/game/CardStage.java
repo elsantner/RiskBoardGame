@@ -52,8 +52,8 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
         outer = new Table().bottom();
         outer.setFillParent(true);
 
-        outer.pad(0, viewport.getWorldWidth() * 0.0075f, 0, viewport.getWorldWidth() * 0.0075f);
-        outer.add(scrollPane).bottom().pad(0, 0, 20f, 0);
+        outer.pad(0, viewport.getWorldWidth() * 0.092f, 0, viewport.getWorldWidth() * 0.092f);
+        outer.add(scrollPane).bottom().pad(0, 0, viewport.getWorldHeight() * 0.012f, 0);
         this.addActor(outer);
     }
 
@@ -67,7 +67,7 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
         }
 
         scrollPane = new ScrollPane(cardContainer);
-        outer.add(scrollPane).bottom().pad(0, 0, 20f, 0);
+        outer.add(scrollPane).bottom().pad(0, 0, viewport.getWorldHeight() * 0.012f, 0);
 
         this.updated = false;
     }
@@ -90,7 +90,8 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
             }
         }
         Image im = new Image(texture);
-        this.cardContainer.add(im).pad(0, 8f, 0, 8f).height(viewport.getWorldHeight() / 2.2f).width((viewport.getWorldHeight() / 2.2f) / 1.568f);
+        this.cardContainer.add(im).pad(0, viewport.getWorldWidth() * 0.002f, 0, viewport.getWorldWidth() * 0.002f)
+                .height(viewport.getWorldHeight() / 2.2f).width((viewport.getWorldHeight() / 2.2f) / 1.568f);
     }
 
     @Override
