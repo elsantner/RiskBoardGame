@@ -70,7 +70,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
 
         ImageButton cards = new ImageButton(new TextureRegionDrawable(new TextureRegion((Texture) this.getScreen().getGame().getAssetManager().get(AssetName.CARDS_BUTTON))));
         cards.getImage().setFillParent(true);
-        //cards.setDebug(true);
 
         cards.addListener(new ClickListener() {
             @Override
@@ -102,7 +101,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             table.row();
         }
         table.row();
-        table.add(cards).height(vp.getWorldHeight() * 0.12f).width(vp.getWorldWidth() * 0.07f).expandY().left().padLeft(vp.getWorldWidth() * 0.01f).bottom().padBottom(vp.getWorldHeight() *0.01f);
+        table.add(cards).height(vp.getWorldHeight() * 0.132f).width(vp.getWorldWidth() * 0.077f).expandY().left().padLeft(vp.getWorldHeight() * 0.006f).bottom().padBottom(vp.getWorldHeight() * 0.006f);
         this.addActor(table);
     }
 
@@ -145,7 +144,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     }
 
     private void setupPhaseDisplay() {
-        this.phaseDisplay = new PhaseDisplay(getScreen().getGame().getAssetManager());
+        this.phaseDisplay = new PhaseDisplay(getScreen().getGame().getAssetManager(), getViewport());
         this.addActor(phaseDisplay);
         phaseDisplay.setWidth(Gdx.graphics.getWidth());
         phaseDisplay.setHeight(Gdx.graphics.getHeight() / 7f);
