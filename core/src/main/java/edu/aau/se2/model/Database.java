@@ -24,6 +24,7 @@ import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.server.data.Attack;
+import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.NetworkClient;
@@ -80,17 +81,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private ListenerManager listenerManager;
 
     private Player thisPlayer;
-    private TreeMap<Integer, Player> currentPlayers;
-    private List<Integer> turnOrder;
-    private int currentTurnIndex;
-    private int currentLobbyID;
-    private Territory[] territoryData;
-    private boolean initialArmyPlacementFinished;
-    private int currentTurnPlayerID;
-    private boolean hasPlayerReceivedArmiesThisTurn;
     private int currentArmyReserve;
     private Phase currentPhase;
-    private Attack currentAttack;
+    private Lobby lobby;
 
     protected Database() {
         resetLobby();
@@ -133,21 +126,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
      * Resets all lobby-related data internally.
      */
     public void resetLobby() {
-        currentPlayers = new TreeMap<>();
-        turnOrder = null;
-        currentTurnIndex = 0;
-        initialArmyPlacementFinished = false;
-        currentLobbyID = -1;
+        lobby = new Lobby(-1);
         currentPhase = Phase.NONE;
         currentArmyReserve = 0;
-        initTerritoryData();
-    }
-
-    private void initTerritoryData() {
-        territoryData = new Territory[42];
-        for (int i = 0; i < territoryData.length; i++) {
-            territoryData[i] = new Territory(i);
-        }
     }
 
     public ListenerManager getListeners() {
@@ -199,28 +180,28 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private void handleOccupyTerritoryMessage(OccupyTerritoryMessage msg) {
         // update territory state
-        territoryData[msg.getFromTerritoryID()].subFromArmyCount(msg.getArmyCount());
-        territoryData[msg.getTerritoryID()].setArmyCount(msg.getArmyCount());
-        territoryData[msg.getTerritoryID()].setOccupierPlayerID(msg.getFromPlayerID());
+        lobby.getTerritoryByID(msg.getFromTerritoryID()).subFromArmyCount(msg.getArmyCount());
+        lobby.getTerritoryByID(msg.getTerritoryID()).setArmyCount(msg.getArmyCount());
+        lobby.getTerritoryByID(msg.getTerritoryID()).setOccupierPlayerID(msg.getFromPlayerID());
 
-        notifyTerritoryUpdateListener(territoryData[msg.getFromTerritoryID()]);
-        notifyTerritoryUpdateListener(territoryData[msg.getTerritoryID()]);
-        currentAttack = null;
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getFromTerritoryID()));
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getTerritoryID()));
+        lobby.setCurrentAttack(null);
         listenerManager.notifyAttackFinishedListener();
     }
 
     // TODO: add actual logic (--> Carina)
     private void handleAttackResultMessage(AttackResultMessage msg) {
-        this.currentAttack.setOccupyRequired(msg.isOccupyRequired());
+        lobby.getCurrentAttack().setOccupyRequired(msg.isOccupyRequired());
         listenerManager.notifyAttackUpdatedListener();
         if (!msg.isOccupyRequired()) {
-            currentAttack = null;
+            lobby.setCurrentAttack(null);
             listenerManager.notifyAttackFinishedListener();
         }
     }
 
     private void handleAttackStartedMessage(AttackStartedMessage msg) {
-        currentAttack = new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount());
+        lobby.setCurrentAttack(new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount()));
         listenerManager.notifyAttackStartedListener();
     }
 
@@ -232,17 +213,17 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private void handleArmyMovedMessage(ArmyMovedMessage msg) {
         // update territory state
-        territoryData[msg.getFromTerritoryID()].subFromArmyCount(msg.getArmyCountMoved());
-        territoryData[msg.getToTerritoryID()].addToArmyCount(msg.getArmyCountMoved());
+        lobby.getTerritoryByID(msg.getFromTerritoryID()).subFromArmyCount(msg.getArmyCountMoved());
+        lobby.getTerritoryByID(msg.getToTerritoryID()).addToArmyCount(msg.getArmyCountMoved());
         listenerManager.notifyArmiesMovedListener(msg.getFromPlayerID(), msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getArmyCountMoved());
 
-        notifyTerritoryUpdateListener(territoryData[msg.getFromTerritoryID()]);
-        notifyTerritoryUpdateListener(territoryData[msg.getToTerritoryID()]);
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getFromTerritoryID()));
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getToTerritoryID()));
     }
 
     private void notifyTerritoryUpdateListener(Territory t) {
         listenerManager.notifyTerritoryUpdateListener(t.getId(), t.getArmyCount(),
-                currentPlayers.get(t.getOccupierPlayerID()).getColorID());
+                lobby.getPlayerByID(t.getOccupierPlayerID()).getColorID());
     }
 
     private void handleErrorMessage(ErrorMessage msg) {
@@ -259,29 +240,32 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private synchronized void handleNewArmiesMessage(NewArmiesMessage msg) {
-        currentPlayers.get(msg.getFromPlayerID()).setArmyReserveCount(msg.getNewArmyCount());
+        lobby.getPlayerByID(msg.getFromPlayerID()).setArmyReserveCount(msg.getNewArmyCount());
         if (thisPlayer.getUid() == msg.getFromPlayerID()) {
             setCurrentArmyReserve(msg.getNewArmyCount(), true);
-            hasPlayerReceivedArmiesThisTurn = true;
+            lobby.setCurrentPlayerToActReceivedNewArmies(true);
         }
 
         // add bonus armies to the correct territory, update for all players
         if (msg.getTerritoryIdForBonusArmies() != -1) {
-            territoryData[msg.getTerritoryIdForBonusArmies()].addToArmyCount(2);
+            lobby.getTerritoryByID(msg.getTerritoryIdForBonusArmies()).addToArmyCount(2);
             listenerManager.notifyTerritoryUpdateListener(msg.getTerritoryIdForBonusArmies(),
-                    territoryData[msg.getTerritoryIdForBonusArmies()].getArmyCount(),
-                    currentPlayers.get(msg.getFromPlayerID()).getColorID());
+                    lobby.getTerritoryByID(msg.getTerritoryIdForBonusArmies()).getArmyCount(),
+                    lobby.getPlayerByID(msg.getFromPlayerID()).getColorID());
         }
     }
 
     private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
-        initialArmyPlacementFinished = true;
-        currentTurnPlayerID = msg.getPlayerToActID();
+        lobby.setInitialArmiesPlaced();
+        // TODO: possible error
+        lobby.nextPlayersTurn();
+        //currentTurnPlayerID = msg.getPlayerToActID();
         setCurrentPhase(Phase.PLACING);
 
-        listenerManager.notifyNextTurnListener(currentTurnPlayerID, thisPlayer.getUid() == currentTurnPlayerID);
+        listenerManager.notifyNextTurnListener(lobby.getPlayerToAct().getUid(),
+                thisPlayer.getUid() == lobby.getPlayerToAct().getUid());
         if (isThisPlayersTurn() && !thisPlayer.isAskForCardExchange()) {
-            hasPlayerReceivedArmiesThisTurn = false;
+            lobby.setCurrentPlayerToActReceivedNewArmies(false);
             exchangeCards(false);
         }
     }
@@ -300,7 +284,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private synchronized void handleJoinedLobbyMessage(JoinedLobbyMessage msg) {
-        this.currentLobbyID = msg.getLobbyID();
+        lobby.setLobbyID(msg.getLobbyID());
         setCurrentPlayers(msg.getPlayers());
         listenerManager.notifyJoinedLobbyListener(msg.getLobbyID(), msg.getHost(), msg.getPlayers());
     }
@@ -312,21 +296,21 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private synchronized void setCurrentPlayers(List<Player> players) {
-        currentPlayers.clear();
+        lobby.clearPlayers();
         for (Player p : players) {
-            currentPlayers.put(p.getUid(), p);
+            lobby.join(p);
         }
     }
 
     private synchronized void handlePlayersChangedMessage(PlayersChangedMessage msg) {
         setCurrentPlayers(msg.getPlayers());
-        listenerManager.notifyPlayersChangedListener(new ArrayList<>(currentPlayers.values()));
+        listenerManager.notifyPlayersChangedListener(lobby.getPlayers());
     }
 
     private synchronized void handleInitialArmyPlacingMessage(InitialArmyPlacingMessage msg) {
-        turnOrder = msg.getPlayerOrder();
-        currentTurnPlayerID = turnOrder.get(0);
-        listenerManager.notifyNextTurnListener(turnOrder.get(0), thisPlayer.getUid() == turnOrder.get(0));
+        lobby.setTurnOrder(msg.getPlayerOrder());
+        listenerManager.notifyNextTurnListener(lobby.getPlayerToAct().getUid(),
+                thisPlayer.getUid() == lobby.getPlayerToAct().getUid());
     }
 
     private synchronized void handleArmyPlacedMessage(ArmyPlacedMessage msg) {
@@ -335,18 +319,18 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             setCurrentArmyReserve(msg.getArmyCountRemaining(), false);
         }
         // update remaining army count on player
-        currentPlayers.get(msg.getFromPlayerID()).setArmyReserveCount(msg.getArmyCountRemaining());
+        lobby.getPlayerByID(msg.getFromPlayerID()).setArmyReserveCount(msg.getArmyCountRemaining());
         // update territory state
-        territoryData[msg.getOnTerritoryID()].addToArmyCount(msg.getArmyCountPlaced());
-        territoryData[msg.getOnTerritoryID()].setOccupierPlayerID(msg.getFromPlayerID());
+        lobby.getTerritoryByID(msg.getOnTerritoryID()).addToArmyCount(msg.getArmyCountPlaced());
+        lobby.getTerritoryByID(msg.getOnTerritoryID()).setOccupierPlayerID(msg.getFromPlayerID());
 
-        notifyTerritoryUpdateListener(territoryData[msg.getOnTerritoryID()]);
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getOnTerritoryID()));
 
         // if this message is part of initial army placement, initiate next turn
-        if (!initialArmyPlacementFinished) {
-            nextPlayersTurn();
-            listenerManager.notifyNextTurnListener(currentTurnPlayerID,
-                    thisPlayer.getUid() == currentTurnPlayerID);
+        if (!lobby.areInitialArmiesPlaced()) {
+            lobby.nextPlayersTurn();
+            listenerManager.notifyNextTurnListener(lobby.getPlayerToAct().getUid(),
+                    thisPlayer.getUid() == lobby.getPlayerToAct().getUid());
         }
         else {
             if (msg.getArmyCountRemaining() == 0) {
@@ -357,9 +341,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void handleStartGameMessage(StartGameMessage msg) {
         setCurrentArmyReserve(msg.getStartArmyCount(), true);
-        for (Player p : msg.getPlayers()) {
-            currentPlayers.put(p.getUid(), p);
-        }
         listenerManager.notifyGameStartListener(msg.getPlayers(), msg.getStartArmyCount());
     }
 
@@ -367,26 +348,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         // TODO show result
     }
 
-    /**
-     * Sets the current player to act to the next player according to turn order.
-     * WARNING: This method should only be used during initial army placing phase.
-     * Use the player id communicated in the NextTurnMessage from server instead.
-     */
-    private synchronized void nextPlayersTurn() {
-        currentTurnIndex = (currentTurnIndex + 1) % currentPlayers.size();
-        currentTurnPlayerID = turnOrder.get(currentTurnIndex);
-    }
-
     public int getCurrentArmyReserve() {
         return currentArmyReserve;
-    }
-
-    public Player getPlayerByID(int playerID) {
-        return currentPlayers.get(playerID);
-    }
-
-    public Player getCurrentPlayerToAct() {
-        return currentPlayers.get(currentTurnPlayerID);
     }
 
     public Player getThisPlayer() {
@@ -394,53 +357,49 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public boolean isThisPlayersTurn() {
-        return getCurrentPlayerToAct() != null && getCurrentPlayerToAct().getUid() == thisPlayer.getUid();
+        return lobby.getPlayerToAct() != null && lobby.getPlayerToAct().getUid() == thisPlayer.getUid();
     }
 
     public boolean isThisPlayerDefender() {
-        if (currentAttack == null) return false;
-        return territoryData[currentAttack.getToTerritoryID()].getOccupierPlayerID() == thisPlayer.getUid();
-    }
-
-    public Attack getAttack() {
-        return currentAttack;
+        if (lobby.getCurrentAttack() == null) return false;
+        return lobby.getTerritoryByID(lobby.getCurrentAttack().getToTerritoryID()).getOccupierPlayerID() == thisPlayer.getUid();
     }
 
     public void setPlayerReady(boolean ready) {
-        client.sendMessage(new ReadyMessage(currentLobbyID, thisPlayer.getUid(), ready));
+        client.sendMessage(new ReadyMessage(lobby.getLobbyID(), thisPlayer.getUid(), ready));
     }
 
     public void togglePlayerReady() {
-        Player player = currentPlayers.get(thisPlayer.getUid());
+        Player player = lobby.getPlayerByID(thisPlayer.getUid());
         if (player != null) {
-            client.sendMessage(new ReadyMessage(currentLobbyID, thisPlayer.getUid(),
+            client.sendMessage(new ReadyMessage(lobby.getLobbyID(), thisPlayer.getUid(),
                     !player.isReady()));
         }
     }
 
     @Override
     public void armyPlaced(int territoryID, int count) {
-        if (!isInitialArmyPlacementFinished() || currentPhase == Phase.PLACING) {
-            client.sendMessage(new ArmyPlacedMessage(currentLobbyID, thisPlayer.getUid(), territoryID, count));
+        if (!lobby.areInitialArmiesPlaced() || currentPhase == Phase.PLACING) {
+            client.sendMessage(new ArmyPlacedMessage(lobby.getLobbyID(), thisPlayer.getUid(), territoryID, count));
         }
     }
 
     @Override
     public void armyMoved(int fromTerritoryID, int toTerritoryID, int count) {
         if (currentPhase == Phase.MOVING) {
-            client.sendMessage(new ArmyMovedMessage(currentLobbyID, thisPlayer.getUid(),
+            client.sendMessage(new ArmyMovedMessage(lobby.getLobbyID(), thisPlayer.getUid(),
                     fromTerritoryID, toTerritoryID, count));
         }
     }
 
     public void sendAttackerResults(List<Integer> results, boolean cheated) {
-        client.sendMessage(new DiceResultMessage(currentLobbyID, thisPlayer.getUid(), results, cheated));
+        client.sendMessage(new DiceResultMessage(lobby.getLobbyID(), thisPlayer.getUid(), results, cheated));
     }
 
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
         if (currentPhase == Phase.ATTACKING) {
-            client.sendMessage(new AttackStartedMessage(currentLobbyID, thisPlayer.getUid(), fromTerritoryID, onTerritoryID, count));
+            client.sendMessage(new AttackStartedMessage(lobby.getLobbyID(), thisPlayer.getUid(), fromTerritoryID, onTerritoryID, count));
         }
     }
 
@@ -469,27 +428,20 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             thisPlayer.setAskForCardExchange(false);
         }
 
-        client.sendMessage(new CardExchangeMessage(currentLobbyID, thisPlayer.getUid(), exchangeCards));
+        client.sendMessage(new CardExchangeMessage(lobby.getLobbyID(), thisPlayer.getUid(), exchangeCards));
     }
 
     private synchronized void setCurrentArmyReserve(int newValue, boolean isInitialCount) {
         this.currentArmyReserve = newValue;
+        lobby.getPlayerByID(thisPlayer.getUid()).setArmyReserveCount(newValue);
         listenerManager.notifyArmyReserveChangedListener(this.currentArmyReserve, isInitialCount);
     }
 
     public synchronized void finishTurn() {
-        if (!(isThisPlayersTurn() && hasPlayerReceivedArmiesThisTurn && currentArmyReserve == 0)) {
+        if (!(isThisPlayersTurn() && lobby.hasCurrentPlayerToActReceivedNewArmies() && currentArmyReserve == 0)) {
             throw new IllegalStateException("can only finish own turn after all army reserves have been placed");
         }
-        client.sendMessage(new NextTurnMessage(currentLobbyID, thisPlayer.getUid()));
-    }
-
-    public synchronized boolean isInitialArmyPlacementFinished() {
-        return initialArmyPlacementFinished;
-    }
-
-    public synchronized List<Player> getCurrentPlayers() {
-        return new ArrayList<>(currentPlayers.values());
+        client.sendMessage(new NextTurnMessage(lobby.getLobbyID(), thisPlayer.getUid()));
     }
 
     public synchronized void triggerLobbyListUpdate() {
@@ -501,8 +453,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public synchronized void leaveLobby() {
-        if (currentLobbyID != -1) {
-            client.sendMessage(new RequestLeaveLobby(currentLobbyID, thisPlayer.getUid()));
+        if (lobby.getLobbyID() != -1) {
+            client.sendMessage(new RequestLeaveLobby(lobby.getLobbyID(), thisPlayer.getUid()));
         }
     }
 
@@ -510,12 +462,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         listenerManager.notifyLeftLobbyListener(false);
     }
 
-    public int getCurrentLobbyID() {
-        return currentLobbyID;
-    }
-
     public void finishAttackingPhase() {
-        client.sendMessage(new AttackingPhaseFinishedMessage(currentLobbyID, thisPlayer.getUid()));
+        client.sendMessage(new AttackingPhaseFinishedMessage(lobby.getLobbyID(), thisPlayer.getUid()));
     }
 
     private void setCurrentPhase(Phase phase) {
@@ -527,48 +475,19 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         return currentPhase;
     }
 
-    public Territory getTerritoryByID(int territoryID) {
-        try {
-            return territoryData[territoryID];
-        }
-        catch (ArrayIndexOutOfBoundsException ex) {
-            throw new IllegalArgumentException("territory with id " + territoryID + " does not exist");
-        }
-    }
-
     public void closeConnection() {
         client.disconnect();
     }
 
-    public Player getPlayerByTerritoryID(int territoryID) {
-        return currentPlayers.get(territoryData[territoryID].getOccupierPlayerID());
-    }
-
     public void occupyTerritory(int territoryID, int fromTerritoryID, int armyCount) {
-        client.sendMessage(new OccupyTerritoryMessage(currentLobbyID, thisPlayer.getUid(), territoryID, fromTerritoryID, armyCount));
+        client.sendMessage(new OccupyTerritoryMessage(lobby.getLobbyID(), thisPlayer.getUid(), territoryID, fromTerritoryID, armyCount));
     }
 
-    public List<Territory> getTerritoriesByPlayer(int playerID) {
-        List<Territory> territoriesOfPlayer = new ArrayList<>();
-        for (Territory territoryDatum : territoryData) {
-            if (territoryDatum.getOccupierPlayerID() == playerID) {
-                territoriesOfPlayer.add(territoryDatum);
-            }
-        }
-        return territoriesOfPlayer;
+    public Territory[] getMyTerritories() {
+        return lobby.getTerritoriesOccupiedByPlayer(thisPlayer.getUid());
     }
 
-    public List<Territory> getUnoccupiedTerritories() {
-        List<Territory> unoccupiedTerritories = new ArrayList<>();
-        for (Territory territoryDatum : territoryData) {
-            if (territoryDatum.getOccupierPlayerID() == -1) {
-                unoccupiedTerritories.add(territoryDatum);
-            }
-        }
-        return unoccupiedTerritories;
-    }
-
-    public List<Territory> getMyTerritories() {
-        return getTerritoriesByPlayer(thisPlayer.getUid());
+    public Lobby getLobby() {
+        return lobby;
     }
 }

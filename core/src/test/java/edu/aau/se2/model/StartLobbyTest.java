@@ -47,7 +47,7 @@ public class StartLobbyTest extends AbstractDatabaseTest {
         assertEquals(NUM_CLIENTS, gameStartedCount.get());
         for (DatabaseTestable db : dbs) {
             assertEquals(ArmyCountHelper.getStartCount(NUM_CLIENTS), db.getCurrentArmyReserve());
-            assertFalse(db.isInitialArmyPlacementFinished());
+            assertFalse(db.getLobby().areInitialArmiesPlaced());
         }
     }
 

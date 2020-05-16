@@ -82,8 +82,8 @@ public class MoveArmiesTest extends AbstractDatabaseTest {
         assertEquals(NUM_CLIENTS, nextTurnCount.get());
         for (DatabaseTestable db : dbs) {
             assertEquals(Database.Phase.PLACING, db.getCurrentPhase());
-            assertEquals(1, db.getTerritoryByID(fromTerritory.getId()).getArmyCount());
-            assertEquals(clientToAct.getThisPlayer().getUid(), db.getTerritoryByID(fromTerritory.getId()).getOccupierPlayerID());
+            assertEquals(1, db.getLobby().getTerritoryByID(fromTerritory.getId()).getArmyCount());
+            assertEquals(clientToAct.getThisPlayer().getUid(), db.getLobby().getTerritoryByID(fromTerritory.getId()).getOccupierPlayerID());
         }
     }
 

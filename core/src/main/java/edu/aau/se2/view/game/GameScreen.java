@@ -44,7 +44,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         diceStage = new DiceStage(new FitViewport(width, height), this, results, true);
 
         boardStage.setListener(this);
-        hudStage = new HudStage(this, new FitViewport(width, height), db.getCurrentPlayers(), this);
+        hudStage = new HudStage(this, new FitViewport(width, height), db.getLobby().getPlayers(), this);
         db.getListeners().setTerritoryUpdateListener(this);
         db.getListeners().setNextTurnListener(this);
         db.getListeners().setPhaseChangedListener(this);
@@ -53,9 +53,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
         // trigger player turn update because listener might not have been registered when
         // server message was received
-        if (db.getCurrentPlayerToAct() != null) {   // only if initial army placing message was received already
-            isPlayersTurnNow(db.getCurrentPlayerToAct().getUid(), db.isThisPlayersTurn());
-            setPlayersDataOnHud(db.getCurrentPlayers());
+        if (db.getLobby().getPlayerToAct() != null) {   // only if initial army placing message was received already
+            isPlayersTurnNow(db.getLobby().getPlayerToAct().getUid(), db.isThisPlayersTurn());
+            setPlayersDataOnHud(db.getLobby().getPlayers());
         }
     }
 
@@ -131,7 +131,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void territoryUpdated(int territoryID, int armyCount, int colorID) {
-        int playerColor = db.getCurrentPlayerToAct().getColorID();
+        int playerColor = db.getLobby().getPlayerToAct().getColorID();
         boardStage.setArmyCount(territoryID, armyCount);
         boardStage.setArmyColor(territoryID, colorID);
         hudStage.setPlayerTerritoryCount(territoryID, playerColor);
@@ -170,7 +170,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
         SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Einheitenanzahl", "Wie viele Einheiten wollen Sie verschieben?", 1,
-                db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
+                db.getLobby().getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
                 result -> {
                     if (result > 0) {
                         db.armyMoved(fromTerritoryID, toTerritoryID, result);
@@ -184,7 +184,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
         SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Angriff starten", "Wuerfelanzahl waehlen", 1,
-                Math.min(db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1, 3),
+                Math.min(db.getLobby().getTerritoryByID(fromTerritoryID).getArmyCount() - 1, 3),
                 result -> {
                     if (result > 0) {
                         db.attackStarted(fromTerritoryID, onTerritoryID, result);
@@ -200,7 +200,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         String toTerritoryName = Territory.getByID(toTerritoryID).getTerritoryName();
         SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Territorium einnehmen",
                 String.format("Einheiten nach '%s' verschieben", toTerritoryName), 1,
-                db.getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
+                db.getLobby().getTerritoryByID(fromTerritoryID).getArmyCount() - 1,
 
                 result -> {
                     if (result > 0) {
@@ -277,7 +277,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void attackUpdated() {
-        Attack a = db.getAttack();
+        Attack a = db.getLobby().getCurrentAttack();
         hudStage.setCurrentAttack(a);
         if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
             showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());

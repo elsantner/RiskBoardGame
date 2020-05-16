@@ -91,9 +91,9 @@ public class DiceStage extends AbstractStage {
 
         if (phase == Database.Phase.ATTACKING && db.isThisPlayersTurn()) {
             // showing attacker view
-            if (db.getAttack() != null && db.getAttack().getAttackerDiceCount() == -1) {
+            if (db.getLobby().getCurrentAttack() != null && db.getLobby().getCurrentAttack().getAttackerDiceCount() == -1) {
                 clear(); // remove all actors
-                Territory fromTerritory = db.getTerritoryByID(db.getAttack().getFromTerritoryID());
+                Territory fromTerritory = db.getLobby().getTerritoryByID(db.getLobby().getCurrentAttack().getFromTerritoryID());
                 int maxDiceCount = fromTerritory.getArmyCount() - 1;
 
                 Table outerTable = new Table();

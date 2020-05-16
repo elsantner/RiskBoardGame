@@ -33,6 +33,10 @@ public class Lobby {
         initTerritories();
     }
 
+    public Player getPlayerByID(int id) {
+        return players.get(id);
+    }
+
     public List<Player> getPlayers() {
         return new ArrayList<>(players.values());
     }
@@ -47,6 +51,10 @@ public class Lobby {
 
     public int getLobbyID() {
         return lobbyID;
+    }
+
+    public void setLobbyID(int lobbyID) {
+        this.lobbyID = lobbyID;
     }
 
     public Player getHost() {
@@ -113,6 +121,10 @@ public class Lobby {
         return areInitialArmiesPlaced;
     }
 
+    public void setInitialArmiesPlaced() {
+        this.areInitialArmiesPlaced = true;
+    }
+
     public List<Integer> getTurnOrder() {
         return turnOrder;
     }
@@ -167,6 +179,10 @@ public class Lobby {
         hasCurrentPlayerToActReceivedNewArmies = true;
     }
 
+    public void setCurrentPlayerToActReceivedNewArmies(boolean armiesReceived) {
+        this.hasCurrentPlayerToActReceivedNewArmies = armiesReceived;
+    }
+
     public boolean hasCurrentPlayerToActReceivedNewArmies() {
         return hasCurrentPlayerToActReceivedNewArmies;
     }
@@ -213,6 +229,10 @@ public class Lobby {
         }
     }
 
+    public void clearPlayers() {
+        players.clear();
+    }
+
     public boolean attackRunning() {
         return currentAttack != null;
     }
@@ -244,5 +264,19 @@ public class Lobby {
 
     public boolean isPlayersTerritory(int playerID, int territoryID) {
         return territories[territoryID].getOccupierPlayerID() == playerID;
+    }
+
+    public Player getPlayerByTerritoryID(int territoryID) {
+        return players.get(territories[territoryID].getOccupierPlayerID());
+    }
+
+    public Territory[] getUnoccupiedTerritories() {
+        List<Territory> unoccupiedTerritories = new ArrayList<>();
+        for (Territory territoryDatum : this.territories) {
+            if (territoryDatum.getOccupierPlayerID() == -1) {
+                unoccupiedTerritories.add(territoryDatum);
+            }
+        }
+        return unoccupiedTerritories.toArray(new Territory[0]);
     }
 }

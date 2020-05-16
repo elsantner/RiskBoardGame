@@ -42,7 +42,7 @@ public class SetupGameTest extends AbstractDatabaseTest {
         for (DatabaseTestable db : dbs) {
             db.getListeners().setTerritoryUpdateListener((territoryID, armyCount, colorID) -> territoryUpdateCount.addAndGet(1));
             db.getListeners().setNextTurnListener((playerID, isThisPlayer) -> {
-                if (isThisPlayer && !db.isInitialArmyPlacementFinished()) {
+                if (isThisPlayer && !db.getLobby().areInitialArmiesPlaced()) {
                     assertEquals(Database.Phase.NONE, db.getCurrentPhase());
                     db.armyPlaced(db.getNextTerritoryToPlaceArmiesOn().getId(), 1);
                 }
@@ -56,7 +56,7 @@ public class SetupGameTest extends AbstractDatabaseTest {
         int armyCountGreaterZero = 0;
         for (DatabaseTestable db : dbs) {
             armyCountGreaterZero += db.getCurrentArmyReserve() > 0 ? 1 : 0;
-            assertTrue(db.isInitialArmyPlacementFinished());
+            assertTrue(db.getLobby().areInitialArmiesPlaced());
             assertEquals(Database.Phase.PLACING, db.getCurrentPhase());
         }
         assertEquals(1, armyCountGreaterZero);

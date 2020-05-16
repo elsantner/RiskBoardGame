@@ -42,7 +42,7 @@ public class JoinLobbyTest extends AbstractDatabaseTest {
         Assert.assertEquals(NUM_CLIENTS, countJoinedMessages.get());
         Assert.assertEquals(NUM_CLIENTS-1, countLeftMessages.get());
         Assert.assertEquals(2, errorCount.get());
-        Assert.assertEquals(1, dbs[0].getCurrentPlayers().size());      // since all but the host have left again
+        Assert.assertEquals(1, dbs[0].getLobby().getPlayers().size());      // since all but the host have left again
     }
 
     private void setupClients() {
@@ -64,7 +64,7 @@ public class JoinLobbyTest extends AbstractDatabaseTest {
         dbs[0].getListeners().setJoinedLobbyListener((lobbyID, host, players) -> {
             countJoinedMessages.addAndGet(1);
             // trigger first error: joining already joined lobby
-            dbs[0].joinLobby(dbs[0].getCurrentLobbyID());
+            dbs[0].joinLobby(dbs[0].getLobby().getLobbyID());
             letClientsJoinLobby();
         });
     }

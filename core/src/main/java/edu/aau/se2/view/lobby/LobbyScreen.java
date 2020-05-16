@@ -49,7 +49,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
         db = Database.getInstance();
         db.getListeners().setPlayersChangedListener(this);
 
-        users = db.getCurrentPlayers();
+        users = db.getLobby().getPlayers();
 
         height = Gdx.graphics.getHeight();
         width = Gdx.graphics.getWidth();

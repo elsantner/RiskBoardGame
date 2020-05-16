@@ -63,14 +63,14 @@ public class AttackTest extends AbstractDatabaseTest {
 
         DatabaseTestable clientToAct = DatabaseTestable.getClientToAct(dbs);
         Territory fromTerritory = clientToAct.getMyTerritory(2);
-        Territory toTerritory = DatabaseTestable.getDifferentClient(dbs, clientToAct).getMyTerritories().get(0);
+        Territory toTerritory = DatabaseTestable.getDifferentClient(dbs, clientToAct).getMyTerritories()[0];
         clientToAct.attackStarted(fromTerritory.getId(), toTerritory.getId(), 1);
 
         Thread.sleep(2000);
         for (DatabaseTestable db : dbs) {
-            assertEquals(fromTerritory.getId(), db.getAttack().getFromTerritoryID());
-            assertEquals(toTerritory.getId(), db.getAttack().getToTerritoryID());
-            assertEquals(1, db.getAttack().getAttackerDiceCount());
+            assertEquals(fromTerritory.getId(), db.getLobby().getCurrentAttack().getFromTerritoryID());
+            assertEquals(toTerritory.getId(), db.getLobby().getCurrentAttack().getToTerritoryID());
+            assertEquals(1, db.getLobby().getCurrentAttack().getAttackerDiceCount());
             assertEquals(Database.Phase.ATTACKING, db.getCurrentPhase());
         }
         assertEquals(NUM_CLIENTS, attackStartedCount.get());

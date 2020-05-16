@@ -1,6 +1,8 @@
 package edu.aau.se2.model;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
@@ -177,19 +179,19 @@ public class DatabaseTestable extends Database {
 
     public void setupInitialArmyPlacingListener() {
         getListeners().setNextTurnListener((playerID, isThisPlayer) -> {
-            if (isThisPlayer && !isInitialArmyPlacementFinished()) {
+            if (isThisPlayer && !getLobby().areInitialArmiesPlaced()) {
                 armyPlaced(getNextTerritoryToPlaceArmiesOn().getId(), 1);
             }
         });
     }
 
     public Territory getNextTerritoryToPlaceArmiesOn() {
-        List<Territory> unoccupiedTerritories = getUnoccupiedTerritories();
+        List<Territory> unoccupiedTerritories = Arrays.asList(getLobby().getUnoccupiedTerritories());
         if (!unoccupiedTerritories.isEmpty()) {
             return getRandomTerritory(unoccupiedTerritories);
         }
         else {
-            return getRandomTerritory(getMyTerritories());
+            return getRandomTerritory(Arrays.asList(getMyTerritories()));
         }
     }
 

@@ -167,8 +167,8 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
 
     public void setCurrentAttack(Attack attack) {
         if (attack != null) {
-            String attackerName = db.getPlayerByTerritoryID(attack.getFromTerritoryID()).getNickname();
-            String defenderName = db.getPlayerByTerritoryID(attack.getToTerritoryID()).getNickname();
+            String attackerName = db.getLobby().getPlayerByTerritoryID(attack.getFromTerritoryID()).getNickname();
+            String defenderName = db.getLobby().getPlayerByTerritoryID(attack.getToTerritoryID()).getNickname();
             String fromTerritoryName = Territory.getByID(attack.getFromTerritoryID()).getTerritoryName();
             String toTerritoryName = Territory.getByID(attack.getToTerritoryID()).getTerritoryName();
             updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName, attack.getAttackerDiceCount());
@@ -180,7 +180,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
                 @Override
                 public void run() {
                     // if no new attack has been started during wait
-                    if (db.getAttack() == null) {
+                    if (!db.getLobby().attackRunning()) {
                         attackDisplay.setVisible(false);
                     }
                 }
