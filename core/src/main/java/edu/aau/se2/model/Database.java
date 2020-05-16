@@ -56,6 +56,7 @@ import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkConstants;
+import edu.aau.se2.utils.LoggerConfigurator;
 import edu.aau.se2.view.game.OnBoardInteractionListener;
 
 public class Database implements OnBoardInteractionListener, NetworkClient.OnConnectionChangedListener {
@@ -93,23 +94,12 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         client.registerConnectionListener(this);
         SerializationRegister.registerClassesForComponent(client);
         registerClientCallback();
-        setupLogger();
+        log = LoggerConfigurator.getConfiguredLogger(TAG, Level.INFO);
         this.listenerManager = new ListenerManager();
     }
 
     public enum Phase {
         PLACING, ATTACKING, MOVING, NONE
-    }
-
-    private void setupLogger() {
-        log = Logger.getLogger(TAG);
-        if (log.getHandlers().length == 0) {
-            Handler handlerObj = new ConsoleHandler();
-            handlerObj.setLevel(Level.INFO);
-            log.addHandler(handlerObj);
-        }
-        log.setLevel(Level.INFO);
-        log.setUseParentHandlers(false);
     }
 
     public void connectIfNotConnected() throws IOException {

@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.utils.LoggerConfigurator;
 import edu.aau.se2.view.PopupMessageDisplay;
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.game.GameScreen;
@@ -31,6 +32,8 @@ import edu.aau.se2.view.lobbylist.LobbyListScreen;
 import edu.aau.se2.view.mainmenu.MainMenu;
 
 public class RiskGame extends Game {
+    private static final String TAG = "RiskGame";
+
 	private AssetManager assetManager;
 	private boolean isDoneLoadingAssets = false;
 	private PopupMessageDisplay popupMessageDisplay;
@@ -88,7 +91,7 @@ public class RiskGame extends Game {
 
 			@Override
 			public void disconnected() {
-				Logger.getLogger("RiskGame").log(Level.SEVERE, "Connection lost");
+				LoggerConfigurator.getConfiguredLogger(TAG, Level.SEVERE).log(Level.SEVERE, "Connection lost");
 				popupMessageDisplay.showMessage("Verbindung verloren");
 				System.exit(-1);
 			}
@@ -96,7 +99,7 @@ public class RiskGame extends Game {
 		try {
 			db.connectIfNotConnected();
 		} catch (IOException e) {
-			Logger.getLogger("RiskGame").log(Level.SEVERE, "Connection Error: ", e);
+            LoggerConfigurator.getConfiguredLogger(TAG, Level.SEVERE).log(Level.SEVERE, "Connection Error: ", e);
 			popupMessageDisplay.showMessage("Verbindungsfehler");
 			System.exit(-1);
 		}

@@ -18,6 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import edu.aau.se2.model.listener.OnCardsChangedListener;
+import edu.aau.se2.utils.LoggerConfigurator;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.AbstractStage;
 
@@ -44,7 +45,7 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
         Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
         nameLabel = new Label("", skin);
         this.updated = false;
-        this.log = Logger.getLogger(TAG);
+        this.log = LoggerConfigurator.getConfiguredLogger(TAG, Level.INFO);
         this.assetManager = this.getScreen().getGame().getAssetManager();
 
         /*

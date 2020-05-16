@@ -22,6 +22,7 @@ import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.utils.LoggerConfigurator;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.lobbylist.ExitButtonListener;
@@ -161,7 +162,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
             skin = null;
         }
         catch (Exception ex) {
-            Logger.getLogger(TAG).log(Level.WARNING, "Error disposing assets", ex);
+            LoggerConfigurator.getConfiguredLogger(TAG, Level.WARNING).log(Level.WARNING, "Error disposing assets", ex);
         }
     }
 
