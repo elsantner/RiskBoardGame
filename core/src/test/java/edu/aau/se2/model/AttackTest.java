@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 import edu.aau.se2.server.data.Territory;
-import edu.aau.se2.server.networking.MainServerTestable;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,10 +26,15 @@ public class AttackTest extends AbstractDatabaseTest {
 
     private void setupScenario() throws IOException, TimeoutException {
         DatabaseTestable.setupLobby(dbs, 5000);
+        DatabaseTestable.startLobby(dbs, 5000);
         DatabaseTestable.setupGame(dbs, 5000);
         DatabaseTestable.placeTurnArmies(DatabaseTestable.getClientToAct(dbs), 5000);
     }
 
+    /**
+     * Test starting of an attack.
+     * @throws InterruptedException
+     */
     @Test
     public void testStartAttack() throws InterruptedException {
         DatabaseTestable clientToAct = DatabaseTestable.getClientToAct(dbs);

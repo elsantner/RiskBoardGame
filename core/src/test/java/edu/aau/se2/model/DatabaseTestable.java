@@ -1,19 +1,16 @@
 package edu.aau.se2.model;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
-import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.Callback;
-import edu.aau.se2.server.networking.MainServerTestable;
 
 public class DatabaseTestable extends Database {
     public DatabaseTestable() {
@@ -47,16 +44,63 @@ public class DatabaseTestable extends Database {
         return null;
     }
 
-    public static void setupGame(DatabaseTestable[] dbs, int timeoutMS) throws TimeoutException {
+    /**
+     * Starts the game.
+     * Requires lobby to be setup before.
+     * @param dbs Database clients
+     * @param timeoutMS Maximum wait time
+     * @throws TimeoutException If timeout is exceeded
+     */
+    public static void startLobby(DatabaseTestable[] dbs, int timeoutMS) throws TimeoutException {
+        AtomicInteger msgsReceived = new AtomicInteger(0);
         for (DatabaseTestable db : dbs) {
-            db.setupInitialArmyPlacingListener();
+            db.setNextTurnListener((playerID, isThisPlayer) -> msgsReceived.addAndGet(1));
             db.setPlayerReady(true);
         }
 
         // wait until initial army placement is finished
-        wait(() -> dbs[dbs.length - 1].isInitialArmyPlacementFinished(), timeoutMS);
+        wait(() -> msgsReceived.get() == dbs.length, timeoutMS);
+        for (DatabaseTestable db : dbs) {
+            db.setNextTurnListener(null);
+        }
     }
 
+    /**
+     * Places all initial armies
+     * Requires game to be started before.
+     * @param dbs Database clients
+     * @param timeoutMS Maximum wait time
+     * @throws TimeoutException If timeout is exceeded
+     */
+    public static void setupGame(DatabaseTestable[] dbs, int timeoutMS) throws TimeoutException {
+        AtomicBoolean firstTurnArmiesReceived = new AtomicBoolean(false);
+
+        for (DatabaseTestable db : dbs) {
+            db.setupInitialArmyPlacingListener();
+        }
+        DatabaseTestable clientToAct = getClientToAct(dbs);
+        clientToAct.armyPlaced(clientToAct.getNextTerritoryToPlaceArmiesOn().getId(), 1);
+        // this listener is called with isInitialCount==true once all initial armies are placed and the first proper turn has started
+        clientToAct.setArmyReserveChangedListener((armyCount, isInitialCount) -> {
+            if (isInitialCount) {
+                firstTurnArmiesReceived.set(true);
+            }
+        });
+
+        // wait until initial army placement is finished
+        wait(firstTurnArmiesReceived::get, timeoutMS);
+        for (DatabaseTestable db : dbs) {
+            db.setNextTurnListener(null);
+        }
+        clientToAct.setArmyReserveChangedListener(null);
+    }
+
+    /**
+     * Places all armies of given Database.
+     * @param db Database to place armies for. (Must be player to act in order for this method to work properly.)
+     * @param timeoutMS Maximum wait time
+     * @throws TimeoutException If timeout is exceeded
+     */
     public static void placeTurnArmies(DatabaseTestable db, int timeoutMS) throws TimeoutException {
         db.setArmyReserveChangedListener((armyCount, isInitialCount) -> {
             if (armyCount > 0) {
@@ -65,14 +109,17 @@ public class DatabaseTestable extends Database {
         });
         db.armyPlaced(db.getNextTerritoryToPlaceArmiesOn().getId(), 1);
 
-        // wait until initial army placement is finished
+        // wait until army placement is finished
         wait(() -> db.getCurrentArmyReserve() == 0, timeoutMS);
+        db.setArmyReserveChangedListener(null);
     }
 
     /**
      * Sets up a lobby with all Databases (host = dbs[0]).
      * @param dbs Databases to join lobby
+     * @param timeoutMS Maximum wait time
      * @throws IOException If connection error occurs.
+     * @throws TimeoutException If timeout is exceeded
      */
     public static void setupLobby(DatabaseTestable[] dbs, int timeoutMS) throws IOException, TimeoutException {
         AtomicInteger joinCountRemaining = new AtomicInteger(dbs.length - 1);
@@ -91,6 +138,9 @@ public class DatabaseTestable extends Database {
 
         // wait until all clients have joined
         wait(() -> joinCountRemaining.get() == 0, timeoutMS);
+        for (DatabaseTestable db : dbs) {
+            db.setConnectionChangedListener(null);
+        }
     }
 
     private void connectAndHost(Callback<Integer> cb) throws IOException {
