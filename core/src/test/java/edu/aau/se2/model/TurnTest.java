@@ -43,7 +43,7 @@ public class TurnTest extends AbstractDatabaseTest {
      * @throws InterruptedException
      */
     @Test
-    public void testPlayTurns() throws InterruptedException, TimeoutException {
+    public void testPlayTurns() throws InterruptedException {
         for (DatabaseTestable db : dbs) {
             db.setArmyReserveChangedListener((armyCount, isInitialCount) -> {
                 if (armyCount > 0) {
@@ -71,7 +71,8 @@ public class TurnTest extends AbstractDatabaseTest {
             });
         }
 
-        DatabaseTestable.placeTurnArmies(DatabaseTestable.getClientToAct(dbs), 5000);
+        DatabaseTestable playerToAct = DatabaseTestable.getClientToAct(dbs);
+        playerToAct.armyPlaced(playerToAct.getNextTerritoryToPlaceArmiesOn().getId(), 1);
 
         Thread.sleep(1000 + 500*NUM_TURNS);
         assertEquals(NUM_TURNS*NUM_CLIENTS*3 + NUM_CLIENTS, phaseChangedCount.get());
