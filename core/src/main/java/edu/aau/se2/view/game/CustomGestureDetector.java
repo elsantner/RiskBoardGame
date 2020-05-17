@@ -6,7 +6,7 @@ public class CustomGestureDetector extends GestureDetector {
     public CustomGestureDetector(GestureListener listener) {
         super(listener);
         // must be set for double tap to work reliably
-        this.setTapCountInterval(1000);
+        this.setTapCountInterval(1);
         this.setTapSquareSize(50);
     }
 }
