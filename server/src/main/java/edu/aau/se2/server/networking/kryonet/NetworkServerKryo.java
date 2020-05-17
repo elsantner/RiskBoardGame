@@ -16,16 +16,20 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.Callback;
 import edu.aau.se2.server.networking.NetworkServer;
 import edu.aau.se2.server.networking.dto.BaseMessage;
-import edu.aau.se2.server.networking.dto.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 
 public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
     private Server server;
     private Callback<BaseMessage> messageCallback;
     private BiMap<Integer, Connection> connections;
+    private boolean running;
+    private DataStore ds;
 
-    public NetworkServerKryo() {
+    public NetworkServerKryo(DataStore ds) {
         server = new Server();
         connections = HashBiMap.create();
+        running = false;
+        this.ds = ds;
     }
 
     @Override
@@ -46,7 +50,7 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
             @Override
             public void connected(Connection connection) {
                 super.connected(connection);
-                Player newPlayer = DataStore.getInstance().newPlayer();
+                Player newPlayer = ds.newPlayer();
                 connections.put(newPlayer.getUid(), connection);
                 synchronized (newPlayer) {
                     try {
@@ -62,16 +66,22 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
             @Override
             public void disconnected(Connection connection) {
                 super.disconnected(connection);
-                Integer disconnectedPlayerID = connections.inverse().remove(connection);
-                DataStore.getInstance().removePlayer(disconnectedPlayerID);
+                try {
+                    Integer disconnectedPlayerID = connections.inverse().remove(connection);
+                    ds.removePlayer(disconnectedPlayerID);
+                } catch (Exception ex) {
+                    Logger.getAnonymousLogger().warning("Error disconnecting client");
+                }
             }
         });
         server.start();
+        running = true;
     }
 
     @Override
     public void stop() {
         server.stop();
+        running = false;
     }
 
     @Override
@@ -104,5 +114,9 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
 
     private void logBroadcast(BaseMessage message) {
         Logger.getAnonymousLogger().info("Broadcasting " + message.getClass().getSimpleName());
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 }

@@ -30,6 +30,12 @@ import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 
+/**
+ * Used for running test which require a libGDX context (eg. for loading assets)
+ *
+ * This class is directly copied from the following libGDX testing skeleton project:
+ * https://github.com/TomGrill/gdx-testing/blob/master/tests/src/de/tomgrill/gdxtesting/GdxTestRunner.java
+ */
 public class GdxTestRunner extends BlockJUnit4ClassRunner implements ApplicationListener {
 
     private final Map<FrameworkMethod, RunNotifier> invokeInRender = new HashMap<FrameworkMethod, RunNotifier>();

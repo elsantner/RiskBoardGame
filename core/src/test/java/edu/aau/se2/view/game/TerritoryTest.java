@@ -1,5 +1,7 @@
 package edu.aau.se2.view.game;
 
+import com.badlogic.gdx.assets.AssetManager;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,13 +11,15 @@ import edu.aau.se2.view.GdxTestRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 
 @RunWith(GdxTestRunner.class)
 public class TerritoryTest {
 
 	@Before
 	public void initTerritories() {
-		Territory.init(2392, 1440);
+		AssetManager assetManager = mock(AssetManager.class);
+		Territory.init(2392, 1440, assetManager);
 	}
 
 	@Test

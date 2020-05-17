@@ -1,54 +1,52 @@
 package edu.aau.se2.model;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
-import edu.aau.se2.model.listener.OnConnectionChangedListener;
-import edu.aau.se2.model.listener.OnErrorListener;
-import edu.aau.se2.model.listener.OnGameStartListener;
-import edu.aau.se2.model.listener.OnJoinedLobbyListener;
-import edu.aau.se2.model.listener.OnLeftLobbyListener;
-import edu.aau.se2.model.listener.OnLobbyListChangedListener;
-import edu.aau.se2.model.listener.OnNextTurnListener;
-import edu.aau.se2.model.listener.OnPlayersChangedListener;
-import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.server.data.Attack;
+import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
-import edu.aau.se2.server.networking.dto.ArmyPlacedMessage;
-import edu.aau.se2.server.networking.dto.CardExchangeMessage;
-import edu.aau.se2.server.networking.dto.ConnectedMessage;
-import edu.aau.se2.server.networking.dto.CreateLobbyMessage;
-import edu.aau.se2.server.networking.dto.ErrorMessage;
-import edu.aau.se2.server.networking.dto.InitialArmyPlacingMessage;
-import edu.aau.se2.server.networking.dto.JoinedLobbyMessage;
-import edu.aau.se2.server.networking.dto.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.LobbyListMessage;
-import edu.aau.se2.server.networking.dto.NewArmiesMessage;
-import edu.aau.se2.server.networking.dto.NextTurnMessage;
-import edu.aau.se2.server.networking.dto.PlayersChangedMessage;
-import edu.aau.se2.server.networking.dto.ReadyMessage;
-import edu.aau.se2.server.networking.dto.RequestJoinLobbyMessage;
-import edu.aau.se2.server.networking.dto.RequestLeaveLobby;
-import edu.aau.se2.server.networking.dto.RequestLobbyListMessage;
-import edu.aau.se2.server.networking.dto.StartGameMessage;
+import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
+import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
+import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
+import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
+import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
+import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
+import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.game.NewCardMessage;
+import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
+import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
+import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
+import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
+import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
+import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
+import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkConstants;
+import edu.aau.se2.utils.LoggerConfigurator;
 import edu.aau.se2.view.game.OnBoardInteractionListener;
 
 public class Database implements OnBoardInteractionListener, NetworkClient.OnConnectionChangedListener {
     private static final String TAG = "Database";
 
     private static Database instance = null;
-    private static String serverAddress = NetworkConstants.SERVER_IP;
+    protected static String serverAddress = NetworkConstants.SERVER_IP;
 
     /**
      * Gets the singleton instance of Database.
@@ -61,43 +59,15 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         return instance;
     }
 
-    /**
-     * Sets the server address. This can only be done before a instance of Database is created.
-     * Note: This method is designed to be used for testing purposes only!
-     * @param serverAddress New server address
-     */
-    public static void setServerAddress(String serverAddress) {
-        if (instance != null) {
-            throw new IllegalStateException("can only set server address before ever calling getInstance()");
-        }
-        Database.serverAddress = serverAddress;
-    }
-
     private Logger log;
     private NetworkClientKryo client;
     private boolean isConnected;
-    private OnGameStartListener gameStartListener;
-    private OnPlayersChangedListener playersChangedListener;
-    private OnTerritoryUpdateListener territoryUpdateListener;
-    private OnNextTurnListener nextTurnListener;
-    private OnJoinedLobbyListener joinedLobbyListener;
-    private OnConnectionChangedListener connectionChangedListener;
-    private OnArmyReserveChangedListener armyReserveChangedListener;
-    private OnLobbyListChangedListener lobbyListChangedListener;
-    private OnLeftLobbyListener onLeftLobbyListener;
-    private OnErrorListener errorListener;
+    private ListenerManager listenerManager;
 
     private Player thisPlayer;
-    private TreeMap<Integer, Player> currentPlayers;
-    private List<Integer> turnOrder;
-    private int currentTurnIndex;
-    private int currentLobbyID;
-    private Territory[] territoryData;
-    private boolean initialArmyPlacementFinished;
-    private int currentTurnPlayerID;
-    private boolean hasPlayerReceivedArmiesThisTurn;
-
-    private int currentArmyReserve = 0;
+    private int currentArmyReserve;
+    private Phase currentPhase;
+    private Lobby lobby;
 
     protected Database() {
         resetLobby();
@@ -107,18 +77,12 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         client.registerConnectionListener(this);
         SerializationRegister.registerClassesForComponent(client);
         registerClientCallback();
-        setupLogger();
+        log = LoggerConfigurator.getConfiguredLogger(TAG, Level.INFO);
+        this.listenerManager = new ListenerManager();
     }
 
-    private void setupLogger() {
-        log = Logger.getLogger(TAG);
-        if (log.getHandlers().length == 0) {
-            Handler handlerObj = new ConsoleHandler();
-            handlerObj.setLevel(Level.INFO);
-            log.addHandler(handlerObj);
-        }
-        log.setLevel(Level.INFO);
-        log.setUseParentHandlers(false);
+    public enum Phase {
+        PLACING, ATTACKING, MOVING, NONE
     }
 
     public void connectIfNotConnected() throws IOException {
@@ -135,164 +99,211 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
      * Resets all lobby-related data internally.
      */
     public void resetLobby() {
-        currentPlayers = new TreeMap<>();
-        turnOrder = null;
-        currentTurnIndex = 0;
-        initialArmyPlacementFinished = false;
-        currentLobbyID = -1;
-        initTerritoryData();
+        lobby = new Lobby(-1);
+        currentPhase = Phase.NONE;
+        currentArmyReserve = 0;
     }
 
-    private void initTerritoryData() {
-        territoryData = new Territory[42];
-        for (int i=0; i<territoryData.length; i++) {
-            territoryData[i] = new Territory(i);
-        }
-    }
-
-    public void setErrorListener(OnErrorListener l) {
-        this.errorListener = l;
-    }
-    public void setLeftLobbyListener(OnLeftLobbyListener l) {
-        this.onLeftLobbyListener = l;
-    }
-    public void setLobbyListChangedListener(OnLobbyListChangedListener l) {
-        this.lobbyListChangedListener = l;
-    }
-    public void setConnectionChangedListener(OnConnectionChangedListener l) {
-        this.connectionChangedListener = l;
-    }
-    public void setGameStartListener(OnGameStartListener l) {
-        this.gameStartListener = l;
-    }
-    public void setPlayersChangedListener(OnPlayersChangedListener l) { this.playersChangedListener = l; }
-    public void setTerritoryUpdateListener(OnTerritoryUpdateListener l) { this.territoryUpdateListener = l; }
-    public void setNextTurnListener(OnNextTurnListener l) {
-        this.nextTurnListener = l;
-    }
-    public void setJoinedLobbyListener(OnJoinedLobbyListener l) {
-        this.joinedLobbyListener = l;
-    }
-    public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) {
-        this.armyReserveChangedListener = l;
+    public ListenerManager getListeners() {
+        return this.listenerManager;
     }
 
     private void registerClientCallback() {
         this.client.registerCallback(msg -> {
-            log.info("Received " + msg.getClass().getSimpleName());
+            log.info("[Client] Received " + msg.getClass().getSimpleName());
             if (msg instanceof ConnectedMessage) {
                 handleConnectedMessage((ConnectedMessage) msg);
-            }
-            else if (msg instanceof StartGameMessage) {
+            } else if (msg instanceof StartGameMessage) {
                 handleStartGameMessage((StartGameMessage) msg);
-            }
-            else if (msg instanceof InitialArmyPlacingMessage) {
+            } else if (msg instanceof InitialArmyPlacingMessage) {
                 handleInitialArmyPlacingMessage((InitialArmyPlacingMessage) msg);
-            }
-            else if (msg instanceof ArmyPlacedMessage) {
+            } else if (msg instanceof ArmyPlacedMessage) {
                 handleArmyPlacedMessage((ArmyPlacedMessage) msg);
-            }
-            else if (msg instanceof PlayersChangedMessage) {
+            } else if (msg instanceof PlayersChangedMessage) {
                 handlePlayersChangedMessage((PlayersChangedMessage) msg);
-            }
-            else if (msg instanceof JoinedLobbyMessage) {
+            } else if (msg instanceof JoinedLobbyMessage) {
                 handleJoinedLobbyMessage((JoinedLobbyMessage) msg);
-            }
-            else if (msg instanceof LobbyListMessage) {
+            } else if (msg instanceof LobbyListMessage) {
                 handleLobbyListMessage((LobbyListMessage) msg);
-            }
-            else if (msg instanceof LeftLobbyMessage) {
-                handleLeftLobbyMessage();
-            }
-            else if (msg instanceof NextTurnMessage) {
+            } else if (msg instanceof LeftLobbyMessage) {
+                handleLeftLobbyMessage((LeftLobbyMessage) msg);
+            } else if (msg instanceof NextTurnMessage) {
                 handleNextTurnMessage((NextTurnMessage) msg);
-            }
-            else if (msg instanceof NewArmiesMessage) {
+            } else if (msg instanceof NewCardMessage) {
+                handleNewCardMessage((NewCardMessage) msg);
+            } else if (msg instanceof NewArmiesMessage) {
                 handleNewArmiesMessage((NewArmiesMessage) msg);
-            }
-            else if (msg instanceof ErrorMessage) {
+            } else if (msg instanceof ArmyMovedMessage) {
+                handleArmyMovedMessage((ArmyMovedMessage) msg);
+            } else if (msg instanceof RefreshCardsMessage) {
+                handleRefreshCardsMessage((RefreshCardsMessage) msg);
+            } else if (msg instanceof ErrorMessage) {
                 handleErrorMessage((ErrorMessage) msg);
+            } else if (msg instanceof AttackingPhaseFinishedMessage) {
+                handleAttackingPhaseFinishedMessage();
+            } else if (msg instanceof AttackStartedMessage) {
+                handleAttackStartedMessage((AttackStartedMessage) msg);
+            } else if (msg instanceof AttackResultMessage) {
+                handleAttackResultMessage((AttackResultMessage) msg);
+            } else if (msg instanceof OccupyTerritoryMessage) {
+                handleOccupyTerritoryMessage((OccupyTerritoryMessage) msg);
+            } else if (msg instanceof DiceResultMessage) {
+                handleDiceResultMessage((DiceResultMessage) msg);
+            } else if (msg instanceof DefenderDiceCountMessage) {
+                handleDefenderDiceCountMessage((DefenderDiceCountMessage) msg);
             }
         });
     }
 
-    private void handleErrorMessage(ErrorMessage msg) {
-        if (errorListener != null) {
-            errorListener.onError(msg.getErrorCode());
+    private void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
+        if (lobby.attackRunning()) {
+            lobby.getCurrentAttack().setDefenderDiceCount(msg.getDiceCount());
+            listenerManager.notifyAttackUpdatedListener();
         }
     }
 
-    private void handleLeftLobbyMessage() {
-        resetLobby();
-        if (onLeftLobbyListener != null) {
-            onLeftLobbyListener.leftLobby();
+    private void handleOccupyTerritoryMessage(OccupyTerritoryMessage msg) {
+        // update territory state
+        lobby.getTerritoryByID(msg.getFromTerritoryID()).subFromArmyCount(msg.getArmyCount());
+        lobby.getTerritoryByID(msg.getTerritoryID()).setArmyCount(msg.getArmyCount());
+        lobby.getTerritoryByID(msg.getTerritoryID()).setOccupierPlayerID(msg.getFromPlayerID());
+
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getFromTerritoryID()));
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getTerritoryID()));
+        lobby.setCurrentAttack(null);
+        listenerManager.notifyAttackFinishedListener();
+    }
+
+    private void handleAttackResultMessage(AttackResultMessage msg) {
+        log.info("Attacker armies lost: " + msg.getArmiesLostAttacker());
+        log.info("Defender armies lost: " + msg.getArmiesLostDefender());
+
+        Attack attack = lobby.getCurrentAttack();
+        attack.setArmiesLostAttacker(msg.getArmiesLostAttacker());
+        attack.setArmiesLostDefender(msg.getArmiesLostDefender());
+        attack.setCheated(msg.isCheated());
+        attack.setOccupyRequired(msg.isOccupyRequired());
+        lobby.getTerritoryByID(attack.getFromTerritoryID()).subFromArmyCount(msg.getArmiesLostAttacker());
+        lobby.getTerritoryByID(attack.getToTerritoryID()).subFromArmyCount(msg.getArmiesLostDefender());
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(attack.getFromTerritoryID()));
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(attack.getToTerritoryID()));
+
+        listenerManager.notifyAttackUpdatedListener();
+        if (!msg.isOccupyRequired()) {
+            lobby.setCurrentAttack(null);
+            listenerManager.notifyAttackFinishedListener();
         }
+    }
+
+    private void handleAttackStartedMessage(AttackStartedMessage msg) {
+        lobby.setCurrentAttack(new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount()));
+        listenerManager.notifyAttackStartedListener();
+    }
+
+    private void handleAttackingPhaseFinishedMessage() {
+        if (currentPhase != Phase.MOVING) {
+            setCurrentPhase(Phase.MOVING);
+        }
+    }
+
+    private void handleArmyMovedMessage(ArmyMovedMessage msg) {
+        // update territory state
+        lobby.getTerritoryByID(msg.getFromTerritoryID()).subFromArmyCount(msg.getArmyCountMoved());
+        lobby.getTerritoryByID(msg.getToTerritoryID()).addToArmyCount(msg.getArmyCountMoved());
+        listenerManager.notifyArmiesMovedListener(msg.getFromPlayerID(), msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getArmyCountMoved());
+
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getFromTerritoryID()));
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getToTerritoryID()));
+    }
+
+    private void notifyTerritoryUpdateListener(Territory t) {
+        listenerManager.notifyTerritoryUpdateListener(t.getId(), t.getArmyCount(),
+                lobby.getPlayerByID(t.getOccupierPlayerID()).getColorID());
+    }
+
+    private void handleErrorMessage(ErrorMessage msg) {
+        listenerManager.notifyErrorListener(msg.getErrorCode());
+    }
+
+    private void handleLeftLobbyMessage(LeftLobbyMessage msg) {
+        resetLobby();
+        listenerManager.notifyLeftLobbyListener(msg.isWasClosed());
     }
 
     private void handleLobbyListMessage(LobbyListMessage msg) {
-        List<LobbyListMessage.LobbyData> lobbyList = msg.getLobbies();
-        if (lobbyListChangedListener != null) {
-            lobbyListChangedListener.lobbyListChanged(lobbyList);
-        }
+        listenerManager.notifyLobbyListChangedListener(msg.getLobbies());
     }
 
     private synchronized void handleNewArmiesMessage(NewArmiesMessage msg) {
-        currentPlayers.get(msg.getFromPlayerID()).setArmyReserveCount(msg.getNewArmyCount());
+        lobby.getPlayerByID(msg.getFromPlayerID()).setArmyReserveCount(msg.getNewArmyCount());
         if (thisPlayer.getUid() == msg.getFromPlayerID()) {
             setCurrentArmyReserve(msg.getNewArmyCount(), true);
-            hasPlayerReceivedArmiesThisTurn = true;
+            lobby.setCurrentPlayerToActReceivedNewArmies(true);
+        }
+
+        // add bonus armies to the correct territory, update for all players
+        if (msg.getTerritoryIdForBonusArmies() != -1) {
+            lobby.getTerritoryByID(msg.getTerritoryIdForBonusArmies()).addToArmyCount(2);
+            listenerManager.notifyTerritoryUpdateListener(msg.getTerritoryIdForBonusArmies(),
+                    lobby.getTerritoryByID(msg.getTerritoryIdForBonusArmies()).getArmyCount(),
+                    lobby.getPlayerByID(msg.getFromPlayerID()).getColorID());
         }
     }
 
     private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
-        initialArmyPlacementFinished = true;
-        currentTurnPlayerID = msg.getPlayerToActID();
-        if (nextTurnListener != null) {
-            nextTurnListener.isPlayersTurnNow(currentTurnPlayerID,
-                    thisPlayer.getUid() == currentTurnPlayerID);
-        }
-        if (isThisPlayersTurn()) {
-            hasPlayerReceivedArmiesThisTurn = false;
-            exchangeCards();
+        lobby.setInitialArmiesPlaced();
+        lobby.nextPlayersTurn();
+        setCurrentPhase(Phase.PLACING);
+
+        listenerManager.notifyNextTurnListener(lobby.getPlayerToAct().getUid(),
+                thisPlayer.getUid() == lobby.getPlayerToAct().getUid());
+        if (isThisPlayersTurn() && !thisPlayer.isAskForCardExchange()) {
+            lobby.setCurrentPlayerToActReceivedNewArmies(false);
+            exchangeCards(false);
         }
     }
 
-    private synchronized void handleJoinedLobbyMessage(JoinedLobbyMessage msg) {
-        this.currentLobbyID = msg.getLobbyID();
-        setCurrentPlayers(msg.getPlayers());
-        if (joinedLobbyListener != null) {
-            joinedLobbyListener.joinedLobby(msg.getLobbyID(), msg.getHost(), msg.getPlayers());
+    private synchronized void handleNewCardMessage(NewCardMessage msg) {
+        // adds the new card to the players cards, shown by CardStage
+        if (msg.isAskForCardExchange()) {
+            this.thisPlayer.setAskForCardExchange(true);
         }
+        listenerManager.notifySingleNewCardListener(msg.getCardName());
+    }
+
+    private void handleRefreshCardsMessage(RefreshCardsMessage msg) {
+        // after set trade-in displayed cards need to be refreshed
+        listenerManager.notifyRefreshCardListener(msg.getCardNames());
+    }
+
+    private synchronized void handleJoinedLobbyMessage(JoinedLobbyMessage msg) {
+        lobby.setLobbyID(msg.getLobbyID());
+        setCurrentPlayers(msg.getPlayers());
+        listenerManager.notifyJoinedLobbyListener(msg.getLobbyID(), msg.getHost(), msg.getPlayers());
     }
 
     private synchronized void handleConnectedMessage(ConnectedMessage msg) {
         thisPlayer = msg.getPlayer();
         isConnected = true;
-        if (connectionChangedListener != null) {
-            connectionChangedListener.connected(thisPlayer);
-        }
+        listenerManager.notifyConnectedListener(thisPlayer);
     }
 
     private synchronized void setCurrentPlayers(List<Player> players) {
-        currentPlayers.clear();
-        for (Player p: players) {
-            currentPlayers.put(p.getUid(), p);
+        lobby.clearPlayers();
+        for (Player p : players) {
+            lobby.join(p);
         }
     }
 
     private synchronized void handlePlayersChangedMessage(PlayersChangedMessage msg) {
         setCurrentPlayers(msg.getPlayers());
-        if (playersChangedListener != null) {
-            playersChangedListener.playersChanged(new ArrayList<>(currentPlayers.values()));
-        }
+        listenerManager.notifyPlayersChangedListener(lobby.getPlayers());
     }
 
     private synchronized void handleInitialArmyPlacingMessage(InitialArmyPlacingMessage msg) {
-        turnOrder = msg.getPlayerOrder();
-        currentTurnPlayerID = turnOrder.get(0);
-        if (nextTurnListener != null) {
-            nextTurnListener.isPlayersTurnNow(turnOrder.get(0), thisPlayer.getUid() == turnOrder.get(0));
-        }
+        lobby.setTurnOrder(msg.getPlayerOrder());
+        listenerManager.notifyNextTurnListener(lobby.getPlayerToAct().getUid(),
+                thisPlayer.getUid() == lobby.getPlayerToAct().getUid());
     }
 
     private synchronized void handleArmyPlacedMessage(ArmyPlacedMessage msg) {
@@ -301,56 +312,46 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             setCurrentArmyReserve(msg.getArmyCountRemaining(), false);
         }
         // update remaining army count on player
-        currentPlayers.get(msg.getFromPlayerID()).setArmyReserveCount(msg.getArmyCountRemaining());
+        lobby.getPlayerByID(msg.getFromPlayerID()).setArmyReserveCount(msg.getArmyCountRemaining());
         // update territory state
-        territoryData[msg.getOnTerritoryID()].addToArmyCount(msg.getArmyCountPlaced());
-        territoryData[msg.getOnTerritoryID()].setOccupierPlayerID(msg.getFromPlayerID());
+        lobby.getTerritoryByID(msg.getOnTerritoryID()).addToArmyCount(msg.getArmyCountPlaced());
+        lobby.getTerritoryByID(msg.getOnTerritoryID()).setOccupierPlayerID(msg.getFromPlayerID());
 
-        if (territoryUpdateListener != null) {
-            territoryUpdateListener.territoryUpdated(msg.getOnTerritoryID(),
-                    territoryData[msg.getOnTerritoryID()].getArmyCount(),
-                    currentPlayers.get(msg.getFromPlayerID()).getColorID());
-        }
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getOnTerritoryID()));
+
         // if this message is part of initial army placement, initiate next turn
-        if (!initialArmyPlacementFinished) {
-            nextPlayersTurn();
-            if (nextTurnListener != null) {
-                nextTurnListener.isPlayersTurnNow(currentTurnPlayerID,
-                        thisPlayer.getUid() == currentTurnPlayerID);
+        if (!lobby.areInitialArmiesPlaced()) {
+            lobby.nextPlayersTurn();
+            listenerManager.notifyNextTurnListener(lobby.getPlayerToAct().getUid(),
+                    thisPlayer.getUid() == lobby.getPlayerToAct().getUid());
+        }
+        else {
+            if (msg.getArmyCountRemaining() == 0) {
+                setCurrentPhase(Phase.ATTACKING);
             }
         }
     }
 
     private synchronized void handleStartGameMessage(StartGameMessage msg) {
         setCurrentArmyReserve(msg.getStartArmyCount(), true);
-        if (gameStartListener != null) {
-            for (Player p: msg.getPlayers()) {
-                currentPlayers.put(p.getUid(), p);
-            }
-            gameStartListener.onGameStarted(msg.getPlayers(), msg.getStartArmyCount());
+        // set Player colors
+        for (Player p : msg.getPlayers()) {
+            lobby.updatePlayer(p);
         }
+        listenerManager.notifyGameStartListener(msg.getPlayers(), msg.getStartArmyCount());
     }
 
-    /**
-     * Sets the current player to act to the next player according to turn order.
-     * WARNING: This method should only be used during initial army placing phase.
-     * Use the player id communicated in the NextTurnMessage from server instead.
-     */
-    private synchronized void nextPlayersTurn() {
-        currentTurnIndex = (currentTurnIndex + 1) % currentPlayers.size();
-        currentTurnPlayerID = turnOrder.get(currentTurnIndex);
+    private synchronized void handleDiceResultMessage(DiceResultMessage msg) {
+        if (lobby.attackRunning() && msg.isFromAttacker()) {
+            lobby.getCurrentAttack().setAttackerDiceResults(msg.getResults());
+        } else if(lobby.attackRunning()) {
+            lobby.getCurrentAttack().setDefenderDiceResults(msg.getResults());
+        }
+        listenerManager.notifyAttackUpdatedListener();
     }
 
     public int getCurrentArmyReserve() {
         return currentArmyReserve;
-    }
-
-    public Player getPlayerByID(int playerID) {
-        return currentPlayers.get(playerID);
-    }
-
-    public Player getCurrentPlayerToAct() {
-        return currentPlayers.get(currentTurnPlayerID);
     }
 
     public Player getThisPlayer() {
@@ -358,41 +359,63 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public boolean isThisPlayersTurn() {
-        return getCurrentPlayerToAct().getUid() == thisPlayer.getUid();
+        return lobby.getPlayerToAct() != null && lobby.getPlayerToAct().getUid() == thisPlayer.getUid();
+    }
+
+    public boolean isThisPlayerDefender() {
+        if (lobby.getCurrentAttack() == null) return false;
+        return lobby.getTerritoryByID(lobby.getCurrentAttack().getToTerritoryID()).getOccupierPlayerID() == thisPlayer.getUid();
     }
 
     public void setPlayerReady(boolean ready) {
-        log.info("Sending ReadyMessage");
-        client.sendMessage(new ReadyMessage(currentLobbyID, thisPlayer.getUid(), ready));
+        client.sendMessage(new ReadyMessage(lobby.getLobbyID(), thisPlayer.getUid(), ready));
+    }
+
+    public void sendDefenderDiceCount(int result) {
+        if (currentPhase == Phase.ATTACKING && lobby.attackRunning() && isThisPlayerDefender()) {
+            client.sendMessage(new DefenderDiceCountMessage(lobby.getLobbyID(), thisPlayer.getUid(), result));
+        }
     }
 
     public void togglePlayerReady() {
-        log.info("Sending ReadyMessage");
-        Player player = currentPlayers.get(thisPlayer.getUid());
+        Player player = lobby.getPlayerByID(thisPlayer.getUid());
         if (player != null) {
-            client.sendMessage(new ReadyMessage(currentLobbyID, thisPlayer.getUid(),
+            client.sendMessage(new ReadyMessage(lobby.getLobbyID(), thisPlayer.getUid(),
                     !player.isReady()));
         }
     }
 
     @Override
     public void armyPlaced(int territoryID, int count) {
-        log.info("Sending ArmyPlacedMessage");
-        client.sendMessage(new ArmyPlacedMessage(currentLobbyID, thisPlayer.getUid(), territoryID, count));
+        if (!lobby.areInitialArmiesPlaced() || currentPhase == Phase.PLACING) {
+            client.sendMessage(new ArmyPlacedMessage(lobby.getLobbyID(), thisPlayer.getUid(), territoryID, count));
+        }
     }
 
     @Override
     public void armyMoved(int fromTerritoryID, int toTerritoryID, int count) {
-        // currently unused as feature is not yet implemented
+        if (currentPhase == Phase.MOVING) {
+            client.sendMessage(new ArmyMovedMessage(lobby.getLobbyID(), thisPlayer.getUid(),
+                    fromTerritoryID, toTerritoryID, count));
+        }
+    }
+
+    public void sendAttackerResults(List<Integer> results, boolean cheated) {
+        client.sendMessage(new DiceResultMessage(lobby.getLobbyID(), thisPlayer.getUid(), results, cheated, true));
+    }
+
+    public void sendDefenderResults(List<Integer> results) {
+        client.sendMessage(new DiceResultMessage(lobby.getLobbyID(), thisPlayer.getUid(), results, false, false));
     }
 
     @Override
-    public void attackStarted(int fromTerritoryID, int onTerritoryID) {
-        // currently unused as feature is not yet implemented
+    public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
+        if (currentPhase == Phase.ATTACKING) {
+            client.sendMessage(new AttackStartedMessage(lobby.getLobbyID(), thisPlayer.getUid(), fromTerritoryID, onTerritoryID, count));
+        }
     }
 
     public void hostLobby() {
-        log.info("Sending CreateLobbyMessage");
         client.sendMessage(new CreateLobbyMessage(thisPlayer.getUid()));
     }
 
@@ -404,42 +427,33 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     @Override
     public void disconnected() {
         isConnected = false;
-        if (connectionChangedListener != null) {
-            connectionChangedListener.disconnected();
-        }
+        listenerManager.notifyDisconnectedListener();
     }
 
     public boolean isConnected() {
         return isConnected;
     }
 
-    // TODO: Change when cards are implemented
-    public void exchangeCards() {
-        log.info("Sending CardExchangeMessage");
-        client.sendMessage(new CardExchangeMessage(currentLobbyID, thisPlayer.getUid()));
+    public void exchangeCards(boolean exchangeCards) {
+        if (exchangeCards) {
+            thisPlayer.setExchangeCards(true);
+            thisPlayer.setAskForCardExchange(false);
+        }
+
+        client.sendMessage(new CardExchangeMessage(lobby.getLobbyID(), thisPlayer.getUid(), exchangeCards));
     }
 
     private synchronized void setCurrentArmyReserve(int newValue, boolean isInitialCount) {
         this.currentArmyReserve = newValue;
-        if (armyReserveChangedListener != null) {
-            armyReserveChangedListener.newArmyCount(this.currentArmyReserve, isInitialCount);
-        }
+        lobby.getPlayerByID(thisPlayer.getUid()).setArmyReserveCount(newValue);
+        listenerManager.notifyArmyReserveChangedListener(this.currentArmyReserve, isInitialCount);
     }
 
     public synchronized void finishTurn() {
-        if (!(isThisPlayersTurn() && hasPlayerReceivedArmiesThisTurn && currentArmyReserve == 0)) {
+        if (!(isThisPlayersTurn() && lobby.hasCurrentPlayerToActReceivedNewArmies() && currentArmyReserve == 0)) {
             throw new IllegalStateException("can only finish own turn after all army reserves have been placed");
         }
-        log.info("Sending NextTurnMessage");
-        client.sendMessage(new NextTurnMessage(currentLobbyID, thisPlayer.getUid()));
-    }
-
-    public synchronized boolean isInitialArmyPlacementFinished() {
-        return initialArmyPlacementFinished;
-    }
-
-    public synchronized List<Player> getCurrentPlayers() {
-        return new ArrayList<>(currentPlayers.values());
+        client.sendMessage(new NextTurnMessage(lobby.getLobbyID(), thisPlayer.getUid()));
     }
 
     public synchronized void triggerLobbyListUpdate() {
@@ -451,12 +465,41 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public synchronized void leaveLobby() {
-        if (currentLobbyID != -1) {
-            client.sendMessage(new RequestLeaveLobby(currentLobbyID, thisPlayer.getUid()));
+        if (lobby.getLobbyID() != -1) {
+            client.sendMessage(new RequestLeaveLobby(lobby.getLobbyID(), thisPlayer.getUid()));
         }
     }
 
-    public int getCurrentLobbyID() {
-        return currentLobbyID;
+    public synchronized void returnToMainMenu() {
+        listenerManager.notifyLeftLobbyListener(false);
+    }
+
+    public void finishAttackingPhase() {
+        client.sendMessage(new AttackingPhaseFinishedMessage(lobby.getLobbyID(), thisPlayer.getUid()));
+    }
+
+    private void setCurrentPhase(Phase phase) {
+        this.currentPhase = phase;
+        listenerManager.notifyPhaseChangedListener(phase);
+    }
+
+    public Phase getCurrentPhase() {
+        return currentPhase;
+    }
+
+    public void closeConnection() {
+        client.disconnect();
+    }
+
+    public void occupyTerritory(int territoryID, int fromTerritoryID, int armyCount) {
+        client.sendMessage(new OccupyTerritoryMessage(lobby.getLobbyID(), thisPlayer.getUid(), territoryID, fromTerritoryID, armyCount));
+    }
+
+    public Territory[] getMyTerritories() {
+        return lobby.getTerritoriesOccupiedByPlayer(thisPlayer.getUid());
+    }
+
+    public Lobby getLobby() {
+        return lobby;
     }
 }

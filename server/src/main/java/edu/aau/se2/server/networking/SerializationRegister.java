@@ -1,24 +1,35 @@
 package edu.aau.se2.server.networking;
 
 import java.util.ArrayList;
+
+import edu.aau.se2.server.data.Card;
 import edu.aau.se2.server.data.Player;
-import edu.aau.se2.server.networking.dto.ArmyPlacedMessage;
-import edu.aau.se2.server.networking.dto.CardExchangeMessage;
-import edu.aau.se2.server.networking.dto.CreateLobbyMessage;
-import edu.aau.se2.server.networking.dto.ErrorMessage;
-import edu.aau.se2.server.networking.dto.InitialArmyPlacingMessage;
-import edu.aau.se2.server.networking.dto.JoinedLobbyMessage;
-import edu.aau.se2.server.networking.dto.LeftLobbyMessage;
-import edu.aau.se2.server.networking.dto.LobbyListMessage;
-import edu.aau.se2.server.networking.dto.NewArmiesMessage;
-import edu.aau.se2.server.networking.dto.NextTurnMessage;
-import edu.aau.se2.server.networking.dto.PlayersChangedMessage;
-import edu.aau.se2.server.networking.dto.ReadyMessage;
-import edu.aau.se2.server.networking.dto.RequestJoinLobbyMessage;
-import edu.aau.se2.server.networking.dto.RequestLeaveLobby;
-import edu.aau.se2.server.networking.dto.RequestLobbyListMessage;
-import edu.aau.se2.server.networking.dto.StartGameMessage;
-import edu.aau.se2.server.networking.dto.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
+import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
+import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
+import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
+import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
+import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
+import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
+import edu.aau.se2.server.networking.dto.game.NewCardMessage;
+import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
+import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
+import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
+import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.LeftLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
+import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
+import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
+import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
+import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
 import edu.aau.se2.server.networking.kryonet.KryoNetComponent;
 
 
@@ -49,5 +60,16 @@ public interface SerializationRegister {
         component.registerClass(RequestLeaveLobby.class);
         component.registerClass(LeftLobbyMessage.class);
         component.registerClass(PlayersChangedMessage.class);
+        component.registerClass(ArmyMovedMessage.class);
+        component.registerClass(AttackingPhaseFinishedMessage.class);
+        component.registerClass(NewCardMessage.class);
+        component.registerClass(String[].class);
+        component.registerClass(RefreshCardsMessage.class);
+        component.registerClass(AttackStartedMessage.class);
+        component.registerClass(DiceResultMessage.class);
+        component.registerClass(AttackResultMessage.class);
+        component.registerClass(OccupyTerritoryMessage.class);
+        component.registerClass(Card[].class);
+        component.registerClass(DefenderDiceCountMessage.class);
     }
 }

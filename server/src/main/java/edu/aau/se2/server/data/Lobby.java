@@ -20,13 +20,21 @@ public class Lobby {
     private boolean isStarted;
     private boolean areInitialArmiesPlaced;
     private boolean hasCurrentPlayerToActReceivedNewArmies;
+    private Attack currentAttack;
+    private CardDeck cardDeck;
 
     public Lobby(int lobbyID) {
         this.lobbyID = lobbyID;
         this.players = new TreeMap<>();
+        this.cardDeck = new CardDeck(lobbyID);
         this.isStarted = false;
         this.areInitialArmiesPlaced = false;
+        this.currentAttack = null;
         initTerritories();
+    }
+
+    public Player getPlayerByID(int id) {
+        return players.get(id);
     }
 
     public List<Player> getPlayers() {
@@ -38,11 +46,15 @@ public class Lobby {
     }
 
     public boolean removePlayer(int uid) {
-        return this.players.remove(uid) == null;
+        return this.players.remove(uid) != null;
     }
 
     public int getLobbyID() {
         return lobbyID;
+    }
+
+    public void setLobbyID(int lobbyID) {
+        this.lobbyID = lobbyID;
     }
 
     public Player getHost() {
@@ -109,6 +121,10 @@ public class Lobby {
         return areInitialArmiesPlaced;
     }
 
+    public void setInitialArmiesPlaced() {
+        this.areInitialArmiesPlaced = true;
+    }
+
     public List<Integer> getTurnOrder() {
         return turnOrder;
     }
@@ -120,6 +136,12 @@ public class Lobby {
 
     public Player getPlayerToAct() {
         return players.get(turnOrder.get(currentTurnIndex));
+    }
+
+    public Player getDefender() {
+        if (!attackRunning()) return null;
+        
+        return players.get(getTerritoryByID(currentAttack.getToTerritoryID()).getOccupierPlayerID());
     }
 
     public void nextPlayersTurn() {
@@ -163,8 +185,17 @@ public class Lobby {
         hasCurrentPlayerToActReceivedNewArmies = true;
     }
 
+    public void setCurrentPlayerToActReceivedNewArmies(boolean armiesReceived) {
+        this.hasCurrentPlayerToActReceivedNewArmies = armiesReceived;
+    }
+
     public boolean hasCurrentPlayerToActReceivedNewArmies() {
         return hasCurrentPlayerToActReceivedNewArmies;
+    }
+
+    public boolean hasCurrentPlayerToActPlacedNewArmies() {
+        return hasCurrentPlayerToActReceivedNewArmies &&
+                this.getPlayerToAct().getArmyReserveCount() == 0;
     }
 
     public boolean isJoinable() {
@@ -196,5 +227,69 @@ public class Lobby {
 
     public boolean isPlayerJoined(int playerID) {
         return players.containsKey(playerID);
+    }
+
+    public void resetPlayers() {
+        for (Player p: players.values()) {
+            p.reset();
+        }
+    }
+
+    public void clearPlayers() {
+        players.clear();
+    }
+
+    public boolean attackRunning() {
+        return currentAttack != null;
+    }
+
+    public Attack getCurrentAttack() {
+        return currentAttack;
+    }
+
+    public void setCurrentAttack(Attack currentAttack) {
+        this.currentAttack = currentAttack;
+    }
+
+    public Territory[] getTerritoriesOccupiedByPlayer(int playerID){
+        ArrayList<Territory> terr = new ArrayList<>();
+
+        for (Territory t: this.territories) {
+            if(t.getOccupierPlayerID() == playerID) terr.add(t);
+        }
+        return terr.toArray(new Territory[0]);
+    }
+
+    public CardDeck getCardDeck() {
+        return cardDeck;
+    }
+
+    public boolean isPlayersTurn(int playerID) {
+        return getPlayerToAct() != null && getPlayerToAct().getUid() == playerID;
+    }
+
+    public boolean isPlayersTerritory(int playerID, int territoryID) {
+        return territories[territoryID].getOccupierPlayerID() == playerID;
+    }
+
+    public Player getPlayerByTerritoryID(int territoryID) {
+        return players.get(territories[territoryID].getOccupierPlayerID());
+    }
+
+    public Territory[] getUnoccupiedTerritories() {
+        List<Territory> unoccupiedTerritories = new ArrayList<>();
+        for (Territory territoryDatum : this.territories) {
+            if (territoryDatum.getOccupierPlayerID() == -1) {
+                unoccupiedTerritories.add(territoryDatum);
+            }
+        }
+        return unoccupiedTerritories.toArray(new Territory[0]);
+    }
+
+    public void updatePlayer(Player p) {
+        if (!players.containsKey(p.getUid())) {
+            throw new IllegalArgumentException("player not found");
+        }
+        players.put(p.getUid(), p);
     }
 }

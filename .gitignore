@@ -1,15 +1,12 @@
 *.iml
 .gradle
-/local.properties
-/.idea
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+gradlew
+gradlew.bat
+gradle
+local.properties
+.idea
 .DS_Store
-/build
+build
 /captures
 .externalNativeBuild
 .cxx
@@ -21,3 +18,4 @@
 /core/build/
 /core/build/classes/java/main/
 /core/build/classes/java/test/
+/desktop/build/

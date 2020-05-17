@@ -10,12 +10,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.dto.BaseMessage;
-import edu.aau.se2.server.networking.dto.ConnectedMessage;
+import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.TextMessage;
 import edu.aau.se2.server.networking.kryonet.KryoNetComponent;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
 
+/**
+ * Test that the basic sending & receiving of (polymorph) messages works correctly.
+ *
+ * This test class is copied directly from Alexander Lercher's implementation of a network wrapper
+ * which this project is based on.
+ *
+ * https://github.com/Alexx882/AndroidNetworkWrapper/blob/master/app/src/test/java/at/aau/ase/androidnetworkwrapper/networking/NetworkCommunicationIntegrationTest.java
+ */
 public class NetworkCommunicationIntegrationTest {
     private static final String REQUEST_TEST = "request test";
     private static final String RESPONSE_TEST = "response test";
@@ -55,7 +63,7 @@ public class NetworkCommunicationIntegrationTest {
     private void startServer() throws IOException {
         AtomicBoolean first = new AtomicBoolean(true);
 
-        server = new NetworkServerKryo();
+        server = new NetworkServerKryo(new DataStoreTestable());
         registerClassesForComponent((NetworkServerKryo)server);
 
         server.start();
