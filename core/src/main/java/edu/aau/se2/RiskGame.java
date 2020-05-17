@@ -124,7 +124,7 @@ public class RiskGame extends Game {
 
 		FreetypeFontLoader.FreeTypeFontLoaderParameter parameterFont1 = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
 		parameterFont1.fontFileName = AssetName.TTF_CENTURY_GOTHIC_LOCATION;
-		parameterFont1.fontParameters.size = (screenWidth * 85) / Territory.REFERENCE_WIDTH;;
+		parameterFont1.fontParameters.size = (screenWidth * 85) / Territory.REFERENCE_WIDTH;
 		parameterFont1.fontParameters.borderColor = Color.BLACK;
 		parameterFont1.fontParameters.borderWidth = 2;
 		assetManager.load(AssetName.FONT_1, BitmapFont.class, parameterFont1);
@@ -159,6 +159,8 @@ public class RiskGame extends Game {
 		assetManager.load(AssetName.ATTACK_ARROW, Texture.class);
 		assetManager.load(AssetName.BG_ATTACK_DISPLAY, Texture.class);
 		assetManager.load(AssetName.ICON_INFANTRY, Texture.class);
+		assetManager.load(AssetName.CARDS_BUTTON, Texture.class);
+		assetManager.load(AssetName.END_TURN, Texture.class);
 	}
 
 	@Override
