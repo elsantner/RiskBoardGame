@@ -86,7 +86,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
 
         buttonLeaveGame.addListener((event) -> {
-            new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2), "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein", (res) -> {if (res) db.leaveLobby();}).show(this);
+            new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1), "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein", (res) -> {if (res) db.leaveLobby();}).show(this);
             return true;
         });
 

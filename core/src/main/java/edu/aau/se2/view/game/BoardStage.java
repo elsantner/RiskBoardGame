@@ -326,6 +326,7 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
 
     public void setPhase(Database.Phase newPhase) {
         this.phase = newPhase;
+        clearTerritoryHighlights();
     }
 
     public void attackStartable(boolean attackStartable) {

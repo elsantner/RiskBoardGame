@@ -25,8 +25,8 @@ public abstract class AssetName {
     public static final String TEX_LOBBYLIST_LINE = "lobbylist/line.png";
     public static final String TEX_LOBBYLIST_OVERLAY = "lobbylist/lobbyMenuOverlay.png";
     public static final String TEX_LOGO = "logo.png";
-    public static final String TEX_DICE_ATTACKER = "dices/dices_attacker.JPG";
-    public static final String TEX_DICE_DEFENDER = "dices/dices_defender.JPG";
+    public static final String TEX_DICE_ATTACKER = "dices/dices_attacker.png";
+    public static final String TEX_DICE_DEFENDER = "dices/dices_defender.png";
     public static final String ATTACK_ARROW = "gameBoard/arrowAttack.png";
     public static final String BG_ATTACK_DISPLAY = "gameBoard/backgroundBlackRoundEdges.png";
     public static final String ICON_INFANTRY = "gameBoard/iconInfantry.png";
