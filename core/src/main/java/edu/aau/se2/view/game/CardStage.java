@@ -103,7 +103,6 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
             assetManager.load(("cards/" + cardName + ".png"), Texture.class);
         }
         Collections.sort(cardNames);
-        log.log(Level.INFO, "A Card has been added to the list: " + cardName);
         this.updated = true;
     }
 

@@ -17,6 +17,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+
 import java.util.List;
 
 import edu.aau.se2.model.Database;
@@ -87,17 +88,17 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         Label statisticsOpponentsLabel = new Label("Spieler", new Label.LabelStyle(generateFont(), Color.WHITE));
 
         //row 1
-        table.add(unitsLabel).width(vp.getScreenWidth() / 3f).padTop(vp.getWorldHeight() * 0.01f).padLeft(vp.getWorldWidth() * 0.02f);
-        table.add(yourTurnLabel).width(vp.getScreenWidth() / 3f).expandX().padTop(vp.getWorldHeight() * 0.01f);
-        table.add(statisticsOpponentsLabel).expandX().right().padTop(vp.getWorldHeight() * 0.01f).padRight(vp.getWorldWidth() * 0.02f);
+        table.add(unitsLabel).width(vp.getScreenWidth() / 3f).padTop(vp.getWorldHeight() * 0.01f).padLeft(vp.getWorldWidth() * 0.01f).left();
+        table.add(yourTurnLabel).padTop(vp.getWorldHeight() * 0.01f).center().padRight(vp.getWorldWidth() * 0.025f);
+        table.add(statisticsOpponentsLabel).expandX().right().padTop(vp.getWorldHeight() * 0.01f).padRight(vp.getWorldWidth() * 0.01f).right();
         table.row();
         //remaining rows
         for (int i = 0; i < playersCount; i++) {
             currentPlayerLabels[i] = new Label(currentPlayerNames[i], new Label.LabelStyle(generateFont(), Color.valueOf(currentPlayerColors[i].toString())));
             occupiedTerritoriesLabel[i] = new Label("Territorien: " + occupiedTerritoriesCount[i] + " / 42", new Label.LabelStyle(generateFont(), Color.valueOf(currentPlayerColors[i].toString())));
-            table.add(occupiedTerritoriesLabel[i]).width(vp.getScreenWidth() / 3f).padLeft(vp.getWorldWidth() * 0.02f);
+            table.add(occupiedTerritoriesLabel[i]).width(vp.getScreenWidth() / 3f).padLeft(vp.getWorldWidth() * 0.01f);
             table.add().width(vp.getScreenWidth() / 3f);
-            table.add(currentPlayerLabels[i]).expandX().right().padRight(vp.getWorldWidth() * 0.02f);
+            table.add(currentPlayerLabels[i]).expandX().right().padRight(vp.getWorldWidth() * 0.01f);
             table.row();
         }
         table.row();
