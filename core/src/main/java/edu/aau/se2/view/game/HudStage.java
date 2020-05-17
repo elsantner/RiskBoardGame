@@ -252,7 +252,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     }
 
     private String getCurrentPlayerNickname() {
-        return db.getCurrentPlayerToAct().getNickname();
+        return db.getLobby().getPlayerToAct().getNickname();
     }
 
     public void setArmyReserveCount(int armyCount) {
