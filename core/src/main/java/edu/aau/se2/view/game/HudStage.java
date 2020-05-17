@@ -25,7 +25,6 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.AbstractStage;
 import edu.aau.se2.view.asset.AssetName;
-import edu.aau.se2.view.lobbylist.ExitDialog;
 
 public class HudStage extends AbstractStage implements OnNextTurnListener {
     private final Color[] playerColors = new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE};
@@ -82,7 +81,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
 
         buttonLeaveGame.addListener((event) -> {
-            new ExitDialog("Verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2)).show(this);
+            new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2), "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein", (res) -> {if (res) db.leaveLobby();}).show(this);
             return true;
         });
 

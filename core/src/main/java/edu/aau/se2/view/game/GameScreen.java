@@ -72,9 +72,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void show() {
         InputMultiplexer inputMultiplexer = new InputMultiplexer();
+        inputMultiplexer.addProcessor(hudStage);
         inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
         inputMultiplexer.addProcessor(diceStage);
-        inputMultiplexer.addProcessor(hudStage);
         inputMultiplexer.addProcessor(cardStage);
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
