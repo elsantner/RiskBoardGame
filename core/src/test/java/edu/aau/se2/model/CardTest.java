@@ -42,7 +42,7 @@ public class CardTest extends AbstractDatabaseTest {
         DatabaseTestable clientToAct = DatabaseTestable.getClientToAct(dbs);
 
         for (DatabaseTestable db : dbs) {
-            db.setCardsChangedListener((new OnCardsChangedListener() {
+            db.getListeners().setCardsChangedListener((new OnCardsChangedListener() {
                 @Override
                 public void singleNewCard(String cardName) {
                     assertEquals('c', (cardName.charAt(0)));
@@ -55,7 +55,7 @@ public class CardTest extends AbstractDatabaseTest {
                     //unused
                 }
             }));
-            db.setNextTurnListener((playerID, isThisPlayer) -> nextTurnCount.addAndGet(1));
+            db.getListeners().setNextTurnListener((playerID, isThisPlayer) -> nextTurnCount.addAndGet(1));
         }
         clientToAct.finishAttackingPhase();
         clientToAct.finishTurn();

@@ -252,9 +252,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
         lobby.setInitialArmiesPlaced();
-        // TODO: possible error
         lobby.nextPlayersTurn();
-        //currentTurnPlayerID = msg.getPlayerToActID();
         setCurrentPhase(Phase.PLACING);
 
         listenerManager.notifyNextTurnListener(lobby.getPlayerToAct().getUid(),

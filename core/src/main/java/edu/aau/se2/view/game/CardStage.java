@@ -22,7 +22,6 @@ import edu.aau.se2.view.AbstractStage;
 public class CardStage extends AbstractStage implements OnCardsChangedListener {
 
     private static final String TAG = "CardStage";
-    private Logger log;
     private boolean updated;
 
     private Table cardContainer;
@@ -44,7 +43,6 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
     public CardStage(AbstractScreen screen, Viewport viewport) {
         super(viewport, screen);
         this.updated = false;
-        this.log = LoggerConfigurator.getConfiguredLogger(TAG, Level.INFO);
         this.assetManager = this.getScreen().getGame().getAssetManager();
 
         this.cardNames = new ArrayList<>();

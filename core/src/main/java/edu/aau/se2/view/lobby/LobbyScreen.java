@@ -16,7 +16,6 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;

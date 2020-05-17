@@ -70,7 +70,7 @@ public class MainMenu extends AbstractScreen {
         logoImage.setScale(gamePort.getWorldWidth() / (logoImage.getWidth() * 2));
         logoImage.setOrigin(Align.center);
 
-        table.add(logoImage).padBottom(gamePort.getWorldHeight() * 0.1f).row();;
+        table.add(logoImage).padBottom(gamePort.getWorldHeight() * 0.1f).row();
     }
 
     public void onClickButtons(){

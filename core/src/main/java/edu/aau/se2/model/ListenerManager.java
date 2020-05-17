@@ -2,7 +2,6 @@ package edu.aau.se2.model;
 
 import java.util.List;
 
-import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnArmiesMovedListener;
 import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
 import edu.aau.se2.model.listener.OnAttackUpdatedListener;

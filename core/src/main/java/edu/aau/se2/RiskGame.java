@@ -197,7 +197,7 @@ public class RiskGame extends Game {
 			lobbyListScreen.dispose();
 		}
 		catch (Exception ex) {
-			Logger.getLogger("RiskGame").log(Level.WARNING, "Error: ", ex);
+			Logger.getLogger(TAG).log(Level.WARNING, "Error: ", ex);
 		}
 	}
     @Override
