@@ -41,8 +41,8 @@ public class PlaceArmiesTest extends AbstractDatabaseTest {
     @Test
     public void testPlaceArmies() throws InterruptedException {
         for (DatabaseTestable db : dbs) {
-            db.setTerritoryUpdateListener((territoryID, armyCount, colorID) -> territoryUpdateCount.addAndGet(1));
-            db.setPhaseChangedListener(newPhase -> {
+            db.getListeners().setTerritoryUpdateListener((territoryID, armyCount, colorID) -> territoryUpdateCount.addAndGet(1));
+            db.getListeners().setPhaseChangedListener(newPhase -> {
                 assertEquals(Database.Phase.ATTACKING, newPhase);
                 phaseChangedCount.addAndGet(1);
             });
@@ -51,7 +51,7 @@ public class PlaceArmiesTest extends AbstractDatabaseTest {
         DatabaseTestable clientToAct = DatabaseTestable.getClientToAct(dbs);
         int armiesToPlace = clientToAct.getCurrentArmyReserve();
 
-        clientToAct.setArmyReserveChangedListener((armyCount, isInitialCount) -> {
+        clientToAct.getListeners().setArmyReserveChangedListener((armyCount, isInitialCount) -> {
             if (armyCount > 0) {
                 clientToAct.armyPlaced(clientToAct.getNextTerritoryToPlaceArmiesOn().getId(), 1);
             }

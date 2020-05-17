@@ -482,17 +482,9 @@ public class MainServer implements PlayerLostConnectionListener {
                 StartGameMessage sgm = new StartGameMessage(msg.getLobbyID(), SERVER_PLAYER_ID, lobby.getPlayers(),
                         lobby.getPlayers().get(0).getArmyReserveCount());
                 server.broadcastMessage(sgm, lobby.getPlayers());
-
                 // TODO: replace once "dice to decide starter" is implemented
-                // send turn order and initiate initial army placing
-                try {
-                    synchronized (lobby) {
-                        lobby.wait(1000);
-                    }
-                    broadcastInitialArmyPlacingMessage(lobby);
-                } catch (InterruptedException e) {
-                    broadcastInitialArmyPlacingMessage(lobby);
-                }
+                // TODO: temporary solution to not have timing issue on client --> waiting on decision whether to implement DiceToDecideStart or not
+                broadcastInitialArmyPlacingMessage(lobby);
             }
         }
     }

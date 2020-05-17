@@ -42,15 +42,15 @@ public class JoinLobbyTest extends AbstractDatabaseTest {
         Assert.assertEquals(NUM_CLIENTS, countJoinedMessages.get());
         Assert.assertEquals(NUM_CLIENTS-1, countLeftMessages.get());
         Assert.assertEquals(2, errorCount.get());
-        Assert.assertEquals(1, dbs[0].getCurrentPlayers().size());      // since all but the host have left again
+        Assert.assertEquals(1, dbs[0].getLobby().getPlayers().size());      // since all but the host have left again
     }
 
     private void setupClients() {
 
         for (int i=0; i<NUM_CLIENTS; i++) {
-            dbs[i].setErrorListener(errorCode -> errorCount.addAndGet(1));
+            dbs[i].getListeners().setErrorListener(errorCode -> errorCount.addAndGet(1));
         }
-        dbs[0].setConnectionChangedListener(new OnConnectionChangedListener() {
+        dbs[0].getListeners().setConnectionChangedListener(new OnConnectionChangedListener() {
             @Override
             public void connected(Player thisPlayer) {
                 dbs[0].hostLobby();
@@ -61,10 +61,10 @@ public class JoinLobbyTest extends AbstractDatabaseTest {
 
             }
         });
-        dbs[0].setJoinedLobbyListener((lobbyID, host, players) -> {
+        dbs[0].getListeners().setJoinedLobbyListener((lobbyID, host, players) -> {
             countJoinedMessages.addAndGet(1);
             // trigger first error: joining already joined lobby
-            dbs[0].joinLobby(dbs[0].getCurrentLobbyID());
+            dbs[0].joinLobby(dbs[0].getLobby().getLobbyID());
             letClientsJoinLobby();
         });
     }
@@ -72,7 +72,7 @@ public class JoinLobbyTest extends AbstractDatabaseTest {
     private void letClientsJoinLobby() {
         for (int i=1; i<NUM_CLIENTS; i++) {
             int finalI = i;
-            dbs[i].setConnectionChangedListener(new OnConnectionChangedListener() {
+            dbs[i].getListeners().setConnectionChangedListener(new OnConnectionChangedListener() {
                 @Override
                 public void connected(Player thisPlayer) {
                     // trigger second error: joining non-existent lobby
@@ -88,14 +88,14 @@ public class JoinLobbyTest extends AbstractDatabaseTest {
 
                 }
             });
-            dbs[i].setLobbyListChangedListener(lobbyList -> dbs[finalI].joinLobby(lobbyList.get(0).getLobbyID()));
+            dbs[i].getListeners().setLobbyListChangedListener(lobbyList -> dbs[finalI].joinLobby(lobbyList.get(0).getLobbyID()));
 
-            dbs[i].setJoinedLobbyListener((lobbyID, host, players) -> {
+            dbs[i].getListeners().setJoinedLobbyListener((lobbyID, host, players) -> {
                 Assert.assertEquals(dbs[0].getThisPlayer().getUid(), host.getUid());
                 countJoinedMessages.addAndGet(1);
                 dbs[finalI].leaveLobby();       // leaf lobby again
             });
-            dbs[i].setLeftLobbyListener((wasClosed) -> {
+            dbs[i].getListeners().setLeftLobbyListener((wasClosed) -> {
                 countLeftMessages.addAndGet(1);
             });
 

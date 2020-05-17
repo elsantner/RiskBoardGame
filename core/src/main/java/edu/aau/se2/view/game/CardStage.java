@@ -11,17 +11,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import edu.aau.se2.model.listener.OnCardsChangedListener;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.AbstractStage;
 
 public class CardStage extends AbstractStage implements OnCardsChangedListener {
-
-    private static final String TAG = "CardStage";
-    private Logger log;
+    
     private boolean updated;
 
     private Table cardContainer;
@@ -43,7 +39,6 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
     public CardStage(AbstractScreen screen, Viewport viewport) {
         super(viewport, screen);
         this.updated = false;
-        this.log = Logger.getLogger(TAG);
         this.assetManager = this.getScreen().getGame().getAssetManager();
 
         this.cardNames = new ArrayList<>();

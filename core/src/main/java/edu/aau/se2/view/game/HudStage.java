@@ -85,8 +85,8 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
 
         TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
 
-        buttonLeaveGame.addListener((event) -> {
-            new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2), "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein", (res) -> {if (res) db.leaveLobby();}).show(this);
+        buttonLeaveGame.addListener(event -> {
+            new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1), "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein", res -> {if (res) db.leaveLobby();}).show(this);
             return true;
         });
 
@@ -189,8 +189,8 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
 
     public void setCurrentAttack(Attack attack) {
         if (attack != null) {
-            String attackerName = db.getPlayerByTerritoryID(attack.getFromTerritoryID()).getNickname();
-            String defenderName = db.getPlayerByTerritoryID(attack.getToTerritoryID()).getNickname();
+            String attackerName = db.getLobby().getPlayerByTerritoryID(attack.getFromTerritoryID()).getNickname();
+            String defenderName = db.getLobby().getPlayerByTerritoryID(attack.getToTerritoryID()).getNickname();
             String fromTerritoryName = Territory.getByID(attack.getFromTerritoryID()).getTerritoryName();
             String toTerritoryName = Territory.getByID(attack.getToTerritoryID()).getTerritoryName();
             updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName, attack.getAttackerDiceCount(), attack.getArmiesLostAttacker(), attack.getArmiesLostDefender());
@@ -201,7 +201,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
                 @Override
                 public void run() {
                     // if no new attack has been started during wait
-                    if (db.getAttack() == null) {
+                    if (!db.getLobby().attackRunning()) {
                         attackDisplay.setVisible(false);
                     }
                 }
@@ -262,7 +262,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     }
 
     private String getCurrentPlayerNickname() {
-        return db.getCurrentPlayerToAct().getNickname();
+        return db.getLobby().getPlayerToAct().getNickname();
     }
 
     public void setArmyReserveCount(int armyCount) {

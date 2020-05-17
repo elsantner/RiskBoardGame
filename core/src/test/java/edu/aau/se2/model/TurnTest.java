@@ -45,12 +45,12 @@ public class TurnTest extends AbstractDatabaseTest {
     @Test
     public void testPlayTurns() throws InterruptedException {
         for (DatabaseTestable db : dbs) {
-            db.setArmyReserveChangedListener((armyCount, isInitialCount) -> {
+            db.getListeners().setArmyReserveChangedListener((armyCount, isInitialCount) -> {
                 if (armyCount > 0) {
                     db.armyPlaced(db.getNextTerritoryToPlaceArmiesOn().getId(), 1);
                 }
             });
-            db.setPhaseChangedListener(newPhase -> {
+            db.getListeners().setPhaseChangedListener(newPhase -> {
                 try {
                     phaseChangedCount.addAndGet(1);
                     if (turnsPlayed.get() < NUM_TURNS) {
@@ -65,7 +65,7 @@ public class TurnTest extends AbstractDatabaseTest {
                     fail(e.getMessage());
                 }
             });
-            db.setNextTurnListener((playerID, isThisPlayer) -> {
+            db.getListeners().setNextTurnListener((playerID, isThisPlayer) -> {
                 assertEquals(isThisPlayer, db.isThisPlayersTurn());
                 nextTurnCount.addAndGet(1);
             });

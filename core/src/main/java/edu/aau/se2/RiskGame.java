@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.utils.LoggerConfigurator;
 import edu.aau.se2.view.PopupMessageDisplay;
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.game.GameScreen;
@@ -31,6 +32,8 @@ import edu.aau.se2.view.lobbylist.LobbyListScreen;
 import edu.aau.se2.view.mainmenu.MainMenu;
 
 public class RiskGame extends Game {
+    private static final String TAG = "RiskGame";
+
 	private AssetManager assetManager;
 	private boolean isDoneLoadingAssets = false;
 	private PopupMessageDisplay popupMessageDisplay;
@@ -61,34 +64,34 @@ public class RiskGame extends Game {
 
         Database db = Database.getInstance();
 
-		db.setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
+		db.getListeners().setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
             gameScreen = new GameScreen(this);
             setScreen(gameScreen);
         }));
-		db.setLeftLobbyListener(wasClosed -> Gdx.app.postRunnable(() -> {
+		db.getListeners().setLeftLobbyListener(wasClosed -> Gdx.app.postRunnable(() -> {
 			if (wasClosed) {
 				popupMessageDisplay.showMessage("Spiel geschlossen");
 			}
 			mainMenuScreen = new MainMenu(this);
 			setScreen(mainMenuScreen);
 		}));
-		db.setJoinedLobbyListener((lobbyID, host, players) -> Gdx.app.postRunnable(() -> {
+		db.getListeners().setJoinedLobbyListener((lobbyID, host, players) -> Gdx.app.postRunnable(() -> {
 			lobbyScreen = new LobbyScreen(this);
 			setScreen(lobbyScreen);
 		}));
-		db.setLobbyListChangedListener(lobbyList -> Gdx.app.postRunnable(() -> {
+		db.getListeners().setLobbyListChangedListener(lobbyList -> Gdx.app.postRunnable(() -> {
 			lobbyListScreen = new LobbyListScreen(this, lobbyList);
 			setScreen(lobbyListScreen);
 		}));
 
-		db.setConnectionChangedListener(new OnConnectionChangedListener() {
+		db.getListeners().setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override
 			public void connected(Player thisPlayer) {
 			}
 
 			@Override
 			public void disconnected() {
-				Logger.getLogger("RiskGame").log(Level.SEVERE, "Connection lost");
+				LoggerConfigurator.getConfiguredLogger(TAG, Level.SEVERE).log(Level.SEVERE, "Connection lost");
 				popupMessageDisplay.showMessage("Verbindung verloren");
 				System.exit(-1);
 			}
@@ -96,7 +99,7 @@ public class RiskGame extends Game {
 		try {
 			db.connectIfNotConnected();
 		} catch (IOException e) {
-			Logger.getLogger("RiskGame").log(Level.SEVERE, "Connection Error: ", e);
+            LoggerConfigurator.getConfiguredLogger(TAG, Level.SEVERE).log(Level.SEVERE, "Connection Error: ", e);
 			popupMessageDisplay.showMessage("Verbindungsfehler");
 			System.exit(-1);
 		}
@@ -194,7 +197,7 @@ public class RiskGame extends Game {
 			lobbyListScreen.dispose();
 		}
 		catch (Exception ex) {
-			Logger.getLogger("RiskGame").log(Level.WARNING, "Error: ", ex);
+			Logger.getLogger(TAG).log(Level.WARNING, "Error: ", ex);
 		}
 	}
     @Override
