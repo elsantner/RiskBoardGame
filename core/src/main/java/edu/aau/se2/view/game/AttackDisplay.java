@@ -37,7 +37,7 @@ public class AttackDisplay extends Group {
     }
 
     private void setupDisplay(String attackerName, String defenderName,
-                            String attackerTerritoryName, String defenderTerritoryName, int count) {
+                            String attackerTerritoryName, String defenderTerritoryName, int count, int armiesLostAttacker, int armiesLostDefender) {
         if (tableContainer != null) {
             tableContainer.remove();
             tableContainer = null;
@@ -52,6 +52,10 @@ public class AttackDisplay extends Group {
         Label labelTerritoryDefender = new Label(defenderTerritoryName,
                 new Label.LabelStyle(font, new Color(1, 1, 1, 1)));
         Label labelArmyCount = new Label(Integer.toString(count),
+                new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
+        Label labelArmiesLostAttacker = new Label(Integer.toString(- armiesLostAttacker),
+                new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
+        Label labelArmiesLostDefender = new Label(Integer.toString(- armiesLostDefender),
                 new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
 
         labelAttacker.setOrigin(Align.center);
@@ -78,6 +82,13 @@ public class AttackDisplay extends Group {
         tableContent.add(imgArrow).minWidth(imgArrow.getMinWidth()).padLeft(width / 30f).padRight(width / 30f);
         tableContent.add(labelTerritoryDefender).minHeight(font.getLineHeight());
         tableContent.row();
+        if (armiesLostAttacker != -1 && armiesLostDefender != -1) {
+            tableContent.add(labelArmiesLostAttacker).minHeight(font.getLineHeight());
+            tableContent.add().minHeight(font.getLineHeight()).expand().fill();
+            tableContent.add(labelArmiesLostDefender).minHeight(font.getLineHeight());
+            tableContent.row();
+        }
+
 
         Container<Table> container = new Container<>(tableContent);
         container.setBackground(background);
@@ -87,7 +98,7 @@ public class AttackDisplay extends Group {
         this.addActor(tableContainer);
     }
 
-    public void updateData(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount) {
-        setupDisplay(attacker, defender, fromTerritory, toTerritory, armyCount);
+    public void updateData(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender) {
+        setupDisplay(attacker, defender, fromTerritory, toTerritory, armyCount, armiesLostAttacker, armiesLostDefender);
     }
 }
