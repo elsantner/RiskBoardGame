@@ -2,6 +2,7 @@ package edu.aau.se2.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -19,9 +20,11 @@ import edu.aau.se2.server.logic.DiceHelper;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
+import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
 import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
+import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
@@ -115,12 +118,23 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleAttackStartedMessage((AttackStartedMessage) arg);
                 } else if (arg instanceof OccupyTerritoryMessage) {
                     handleOccupyTerritoryMessage((OccupyTerritoryMessage) arg);
+                } else if (arg instanceof DefenderDiceCountMessage) {
+                    handleDefenderDiceCountMessage((DefenderDiceCountMessage) arg);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 log.log(Level.SEVERE, "Exception: " + ex.getMessage(), ex);
             }
         });
+    }
+
+    private synchronized void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+
+        if (l.attackRunning() && l.getDefender().getUid() == msg.getFromPlayerID() && l.getTerritoryByID(l.getCurrentAttack().getToTerritoryID()).getArmyCount() >= msg.getDiceCount() && msg.getDiceCount() <= 2) {
+            l.getCurrentAttack().setDefenderDiceCount(msg.getDiceCount());
+            server.broadcastMessage(msg, l.getPlayers());
+        }
     }
 
     private synchronized void handleOccupyTerritoryMessage(OccupyTerritoryMessage msg) {
@@ -149,7 +163,8 @@ public class MainServer implements PlayerLostConnectionListener {
         if (l.isPlayersTurn(msg.getFromPlayerID()) &&
                 l.isPlayersTerritory(l.getPlayerToAct().getUid(), msg.getFromTerritoryID()) &&
                 !l.isPlayersTerritory(l.getPlayerToAct().getUid(), msg.getToTerritoryID()) &&
-                l.getTerritoryByID(msg.getFromTerritoryID()).getArmyCount() > msg.getDiceCount()) {
+                l.getTerritoryByID(msg.getFromTerritoryID()).getArmyCount() > msg.getDiceCount() &&
+                msg.getDiceCount() <= 3) {
 
             l.setCurrentAttack(new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount()));
             server.broadcastMessage(msg, l.getPlayers());
@@ -160,10 +175,62 @@ public class MainServer implements PlayerLostConnectionListener {
         Lobby l = ds.getLobbyByID(msg.getLobbyID());
 
         // if it's attackers turn and attack running, broadcast message to lobby
-        if (l.getPlayerToAct().getUid() == msg.getFromPlayerID() && l.attackRunning()) {
+        if (l.getPlayerToAct().getUid() == msg.getFromPlayerID() && l.attackRunning() && msg.getResults().size() == l.getCurrentAttack().getAttackerDiceCount()) {
             l.getCurrentAttack().setAttackerDiceResults(msg.getResults());
             l.getCurrentAttack().setCheated(msg.isCheated());
             server.broadcastMessage(new DiceResultMessage(msg), l.getPlayers());
+        } else if (l.attackRunning() && l.getDefender().getUid() == msg.getFromPlayerID() && msg.getResults().size() == l.getCurrentAttack().getDefenderDiceCount()) {
+            l.getCurrentAttack().setDefenderDiceResults(msg.getResults());
+            server.broadcastMessage(msg, l.getPlayers());
+            try {
+                wait(4000);
+            } catch (InterruptedException e) {
+                log.severe(e.getMessage());
+            }
+            attackFinished(l.getLobbyID());
+        }
+    }
+
+    private synchronized void attackFinished(int lobbyId) {
+        Lobby l = ds.getLobbyByID(lobbyId);
+
+        if (l.attackRunning()) {
+            int armiesLostAttacker = 0;
+            int armiesLostDefender = 0;
+
+            List<Integer> attackerResults = l.getCurrentAttack().getAttackerDiceResults();
+            List<Integer> defenderResults = l.getCurrentAttack().getDefenderDiceResults();
+
+            attackerResults.sort(Integer::compareTo);
+            Collections.sort(attackerResults, Collections.reverseOrder());
+            defenderResults.sort(Integer::compareTo);
+            Collections.sort(defenderResults, Collections.reverseOrder());
+
+            for(int i = 0; i < Math.min(attackerResults.size(), defenderResults.size()); i++) {
+                if (attackerResults.get(i) < defenderResults.get(i)) {
+                    armiesLostAttacker++;
+                } else {
+                    armiesLostDefender++;
+                }
+            }
+
+            Territory fromTerritory = l.getTerritoryByID(l.getCurrentAttack().getFromTerritoryID());
+            Territory toTerritory = l.getTerritoryByID(l.getCurrentAttack().getToTerritoryID());
+
+            fromTerritory.setArmyCount(Math.max(0, fromTerritory.getArmyCount() - armiesLostAttacker));
+            toTerritory.setArmyCount(Math.max(0, toTerritory.getArmyCount() - armiesLostDefender));
+
+            boolean occupyRequired = toTerritory.getArmyCount() == 0;
+            l.getCurrentAttack().setOccupyRequired(occupyRequired);
+            boolean wasCheated = l.getCurrentAttack().isCheated();
+
+            if (!occupyRequired) {
+                l.setCurrentAttack(null);
+            }
+
+            ds.updateLobby(l);
+
+            server.broadcastMessage(new AttackResultMessage(lobbyId, l.getPlayerToAct().getUid(), armiesLostAttacker, armiesLostDefender, wasCheated, occupyRequired), l.getPlayers());
         }
     }
 

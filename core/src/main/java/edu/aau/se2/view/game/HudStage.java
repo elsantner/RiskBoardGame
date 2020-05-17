@@ -11,12 +11,14 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFont
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 import java.util.List;
 
@@ -74,12 +76,18 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
 
         ImageButton cards = new ImageButton(new TextureRegionDrawable(new TextureRegion((Texture) this.getScreen().getGame().getAssetManager().get(AssetName.CARDS_BUTTON))));
         cards.getImage().setFillParent(true);
-
         cards.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 showCards = !showCards;
             }
+        });
+
+        TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
+
+        buttonLeaveGame.addListener((event) -> {
+            new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2), "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein", (res) -> {if (res) db.leaveLobby();}).show(this);
+            return true;
         });
 
         Table table = new Table();
@@ -109,6 +117,8 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         table.add(armyReserveLabel).width(vp.getScreenWidth() / 3f).padLeft(vp.getWorldWidth() * 0.01f);
         table.row();
         table.add(cards).height(vp.getWorldHeight() * 0.132f).width(vp.getWorldWidth() * 0.077f).expandY().left().padLeft(vp.getWorldHeight() * 0.006f).bottom().padBottom(vp.getWorldHeight() * 0.006f);
+        table.row();
+        table.add(buttonLeaveGame).left().padLeft(vp.getWorldWidth() * 0.02f).bottom();
         this.addActor(table);
     }
 
@@ -183,7 +193,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             String defenderName = db.getPlayerByTerritoryID(attack.getToTerritoryID()).getNickname();
             String fromTerritoryName = Territory.getByID(attack.getFromTerritoryID()).getTerritoryName();
             String toTerritoryName = Territory.getByID(attack.getToTerritoryID()).getTerritoryName();
-            updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName, attack.getAttackerDiceCount());
+            updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName, attack.getAttackerDiceCount(), attack.getArmiesLostAttacker(), attack.getArmiesLostDefender());
             attackDisplay.setVisible(true);
         } else {
             // hide attack display 3 seconds later
@@ -195,7 +205,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
                         attackDisplay.setVisible(false);
                     }
                 }
-            }, 3);
+            }, 5);
         }
     }
 
@@ -209,8 +219,8 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         attackDisplay.setVisible(false);
     }
 
-    private void updateAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount) {
-        attackDisplay.updateData(attacker, defender, fromTerritory, toTerritory, armyCount);
+    private void updateAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender) {
+        attackDisplay.updateData(attacker, defender, fromTerritory, toTerritory, armyCount, armiesLostAttacker, armiesLostDefender);
     }
 
     private void resetTerritoryCount(int playerColor) {

@@ -10,6 +10,7 @@ import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
 import edu.aau.se2.server.networking.dto.game.AttackStartedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackingPhaseFinishedMessage;
 import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
+import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
@@ -69,5 +70,6 @@ public interface SerializationRegister {
         component.registerClass(AttackResultMessage.class);
         component.registerClass(OccupyTerritoryMessage.class);
         component.registerClass(Card[].class);
+        component.registerClass(DefenderDiceCountMessage.class);
     }
 }
