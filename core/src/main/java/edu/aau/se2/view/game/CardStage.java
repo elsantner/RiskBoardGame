@@ -1,12 +1,9 @@
 package edu.aau.se2.view.game;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -32,46 +29,37 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
     private Table outer;
     private ArrayList<String> cardNames;
     private ScrollPane scrollPane;
-    private Label nameLabel;
     private AssetManager assetManager;
     private static final String WILD1 = "card_wild1";
     private static final String WILD2 = "card_wild2";
     private static final String WILD_PATH = "cards/card_wild.png";
+    private Viewport viewport = getViewport();
 
-
+    /**
+     * This is a simple scrollable list of cards.
+     * cardContainer: inner table of image actors
+     * the container is surrounded by a ScrollPane
+     * ScrollPane is inside outer table, that is added as actor
+     */
     public CardStage(AbstractScreen screen, Viewport viewport) {
-
         super(viewport, screen);
-        Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
-        nameLabel = new Label("", skin);
         this.updated = false;
         this.log = LoggerConfigurator.getConfiguredLogger(TAG, Level.INFO);
         this.assetManager = this.getScreen().getGame().getAssetManager();
 
-        /*
-        This is a simple scrollable list of cards.
-        cardContainer: inner table of image actors
-        the container is surrounded by a ScrollPane
-        ScrollPane is inside outer table, that is added as actor
-         */
-
         this.cardNames = new ArrayList<>();
         this.cardContainer = new Table();
-
         scrollPane = new ScrollPane(cardContainer);
-        outer = new Table();
+        outer = new Table().bottom();
         outer.setFillParent(true);
-        outer.add(nameLabel).expand();
-        outer.row();
 
-        outer.add(scrollPane).fill().bottom().pad(0, 0, 20f, 0);
-
+        outer.pad(0, viewport.getWorldWidth() * 0.095f, 0, viewport.getWorldWidth() * 0.092f);
+        outer.add(scrollPane).bottom().pad(0, 0, viewport.getWorldHeight() * 0.012f, 0);
         this.addActor(outer);
     }
 
     public void updateActor() {
-
-        outer.remove();
+        outer.removeActor(scrollPane);
         this.cardContainer = new Table();
 
         for (String s : cardNames.toArray(new String[0])
@@ -80,14 +68,7 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
         }
 
         scrollPane = new ScrollPane(cardContainer);
-        outer = new Table();
-        outer.setFillParent(true);
-        outer.add(nameLabel).expand();
-        outer.row();
-
-        outer.add(scrollPane).fill().bottom().pad(0, 0, 20f, 0);
-
-        this.addActor(outer);
+        outer.add(scrollPane).bottom().pad(0, 0, viewport.getWorldHeight() * 0.012f, 0);
 
         this.updated = false;
     }
@@ -109,14 +90,13 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
                 texture = assetManager.finishLoadingAsset(filename);
             }
         }
-
         Image im = new Image(texture);
-        this.cardContainer.add(im).pad(0, 8f, 0, 8f);
+        this.cardContainer.add(im).pad(0, viewport.getWorldWidth() * 0.002f, 0, viewport.getWorldWidth() * 0.002f)
+                .height(viewport.getWorldHeight() / 2.2f).width((viewport.getWorldHeight() / 2.2f) / 1.568f);
     }
 
     @Override
     public void singleNewCard(String cardName) {
-
         this.cardNames.add(cardName);
         if (!assetManager.isLoaded(WILD_PATH) && (cardName.equals(WILD1) || cardName.equals(WILD2))) {
             assetManager.load((WILD_PATH), Texture.class);
@@ -124,7 +104,6 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
             assetManager.load(("cards/" + cardName + ".png"), Texture.class);
         }
         Collections.sort(cardNames);
-        log.log(Level.INFO, "A Card has been added to the list: " + cardName);
         this.updated = true;
     }
 

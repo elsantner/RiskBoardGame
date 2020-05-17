@@ -12,6 +12,7 @@ import java.util.List;
 
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
 import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
@@ -23,7 +24,8 @@ import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.dices.DiceStage;
 
 public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
-        OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener, OnAttackUpdatedListener {
+        OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener, OnAttackUpdatedListener,
+        OnArmyReserveChangedListener {
     private BoardStage boardStage;
     private DiceStage diceStage;
     private CardStage cardStage;
@@ -50,6 +52,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         db.getListeners().setPhaseChangedListener(this);
         db.getListeners().setCardsChangedListener(cardStage);
         db.getListeners().setAttackUpdatedListener(this);
+        db.getListeners().setArmyReserveChangedListener(this);
 
         // trigger player turn update because listener might not have been registered when
         // server message was received
@@ -87,17 +90,17 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         diceStage.act(delta);
         diceStage.draw();
 
-        if(hudStage.getShowCards()){
+        hudStage.getViewport().apply();
+        hudStage.update();
+        hudStage.draw();
+
+        if (hudStage.getShowCards()) {
             if (cardStage.isUpdated()) {
                 cardStage.updateActor();
             }
             cardStage.act();
             cardStage.draw();
         }
-
-        hudStage.getViewport().apply();
-        hudStage.update();
-        hudStage.draw();
     }
 
     @Override
@@ -213,21 +216,30 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     private void showDialog(Dialog dialog) {
-        dialog.show(hudStage);
+        dialog.show(hudStage).moveBy(0, hudStage.getViewport().getWorldHeight() * 0.1f);
         dialog.setOrigin(Align.center);
     }
 
     private void showAskForCardExchange() {
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
+
+        boolean state = hudStage.getShowCards();
+        if (!state) {
+            hudStage.setShowCards(true);
+        }
         ConfirmDialog dialog = new ConfirmDialog(uiSkin, "Kartentausch",
                 "Moechten Sie 3 Karten eintauschen?", "Ja", "Nein",
                 result -> {
                     db.exchangeCards(result);
+                    if (!state) {
+                        hudStage.setShowCards(false);
+                    }
                     boardStage.setInteractable(true);
                 });
         showDialog(dialog);
     }
+
 
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
@@ -293,5 +305,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     public void setPlayersDataOnHud(List<Player> currentPlayers) {
         hudStage.setCurrentPlayersColorOnHud(currentPlayers);
+    }
+
+    @Override
+    public void newArmyCount(int armyCount, boolean isInitialCount) {
+        hudStage.setArmyReserveCount(armyCount);
     }
 }
