@@ -66,8 +66,12 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
             @Override
             public void disconnected(Connection connection) {
                 super.disconnected(connection);
-                Integer disconnectedPlayerID = connections.inverse().remove(connection);
-                ds.removePlayer(disconnectedPlayerID);
+                try {
+                    Integer disconnectedPlayerID = connections.inverse().remove(connection);
+                    ds.removePlayer(disconnectedPlayerID);
+                } catch (Exception ex) {
+                    Logger.getAnonymousLogger().warning("Error disconnecting client");
+                }
             }
         });
         server.start();
