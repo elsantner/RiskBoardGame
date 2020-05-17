@@ -7,7 +7,7 @@ public class Player implements Serializable {
     private String nickname;
     private int colorID;
     private boolean isReady;
-    private transient int armyReserveCount;
+    private int armyReserveCount;
     private Card[] tradableSet;
     private boolean askForCardExchange;
     private boolean exchangeCards;

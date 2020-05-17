@@ -1,28 +1,10 @@
 package edu.aau.se2.model;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import edu.aau.se2.model.listener.OnArmiesMovedListener;
-import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
-import edu.aau.se2.model.listener.OnAttackUpdatedListener;
-import edu.aau.se2.model.listener.OnCardsChangedListener;
-import edu.aau.se2.model.listener.OnConnectionChangedListener;
-import edu.aau.se2.model.listener.OnErrorListener;
-import edu.aau.se2.model.listener.OnGameStartListener;
-import edu.aau.se2.model.listener.OnJoinedLobbyListener;
-import edu.aau.se2.model.listener.OnLeftLobbyListener;
-import edu.aau.se2.model.listener.OnLobbyListChangedListener;
-import edu.aau.se2.model.listener.OnNextTurnListener;
-import edu.aau.se2.model.listener.OnPhaseChangedListener;
-import edu.aau.se2.model.listener.OnPlayersChangedListener;
-import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
@@ -174,12 +156,9 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
-        if (currentAttack != null) {
-            currentAttack.setDefenderDiceCount(msg.getDiceCount());
-
-            if (attackUpdatedListener != null) {
-                attackUpdatedListener.attackUpdated();
-            }
+        if (lobby.attackRunning()) {
+            lobby.getCurrentAttack().setDefenderDiceCount(msg.getDiceCount());
+            listenerManager.notifyAttackUpdatedListener();
         }
     }
 
@@ -199,18 +178,17 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         log.info("Attacker armies lost: " + msg.getArmiesLostAttacker());
         log.info("Defender armies lost: " + msg.getArmiesLostDefender());
 
-        this.currentAttack.setArmiesLostAttacker(msg.getArmiesLostAttacker());
-        this.currentAttack.setArmiesLostDefender(msg.getArmiesLostDefender());
-        this.currentAttack.setCheated(msg.isCheated());
-        this.currentAttack.setOccupyRequired(msg.isOccupyRequired());
-        territoryData[currentAttack.getFromTerritoryID()].subFromArmyCount(msg.getArmiesLostAttacker());
-        territoryData[currentAttack.getToTerritoryID()].subFromArmyCount(msg.getArmiesLostDefender());
-        notifyTerritoryUpdateListener(territoryData[currentAttack.getFromTerritoryID()]);
-        notifyTerritoryUpdateListener(territoryData[currentAttack.getToTerritoryID()]);
+        Attack attack = lobby.getCurrentAttack();
+        attack.setArmiesLostAttacker(msg.getArmiesLostAttacker());
+        attack.setArmiesLostDefender(msg.getArmiesLostDefender());
+        attack.setCheated(msg.isCheated());
+        attack.setOccupyRequired(msg.isOccupyRequired());
+        lobby.getTerritoryByID(attack.getFromTerritoryID()).subFromArmyCount(msg.getArmiesLostAttacker());
+        lobby.getTerritoryByID(attack.getToTerritoryID()).subFromArmyCount(msg.getArmiesLostDefender());
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(attack.getFromTerritoryID()));
+        notifyTerritoryUpdateListener(lobby.getTerritoryByID(attack.getToTerritoryID()));
 
-        if (attackUpdatedListener != null) {
-            attackUpdatedListener.attackUpdated();
-        }
+        listenerManager.notifyAttackUpdatedListener();
         if (!msg.isOccupyRequired()) {
             lobby.setCurrentAttack(null);
             listenerManager.notifyAttackFinishedListener();
@@ -358,20 +336,20 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void handleStartGameMessage(StartGameMessage msg) {
         setCurrentArmyReserve(msg.getStartArmyCount(), true);
+        // set Player colors
+        for (Player p : msg.getPlayers()) {
+            lobby.updatePlayer(p);
+        }
         listenerManager.notifyGameStartListener(msg.getPlayers(), msg.getStartArmyCount());
     }
 
     private synchronized void handleDiceResultMessage(DiceResultMessage msg) {
-        log.info("Received DiceResultMessage");
-        if (currentAttack != null && msg.isFromAttacker()) {
-            currentAttack.setAttackerDiceResults(msg.getResults());
-        } else if(currentAttack != null) {
-            currentAttack.setDefenderDiceResults(msg.getResults());
+        if (lobby.attackRunning() && msg.isFromAttacker()) {
+            lobby.getCurrentAttack().setAttackerDiceResults(msg.getResults());
+        } else if(lobby.attackRunning()) {
+            lobby.getCurrentAttack().setDefenderDiceResults(msg.getResults());
         }
-
-        if (attackUpdatedListener != null) {
-            attackUpdatedListener.attackUpdated();
-        }
+        listenerManager.notifyAttackUpdatedListener();
     }
 
     public int getCurrentArmyReserve() {
@@ -396,8 +374,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public void sendDefenderDiceCount(int result) {
-        if (currentPhase == Phase.ATTACKING && currentAttack != null && isThisPlayerDefender()) {
-            client.sendMessage(new DefenderDiceCountMessage(currentLobbyID, thisPlayer.getUid(), result));
+        if (currentPhase == Phase.ATTACKING && lobby.attackRunning() && isThisPlayerDefender()) {
+            client.sendMessage(new DefenderDiceCountMessage(lobby.getLobbyID(), thisPlayer.getUid(), result));
         }
     }
 
@@ -425,13 +403,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public void sendAttackerResults(List<Integer> results, boolean cheated) {
-        log.info("Sending AttackerResults");
-        client.sendMessage(new DiceResultMessage(currentLobbyID, thisPlayer.getUid(), results, cheated, true));
+        client.sendMessage(new DiceResultMessage(lobby.getLobbyID(), thisPlayer.getUid(), results, cheated, true));
     }
 
     public void sendDefenderResults(List<Integer> results) {
-        log.info("Sending DefenderResults");
-        client.sendMessage(new DiceResultMessage(currentLobbyID, thisPlayer.getUid(), results, false, false));
+        client.sendMessage(new DiceResultMessage(lobby.getLobbyID(), thisPlayer.getUid(), results, false, false));
     }
 
     @Override

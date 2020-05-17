@@ -200,7 +200,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
         SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Verteidigen", "Wuerfelanzahl waehlen", 1,
-                Math.min(db.getTerritoryByID(onTerritoryID).getArmyCount(), 2),
+                Math.min(db.getLobby().getTerritoryByID(onTerritoryID).getArmyCount(), 2),
                 result -> {
                     if (result > 0) {
                         db.sendDefenderDiceCount(result);
@@ -301,7 +301,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
             hudStage.setPhaseSkipable(false);
             boardStage.attackStartable(false);
 
-            Attack a = db.getAttack();
+            Attack a = db.getLobby().getCurrentAttack();
             if (a != null && db.isThisPlayersTurn()) {
                 List<Integer> result = DiceStage.rollDice(a.getAttackerDiceCount());
                 db.sendAttackerResults(result, false);

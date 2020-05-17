@@ -285,4 +285,11 @@ public class Lobby {
         }
         return unoccupiedTerritories.toArray(new Territory[0]);
     }
+
+    public void updatePlayer(Player p) {
+        if (!players.containsKey(p.getUid())) {
+            throw new IllegalArgumentException("player not found");
+        }
+        players.put(p.getUid(), p);
+    }
 }
