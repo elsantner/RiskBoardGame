@@ -11,6 +11,8 @@ public class Attack {
     private List<Integer> defenderDiceResults;
     private boolean cheated;
     private boolean occupyRequired;
+    private int armiesLostAttacker = -1;
+    private int armiesLostDefender = -1;
 
     public Attack(int fromTerritoryID, int toTerritoryID) {
         this.fromTerritoryID = fromTerritoryID;
@@ -76,5 +78,21 @@ public class Attack {
 
     public void setOccupyRequired(boolean occupyRequired) {
         this.occupyRequired = occupyRequired;
+    }
+
+    public int getArmiesLostAttacker() {
+        return armiesLostAttacker;
+    }
+
+    public void setArmiesLostAttacker(int armiesLostAttacker) {
+        this.armiesLostAttacker = armiesLostAttacker;
+    }
+
+    public int getArmiesLostDefender() {
+        return armiesLostDefender;
+    }
+
+    public void setArmiesLostDefender(int armiesLostDefender) {
+        this.armiesLostDefender = armiesLostDefender;
     }
 }

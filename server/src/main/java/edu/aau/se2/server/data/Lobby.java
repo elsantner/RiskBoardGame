@@ -138,6 +138,12 @@ public class Lobby {
         return players.get(turnOrder.get(currentTurnIndex));
     }
 
+    public Player getDefender() {
+        if (!attackRunning()) return null;
+        
+        return players.get(getTerritoryByID(currentAttack.getToTerritoryID()).getOccupierPlayerID());
+    }
+
     public void nextPlayersTurn() {
         this.currentTurnIndex++;
         this.currentTurnIndex %= getPlayers().size();
