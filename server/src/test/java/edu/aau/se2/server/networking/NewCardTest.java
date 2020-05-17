@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import edu.aau.se2.server.data.CardDeck;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
-import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
@@ -23,9 +22,9 @@ import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests regarding Card Messages
+ * Tests regarding NewCardMessages
  */
-public class CardTest extends AbstractServerTest {
+public class NewCardTest extends AbstractServerTest {
     private static final int NUM_CLIENTS = 3;
 
     private AtomicInteger newCardMsgCount;
@@ -34,9 +33,8 @@ public class CardTest extends AbstractServerTest {
     private int lobbyID;
     private Map<NetworkClientKryo, Player> clientPlayers;
     private List<NetworkClientKryo> turnOrder;
-    private Map<Integer, List<Territory>> playerOccupiedTerritories;
 
-    public CardTest() {
+    public NewCardTest() {
         super(NUM_CLIENTS);
     }
 
@@ -49,7 +47,7 @@ public class CardTest extends AbstractServerTest {
         clientPlayers = server.connect(Arrays.asList(clients), 5000);
         lobbyID = server.setupLobby(Arrays.asList(clients));
         turnOrder = server.startGame(lobbyID, clientPlayers);
-        playerOccupiedTerritories = server.placeInitialArmies(lobbyID);
+        server.placeInitialArmies(lobbyID);
         server.setTurnArmiesPlaced(lobbyID);
     }
 
