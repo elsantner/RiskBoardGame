@@ -12,6 +12,7 @@ import java.util.List;
 
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
 import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
@@ -23,7 +24,8 @@ import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.dices.DiceStage;
 
 public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
-        OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener, OnAttackUpdatedListener {
+        OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener, OnAttackUpdatedListener,
+        OnArmyReserveChangedListener {
     private BoardStage boardStage;
     private DiceStage diceStage;
     private CardStage cardStage;
@@ -50,6 +52,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         db.setPhaseChangedListener(this);
         db.setCardsChangedListener(cardStage);
         db.setAttackUpdatedListener(this);
+        db.setArmyReserveChangedListener(this);
 
         // trigger player turn update because listener might not have been registered when
         // server message was received
@@ -293,5 +296,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     public void setPlayersDataOnHud(List<Player> currentPlayers) {
         hudStage.setCurrentPlayersColorOnHud(currentPlayers);
+    }
+
+    @Override
+    public void newArmyCount(int armyCount, boolean isInitialCount) {
+        hudStage.setArmyReserveCount(armyCount);
     }
 }

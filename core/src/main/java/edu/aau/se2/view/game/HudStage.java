@@ -65,6 +65,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         this.hudInteractionListener = l;
         setupAttackDisplay();
         attackDisplay.setVisible(true);
+        setArmyReserveCount(db.getCurrentArmyReserve());
     }
 
     private void setupHUD() {
@@ -114,7 +115,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         } else {
             this.yourTurn = getCurrentPlayerNickname() + " ist am Zug";
         }
-        this.armyReserve =  db.getCurrentArmyReserve();
     }
 
     public void setCurrentPlayersColorOnHud(List<Player> currentPlayers){
@@ -247,6 +247,10 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     private String getCurrentPlayerNickname(){
         String currentPlayerName = db.getCurrentPlayerToAct().getNickname();
         return currentPlayerName;
+    }
+
+    public void setArmyReserveCount(int armyCount){
+        this.armyReserve = armyCount;
     }
 }
 
