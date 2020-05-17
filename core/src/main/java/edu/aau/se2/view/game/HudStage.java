@@ -16,9 +16,6 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-
-import java.awt.SystemColor;
 import java.util.List;
 
 import edu.aau.se2.model.Database;
@@ -28,7 +25,7 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.AbstractStage;
 import edu.aau.se2.view.asset.AssetName;
-import edu.aau.se2.view.lobbylist.ExitButtonListener;
+import edu.aau.se2.view.lobbylist.ExitDialog;
 
 public class HudStage extends AbstractStage implements OnNextTurnListener {
     private final Color[] playerColors = new Color[]{Color.BLACK, Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED, Color.ORANGE};
@@ -84,7 +81,10 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
 
         TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
 
-        buttonLeaveGame.addListener(new ExitButtonListener());
+        buttonLeaveGame.addListener((event) -> {
+            new ExitDialog("Verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2)).show(this);
+            return true;
+        });
 
         Table table = new Table();
         table.top();
