@@ -12,24 +12,27 @@ import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.MainServer;
 import edu.aau.se2.server.data.Player;
 
-public class HostLobbyTest {
-    private MainServer server;
+public class HostLobbyTest extends AbstractDatabaseTest {
+    private static final int NUM_CLIENTS = 2;
 
     private AtomicBoolean client1ReceivedJoinedLobbyMessage;
     private AtomicBoolean client2ReceivedJoinedLobbyMessage;
-    int client1LobbyID;
-    int client2LobbyID;
+    private int client1LobbyID;
+    private int client2LobbyID;
+
+    public HostLobbyTest() {
+        super(NUM_CLIENTS);
+    }
 
     @Before
-    public void setup() {
+    public void setup() throws IOException {
         client1ReceivedJoinedLobbyMessage = new AtomicBoolean(false);
         client2ReceivedJoinedLobbyMessage = new AtomicBoolean(false);
+        server.start();
     }
 
     @Test
     public void testHostLobby() throws IOException, InterruptedException {
-        startServer();
-        Thread.sleep(1000);
         startClients();
         // wait for server and client to handle messages
         Thread.sleep(3000);
@@ -39,25 +42,16 @@ public class HostLobbyTest {
         Assert.assertNotEquals(client1LobbyID, client2LobbyID);
     }
 
-    private void startServer() throws IOException {
-        server = new MainServer();
-        server.start();
-    }
-
     private void startClients() throws IOException {
-        DatabaseTestable.setServerAddress("localhost");
-        Database db1 = new DatabaseTestable();
-        Database db2 = new DatabaseTestable();
-
-        db1.setJoinedLobbyListener((lobbyID, host, players) -> {
+        dbs[0].setJoinedLobbyListener((lobbyID, host, players) -> {
             client1ReceivedJoinedLobbyMessage.set(true);
             client1LobbyID = lobbyID;
         });
-        db1.setConnectionChangedListener(new OnConnectionChangedListener() {
+        dbs[0].setConnectionChangedListener(new OnConnectionChangedListener() {
             @Override
             public void connected(Player thisPlayer) {
-                Assert.assertTrue(db1.isConnected());
-                db1.hostLobby();
+                Assert.assertTrue(dbs[0].isConnected());
+                dbs[0].hostLobby();
             }
 
             @Override
@@ -66,15 +60,15 @@ public class HostLobbyTest {
             }
         });
 
-        db2.setJoinedLobbyListener((lobbyID, host, players) -> {
+        dbs[1].setJoinedLobbyListener((lobbyID, host, players) -> {
             client2ReceivedJoinedLobbyMessage.set(true);
             client2LobbyID = lobbyID;
         });
-        db2.setConnectionChangedListener(new OnConnectionChangedListener() {
+        dbs[1].setConnectionChangedListener(new OnConnectionChangedListener() {
             @Override
             public void connected(Player thisPlayer) {
-                Assert.assertTrue(db2.isConnected());
-                db2.hostLobby();
+                Assert.assertTrue(dbs[1].isConnected());
+                dbs[1].hostLobby();
             }
 
             @Override
@@ -82,14 +76,14 @@ public class HostLobbyTest {
 
             }
         });
-        db1.connectIfNotConnected();
-        db2.connectIfNotConnected();
+        dbs[0].connectIfNotConnected();
+        dbs[1].connectIfNotConnected();
         // test if connecting only when not connected
-        db2.connectIfNotConnected();
+        dbs[1].connectIfNotConnected();
     }
 
     @After
     public void teardown() {
-        server.stop();
+        disconnectAll();
     }
 }

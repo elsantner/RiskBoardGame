@@ -18,6 +18,7 @@ import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
+import java.awt.SystemColor;
 import java.util.List;
 
 import edu.aau.se2.model.Database;
@@ -41,11 +42,13 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     private String yourTurn;
     private boolean showCards;
     private Database db;
+    private int armyReserve;
 
     //Labels
     private Label[] currentPlayerLabels;
     private Label[] occupiedTerritoriesLabel;
     private Label yourTurnLabel;
+    private Label armyReserveLabel;
 
     public HudStage(AbstractScreen screen, Viewport vp, List<Player> currentPlayers, OnHUDInteractionListener l) {
         super(vp, screen);
@@ -64,6 +67,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         this.hudInteractionListener = l;
         setupAttackDisplay();
         attackDisplay.setVisible(true);
+        setArmyReserveCount(db.getCurrentArmyReserve());
     }
 
     private void setupHUD() {
@@ -86,6 +90,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         Label unitsLabel = new Label("Statistik", new Label.LabelStyle(generateFont(), Color.WHITE));
         yourTurnLabel = new Label(yourTurn, new Label.LabelStyle(generateFont(), Color.valueOf("#ff0000ff")));
         Label statisticsOpponentsLabel = new Label("Spieler", new Label.LabelStyle(generateFont(), Color.WHITE));
+        armyReserveLabel = new Label("Reserve: " + armyReserve, new Label.LabelStyle(generateFont(), Color.WHITE));
 
         //row 1
         table.add(unitsLabel).width(vp.getScreenWidth() / 3f).padTop(vp.getWorldHeight() * 0.01f).padLeft(vp.getWorldWidth() * 0.01f).left();
@@ -102,6 +107,8 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             table.row();
         }
         table.row();
+        table.add(armyReserveLabel).width(vp.getScreenWidth()/3f).padLeft(vp.getWorldWidth() * 0.02f);
+        table.row();
         table.add(cards).height(vp.getWorldHeight() * 0.132f).width(vp.getWorldWidth() * 0.077f).expandY().left().padLeft(vp.getWorldHeight() * 0.006f).bottom().padBottom(vp.getWorldHeight() * 0.006f);
         this.addActor(table);
     }
@@ -110,7 +117,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         if (isPlayersTurn) {
             this.yourTurn = "Deine Runde";
         } else {
-            this.yourTurn = "";
+            this.yourTurn = getCurrentPlayerNickname() + " ist am Zug";
         }
     }
 
@@ -127,6 +134,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         for (int i = 0; i < this.playersCount; i++) {
             occupiedTerritoriesLabel[i].setText("Territorien: " + this.occupiedTerritoriesCount[i] + " / 42");
         }
+        armyReserveLabel.setText("Reserve: " + this.armyReserve);
     }
 
     private BitmapFont generateFont() {
@@ -142,6 +150,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     @Override
     public void isPlayersTurnNow(int playerID, boolean isThisPlayer) {
         this.setMessage(isThisPlayer);
+
     }
 
     private void setupPhaseDisplay() {
@@ -241,6 +250,15 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         if (db.isThisPlayersTurn()) {
             phaseDisplay.setSkipButtonVisible(b);
         }
+    }
+
+    private String getCurrentPlayerNickname(){
+        String currentPlayerName = db.getCurrentPlayerToAct().getNickname();
+        return currentPlayerName;
+    }
+
+    public void setArmyReserveCount(int armyCount){
+        this.armyReserve = armyCount;
     }
 }
 

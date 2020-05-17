@@ -445,7 +445,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private synchronized void handleDiceResultMessage(DiceResultMessage msg) {
         // TODO show result
-        log.info("Received DiceResultMessage");
     }
 
     /**
@@ -488,12 +487,10 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public void setPlayerReady(boolean ready) {
-        log.info("Sending ReadyMessage");
         client.sendMessage(new ReadyMessage(currentLobbyID, thisPlayer.getUid(), ready));
     }
 
     public void togglePlayerReady() {
-        log.info("Sending ReadyMessage");
         Player player = currentPlayers.get(thisPlayer.getUid());
         if (player != null) {
             client.sendMessage(new ReadyMessage(currentLobbyID, thisPlayer.getUid(),
@@ -504,7 +501,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     @Override
     public void armyPlaced(int territoryID, int count) {
         if (!isInitialArmyPlacementFinished() || currentPhase == Phase.PLACING) {
-            log.info("Sending ArmyPlacedMessage");
             client.sendMessage(new ArmyPlacedMessage(currentLobbyID, thisPlayer.getUid(), territoryID, count));
         }
     }
@@ -512,27 +508,23 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     @Override
     public void armyMoved(int fromTerritoryID, int toTerritoryID, int count) {
         if (currentPhase == Phase.MOVING) {
-            log.info("Sending ArmyMovedMessage");
             client.sendMessage(new ArmyMovedMessage(currentLobbyID, thisPlayer.getUid(),
                     fromTerritoryID, toTerritoryID, count));
         }
     }
 
     public void sendAttackerResults(List<Integer> results, boolean cheated) {
-        log.info("Sending AttackerResults");
         client.sendMessage(new DiceResultMessage(currentLobbyID, thisPlayer.getUid(), results, cheated));
     }
 
     @Override
     public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
         if (currentPhase == Phase.ATTACKING) {
-            log.info("Sending AttackStartedMessage");
             client.sendMessage(new AttackStartedMessage(currentLobbyID, thisPlayer.getUid(), fromTerritoryID, onTerritoryID, count));
         }
     }
 
     public void hostLobby() {
-        log.info("Sending CreateLobbyMessage");
         client.sendMessage(new CreateLobbyMessage(thisPlayer.getUid()));
     }
 
@@ -554,8 +546,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public void exchangeCards(boolean exchangeCards) {
-        log.info("Sending CardExchangeMessage");
-
         if (exchangeCards) {
             thisPlayer.setExchangeCards(true);
             thisPlayer.setAskForCardExchange(false);
@@ -575,7 +565,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         if (!(isThisPlayersTurn() && hasPlayerReceivedArmiesThisTurn && currentArmyReserve == 0)) {
             throw new IllegalStateException("can only finish own turn after all army reserves have been placed");
         }
-        log.info("Sending NextTurnMessage");
         client.sendMessage(new NextTurnMessage(currentLobbyID, thisPlayer.getUid()));
     }
 
