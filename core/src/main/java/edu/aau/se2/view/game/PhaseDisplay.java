@@ -54,7 +54,7 @@ public class PhaseDisplay extends Group {
         table.add(label).minHeight(font.getLineHeight()).center().padLeft(viewport.getWorldWidth() * 0.077f).bottom().padBottom(viewport.getWorldHeight() * 0.012f);
         table.add().expandX();
         table.add(buttonSkipStage).height(viewport.getWorldHeight() * 0.132f).width(viewport.getWorldWidth() * 0.077f).right()
-                .padRight(viewport.getWorldWidth() * 0.015f).bottom().padBottom(viewport.getWorldHeight() * 0.005f);
+                .padRight(viewport.getWorldWidth() * 0.013f).bottom().padBottom(viewport.getWorldHeight() * 0.005f);
         table.row();
 
 

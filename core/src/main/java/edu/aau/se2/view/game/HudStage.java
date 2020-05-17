@@ -18,7 +18,6 @@ import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
-import java.awt.SystemColor;
 import java.util.List;
 
 import edu.aau.se2.model.Database;
@@ -107,7 +106,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             table.row();
         }
         table.row();
-        table.add(armyReserveLabel).width(vp.getScreenWidth()/3f).padLeft(vp.getWorldWidth() * 0.02f);
+        table.add(armyReserveLabel).width(vp.getScreenWidth() / 3f).padLeft(vp.getWorldWidth() * 0.01f);
         table.row();
         table.add(cards).height(vp.getWorldHeight() * 0.132f).width(vp.getWorldWidth() * 0.077f).expandY().left().padLeft(vp.getWorldHeight() * 0.006f).bottom().padBottom(vp.getWorldHeight() * 0.006f);
         this.addActor(table);
@@ -252,12 +251,11 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         }
     }
 
-    private String getCurrentPlayerNickname(){
-        String currentPlayerName = db.getCurrentPlayerToAct().getNickname();
-        return currentPlayerName;
+    private String getCurrentPlayerNickname() {
+        return db.getCurrentPlayerToAct().getNickname();
     }
 
-    public void setArmyReserveCount(int armyCount){
+    public void setArmyReserveCount(int armyCount) {
         this.armyReserve = armyCount;
     }
 }

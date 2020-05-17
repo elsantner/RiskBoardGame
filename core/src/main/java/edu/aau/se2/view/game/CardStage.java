@@ -52,7 +52,7 @@ public class CardStage extends AbstractStage implements OnCardsChangedListener {
         outer = new Table().bottom();
         outer.setFillParent(true);
 
-        outer.pad(0, viewport.getWorldWidth() * 0.092f, 0, viewport.getWorldWidth() * 0.092f);
+        outer.pad(0, viewport.getWorldWidth() * 0.095f, 0, viewport.getWorldWidth() * 0.092f);
         outer.add(scrollPane).bottom().pad(0, 0, viewport.getWorldHeight() * 0.012f, 0);
         this.addActor(outer);
     }
