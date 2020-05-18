@@ -67,7 +67,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         setupHUD();
         this.hudInteractionListener = l;
         setupAttackDisplay();
-        attackDisplay.setVisible(true);
         setArmyReserveCount(db.getCurrentArmyReserve());
     }
 

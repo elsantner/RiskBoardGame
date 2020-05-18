@@ -155,14 +155,14 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         });
     }
 
-    private void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
+    private synchronized void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
         if (lobby.attackRunning()) {
             lobby.getCurrentAttack().setDefenderDiceCount(msg.getDiceCount());
             listenerManager.notifyAttackUpdatedListener();
         }
     }
 
-    private void handleOccupyTerritoryMessage(OccupyTerritoryMessage msg) {
+    private synchronized void handleOccupyTerritoryMessage(OccupyTerritoryMessage msg) {
         // update territory state
         lobby.getTerritoryByID(msg.getFromTerritoryID()).subFromArmyCount(msg.getArmyCount());
         lobby.getTerritoryByID(msg.getTerritoryID()).setArmyCount(msg.getArmyCount());
@@ -174,7 +174,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         listenerManager.notifyAttackFinishedListener();
     }
 
-    private void handleAttackResultMessage(AttackResultMessage msg) {
+    private synchronized void handleAttackResultMessage(AttackResultMessage msg) {
         log.info("Attacker armies lost: " + msg.getArmiesLostAttacker());
         log.info("Defender armies lost: " + msg.getArmiesLostDefender());
 
@@ -195,18 +195,18 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
-    private void handleAttackStartedMessage(AttackStartedMessage msg) {
+    private synchronized void handleAttackStartedMessage(AttackStartedMessage msg) {
         lobby.setCurrentAttack(new Attack(msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getDiceCount()));
         listenerManager.notifyAttackStartedListener();
     }
 
-    private void handleAttackingPhaseFinishedMessage() {
+    private synchronized void handleAttackingPhaseFinishedMessage() {
         if (currentPhase != Phase.MOVING) {
             setCurrentPhase(Phase.MOVING);
         }
     }
 
-    private void handleArmyMovedMessage(ArmyMovedMessage msg) {
+    private synchronized void handleArmyMovedMessage(ArmyMovedMessage msg) {
         // update territory state
         lobby.getTerritoryByID(msg.getFromTerritoryID()).subFromArmyCount(msg.getArmyCountMoved());
         lobby.getTerritoryByID(msg.getToTerritoryID()).addToArmyCount(msg.getArmyCountMoved());
@@ -216,21 +216,21 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getToTerritoryID()));
     }
 
-    private void notifyTerritoryUpdateListener(Territory t) {
+    private synchronized void notifyTerritoryUpdateListener(Territory t) {
         listenerManager.notifyTerritoryUpdateListener(t.getId(), t.getArmyCount(),
                 lobby.getPlayerByID(t.getOccupierPlayerID()).getColorID());
     }
 
-    private void handleErrorMessage(ErrorMessage msg) {
+    private synchronized void handleErrorMessage(ErrorMessage msg) {
         listenerManager.notifyErrorListener(msg.getErrorCode());
     }
 
-    private void handleLeftLobbyMessage(LeftLobbyMessage msg) {
+    private synchronized void handleLeftLobbyMessage(LeftLobbyMessage msg) {
         resetLobby();
         listenerManager.notifyLeftLobbyListener(msg.isWasClosed());
     }
 
-    private void handleLobbyListMessage(LobbyListMessage msg) {
+    private synchronized void handleLobbyListMessage(LobbyListMessage msg) {
         listenerManager.notifyLobbyListChangedListener(msg.getLobbies());
     }
 

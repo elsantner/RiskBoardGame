@@ -317,8 +317,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void attackUpdated() {
         Attack a = db.getLobby().getCurrentAttack();
-        hudStage.setCurrentAttack(a);
         Gdx.app.postRunnable(() -> {
+            hudStage.setCurrentAttack(a);
+
             if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
                 diceStage.hide();
                 showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
