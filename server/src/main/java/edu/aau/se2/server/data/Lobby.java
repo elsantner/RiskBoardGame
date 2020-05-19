@@ -70,7 +70,7 @@ public class Lobby {
         if (players.size() < 2) {
             return false;
         }
-        for (Player p: players.values()) {
+        for (Player p : players.values()) {
             if (!p.isReady()) {
                 return false;
             }
@@ -85,7 +85,7 @@ public class Lobby {
         int curColorIDIndex = 0;
         List<Integer> randomColorPermutation = Arrays.asList(COLOR_IDS);
         Collections.shuffle(randomColorPermutation);
-        for (Player p: players.values()) {
+        for (Player p : players.values()) {
             p.setColorID(randomColorPermutation.get(curColorIDIndex++));
             p.setArmyReserveCount(ArmyCountHelper.getStartCount(players.size()));
         }
@@ -111,7 +111,7 @@ public class Lobby {
         // check if all players have 0 armies remaining and initial armies have not yet been placed
         if (!areInitialArmiesPlaced) {
             int sumRemainingArmies = 0;
-            for (Player p: players.values()) {
+            for (Player p : players.values()) {
                 sumRemainingArmies += p.getArmyReserveCount();
             }
             if (sumRemainingArmies == 0) {
@@ -140,7 +140,7 @@ public class Lobby {
 
     public Player getDefender() {
         if (!attackRunning()) return null;
-        
+
         return players.get(getTerritoryByID(currentAttack.getToTerritoryID()).getOccupierPlayerID());
     }
 
@@ -152,7 +152,7 @@ public class Lobby {
 
     private void initTerritories() {
         this.territories = new Territory[42];
-        for (int i=0; i<42; i++) {
+        for (int i = 0; i < 42; i++) {
             this.territories[i] = new Territory(i);
         }
     }
@@ -160,14 +160,13 @@ public class Lobby {
     public synchronized Territory getTerritoryByID(int territoryID) {
         try {
             return territories[territoryID];
-        }
-        catch (ArrayIndexOutOfBoundsException ex) {
+        } catch (ArrayIndexOutOfBoundsException ex) {
             throw new IllegalArgumentException("no territory with id " + territoryID + " exists");
         }
     }
 
     public boolean allTerritoriesOccupied() {
-        for (Territory t: territories) {
+        for (Territory t : territories) {
             if (t.isNotOccupied()) {
                 return false;
             }
@@ -177,6 +176,7 @@ public class Lobby {
 
     /**
      * Calculate and set the number of new armies based on occupied territories
+     *
      * @param playerID Player to give armies to.
      */
     public void giveNewArmiesToPlayer(int playerID) {
@@ -218,8 +218,7 @@ public class Lobby {
     public void leave(Player p) {
         if (p.getUid() == host.getUid()) {
             throw new IllegalArgumentException("host cannot leave lobby");
-        }
-        else if (isStarted) {
+        } else if (isStarted) {
             throw new IllegalArgumentException("cannot leave started lobby");
         }
         players.remove(p.getUid());
@@ -230,7 +229,7 @@ public class Lobby {
     }
 
     public void resetPlayers() {
-        for (Player p: players.values()) {
+        for (Player p : players.values()) {
             p.reset();
         }
     }
@@ -251,11 +250,11 @@ public class Lobby {
         this.currentAttack = currentAttack;
     }
 
-    public Territory[] getTerritoriesOccupiedByPlayer(int playerID){
+    public Territory[] getTerritoriesOccupiedByPlayer(int playerID) {
         ArrayList<Territory> terr = new ArrayList<>();
 
-        for (Territory t: this.territories) {
-            if(t.getOccupierPlayerID() == playerID) terr.add(t);
+        for (Territory t : this.territories) {
+            if (t.getOccupierPlayerID() == playerID) terr.add(t);
         }
         return terr.toArray(new Territory[0]);
     }
@@ -291,5 +290,9 @@ public class Lobby {
             throw new IllegalArgumentException("player not found");
         }
         players.put(p.getUid(), p);
+    }
+
+    public int getNumberOfTerritories() {
+        return this.territories.length;
     }
 }

@@ -17,7 +17,9 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.PlayerLostConnectionListener;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.DiceHelper;
+import edu.aau.se2.server.logic.VictoryHelper;
 import edu.aau.se2.server.networking.SerializationRegister;
+import edu.aau.se2.server.networking.dto.InLobbyMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
@@ -154,6 +156,12 @@ public class MainServer implements PlayerLostConnectionListener {
             ds.updateLobby(l);
 
             server.broadcastMessage(msg, l.getPlayers());
+            /* WIP
+            InLobbyMessage victoryOrLose = VictoryHelper.handleTerritoryOccupation(msg);
+            if(victoryOrLose != null){
+                server.broadcastMessage(victoryOrLose, l.getPlayers());
+            }
+            */
         }
     }
 
@@ -206,7 +214,7 @@ public class MainServer implements PlayerLostConnectionListener {
             defenderResults.sort(Integer::compareTo);
             Collections.sort(defenderResults, Collections.reverseOrder());
 
-            for(int i = 0; i < Math.min(attackerResults.size(), defenderResults.size()); i++) {
+            for (int i = 0; i < Math.min(attackerResults.size(), defenderResults.size()); i++) {
                 if (attackerResults.get(i) < defenderResults.get(i)) {
                     armiesLostAttacker++;
                 } else {
@@ -341,7 +349,7 @@ public class MainServer implements PlayerLostConnectionListener {
             // test if there is a set for trading in (if yes -> ask player for trade at start of next turn)
             lobby.getPlayerToAct().setTradableSet(lobby.getCardDeck().getCardSet(id));
             boolean b = false;
-            if (lobby.getPlayerToAct().getTradableSet().length == 3  ) {
+            if (lobby.getPlayerToAct().getTradableSet().length == 3) {
                 b = true;
             }
 
@@ -374,7 +382,7 @@ public class MainServer implements PlayerLostConnectionListener {
                 p.setArmyReserveCount(p.getArmyReserveCount() + lobby.getCardDeck().tradeInSet(p.getTradableSet()));
                 territoryIdForBonusArmies = lobby.getCardDeck().getTerritoryIDForBonusArmies(p.getTradableSet(), lobby.getTerritoriesOccupiedByPlayer(p.getUid()));
 
-                if(territoryIdForBonusArmies != -1) {
+                if (territoryIdForBonusArmies != -1) {
                     Territory t = lobby.getTerritoryByID(territoryIdForBonusArmies);
                     t.addToArmyCount(2);
                 }
@@ -417,6 +425,7 @@ public class MainServer implements PlayerLostConnectionListener {
 
     /**
      * Handles army placed during a normal turn
+     *
      * @param msg ArmyPlacedMessage
      */
     private synchronized void handleTurnArmyPlaced(ArmyPlacedMessage msg) {
@@ -438,6 +447,7 @@ public class MainServer implements PlayerLostConnectionListener {
 
     /**
      * Handles army placed during initial army placing phase
+     *
      * @param msg ArmyPlacedMessage
      */
     private synchronized void handleInitialArmyPlaced(ArmyPlacedMessage msg) {
