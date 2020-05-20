@@ -24,6 +24,7 @@ import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.PlayerLostMessage;
 import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
@@ -50,6 +51,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     /**
      * Gets the singleton instance of Database.
+     *
      * @return Database instance, or null if connection error occurred.
      */
     public static synchronized Database getInstance() {
@@ -151,6 +153,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleDiceResultMessage((DiceResultMessage) msg);
             } else if (msg instanceof DefenderDiceCountMessage) {
                 handleDefenderDiceCountMessage((DefenderDiceCountMessage) msg);
+            } else if (msg instanceof PlayerLostMessage) {
+                handlePlayerLostMessage((PlayerLostMessage) msg);
             }
         });
     }
@@ -172,6 +176,18 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getTerritoryID()));
         lobby.setCurrentAttack(null);
         listenerManager.notifyAttackFinishedListener();
+    }
+
+    private void handlePlayerLostMessage(PlayerLostMessage msg) {
+        // ? fix turnOrder to only be handled by server and not each client individually
+        List<Integer> turnOrder = lobby.getTurnOrder();
+        for (int i = 0; i < turnOrder.size(); i++) {
+            if (turnOrder.get(i) == msg.getFromPlayerID()) {
+                turnOrder.remove(i);
+                break;
+            }
+        }
+        lobby.setTurnOrder(turnOrder);
     }
 
     private void handleAttackResultMessage(AttackResultMessage msg) {
@@ -324,8 +340,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             lobby.nextPlayersTurn();
             listenerManager.notifyNextTurnListener(lobby.getPlayerToAct().getUid(),
                     thisPlayer.getUid() == lobby.getPlayerToAct().getUid());
-        }
-        else {
+        } else {
             if (msg.getArmyCountRemaining() == 0) {
                 setCurrentPhase(Phase.ATTACKING);
             }
@@ -344,7 +359,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private synchronized void handleDiceResultMessage(DiceResultMessage msg) {
         if (lobby.attackRunning() && msg.isFromAttacker()) {
             lobby.getCurrentAttack().setAttackerDiceResults(msg.getResults());
-        } else if(lobby.attackRunning()) {
+        } else if (lobby.attackRunning()) {
             lobby.getCurrentAttack().setDefenderDiceResults(msg.getResults());
         }
         listenerManager.notifyAttackUpdatedListener();

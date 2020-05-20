@@ -146,7 +146,7 @@ public class Lobby {
 
     public void nextPlayersTurn() {
         this.currentTurnIndex++;
-        this.currentTurnIndex %= getPlayers().size();
+        this.currentTurnIndex %= turnOrder.size();
         hasCurrentPlayerToActReceivedNewArmies = false;
     }
 

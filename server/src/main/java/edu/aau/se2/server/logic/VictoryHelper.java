@@ -1,12 +1,14 @@
 package edu.aau.se2.server.logic;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import edu.aau.se2.server.data.DataStore;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.dto.InLobbyMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.PlayerLostMessage;
 
 public abstract class VictoryHelper {
     private VictoryHelper() {
@@ -28,10 +30,10 @@ public abstract class VictoryHelper {
         ArrayList<Player> players = new ArrayList<>(l.getPlayers());
         for (int i = 0; i < players.size(); i++) {
             if (l.getTerritoriesOccupiedByPlayer(players.get(i).getUid()).length == 0)
-                return handlePlayerLost(players.get(i).getUid());
+                return handlePlayerLost(l, players.get(i).getUid());
         }
 
-        return msg;
+        return null;
     }
 
     private static InLobbyMessage handlePlayerVictory() {
@@ -39,8 +41,17 @@ public abstract class VictoryHelper {
         return null;
     }
 
-    private static InLobbyMessage handlePlayerLost(int uid) {
-        //todo handle player lose
-        return null;
+    private static InLobbyMessage handlePlayerLost(Lobby l, int uid) {
+
+        List<Integer> turnOrder = l.getTurnOrder();
+        for (int i = 0; i < turnOrder.size(); i++) {
+            if (turnOrder.get(i) == uid) {
+                turnOrder.remove(i);
+                break;
+            }
+        }
+        l.setTurnOrder(turnOrder);
+        ds.updateLobby(l);
+        return new PlayerLostMessage(l.getLobbyID(), uid);
     }
 }

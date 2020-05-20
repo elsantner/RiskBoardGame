@@ -156,12 +156,13 @@ public class MainServer implements PlayerLostConnectionListener {
             ds.updateLobby(l);
 
             server.broadcastMessage(msg, l.getPlayers());
-            /* WIP
+
+            // test if a player has lost/won -> inform clients
             InLobbyMessage victoryOrLose = VictoryHelper.handleTerritoryOccupation(msg);
-            if(victoryOrLose != null){
+            if (victoryOrLose != null) {
                 server.broadcastMessage(victoryOrLose, l.getPlayers());
             }
-            */
+
         }
     }
 
@@ -361,6 +362,7 @@ public class MainServer implements PlayerLostConnectionListener {
 
             lobby.nextPlayersTurn();
             ds.updateLobby(lobby);
+            int x = lobby.getPlayerToAct().getUid();
 
             server.broadcastMessage(new NextTurnMessage(lobby.getLobbyID(), SERVER_PLAYER_ID,
                     lobby.getPlayerToAct().getUid()), lobby.getPlayers());

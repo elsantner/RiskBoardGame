@@ -17,6 +17,7 @@ import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.PlayerLostMessage;
 import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
@@ -71,5 +72,6 @@ public interface SerializationRegister {
         component.registerClass(OccupyTerritoryMessage.class);
         component.registerClass(Card[].class);
         component.registerClass(DefenderDiceCountMessage.class);
+        component.registerClass(PlayerLostMessage.class);
     }
 }
