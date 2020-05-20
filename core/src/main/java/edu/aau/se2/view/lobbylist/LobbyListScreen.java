@@ -95,9 +95,11 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
         line = assetManager.get(AssetName.TEX_LOBBYLIST_LINE);
         batch = new SpriteBatch();
 
-        this.stage = new Stage(new StretchViewport(1920,1080));
+        stage = new Stage(new StretchViewport(1920,1080));
         stage.stageToScreenCoordinates(new Vector2(0,0));
-        Gdx.input.setInputProcessor(this.stage);
+
+        addInputProcessor(stage);
+
         final Skin skin = assetManager.get(AssetName.UI_SKIN_2);
 
         fillLobbyList(assetManager, skin);

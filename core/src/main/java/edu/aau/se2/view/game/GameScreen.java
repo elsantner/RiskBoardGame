@@ -1,7 +1,6 @@
 package edu.aau.se2.view.game;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -71,12 +70,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void show() {
-        InputMultiplexer inputMultiplexer = new InputMultiplexer();
-        inputMultiplexer.addProcessor(hudStage);
-        inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
-        inputMultiplexer.addProcessor(diceStage);
-        inputMultiplexer.addProcessor(cardStage);
-        Gdx.input.setInputProcessor(inputMultiplexer);
+        addInputProcessor(hudStage);
+        addInputProcessor(new CustomGestureDetector(boardStage));
+        addInputProcessor(diceStage);
+        addInputProcessor(cardStage);
     }
 
     @Override
@@ -120,6 +117,11 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void hide() {
         // currently unused but needed because of interface implementation
+    }
+
+    @Override
+    public void handleBackButton() {
+        hudStage.showLeaveDialog();
     }
 
     @Override

@@ -86,7 +86,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
 
         buttonLeaveGame.addListener(event -> {
-            new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1), "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein", res -> {if (res) db.leaveLobby();}).show(this);
+            showLeaveDialog();
             return true;
         });
 
@@ -128,6 +128,18 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         } else {
             this.yourTurn = getCurrentPlayerNickname() + " ist am Zug";
         }
+    }
+
+    public void showLeaveDialog() {
+        new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1),
+                "Verlassen",
+                "Spiel wirklich verlassen?",
+                "Ja",
+                "Nein",
+                res -> {
+                    if (res)
+                        db.leaveLobby();
+        }).show(this);
     }
 
     public void setCurrentPlayersColorOnHud(List<Player> currentPlayers) {

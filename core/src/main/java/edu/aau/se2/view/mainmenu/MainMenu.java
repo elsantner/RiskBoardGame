@@ -33,6 +33,7 @@ public class MainMenu extends AbstractScreen {
 
     public MainMenu(RiskGame riskGame){
         super(riskGame);
+
         mySkin = getGame().getAssetManager().get(AssetName.UI_SKIN_2);
         gamePort = new ScreenViewport();
         stage = new Stage(gamePort);
@@ -47,7 +48,8 @@ public class MainMenu extends AbstractScreen {
         setupLogo();
         setupButtons();
         onClickButtons();
-        Gdx.input.setInputProcessor(stage);
+
+        addInputProcessor(stage);
     }
 
     public void setupButtons(){
@@ -103,6 +105,11 @@ public class MainMenu extends AbstractScreen {
     @Override
     public void show() {
         //currently unused
+    }
+
+    @Override
+    public void handleBackButton() {
+        Gdx.app.exit();
     }
 
     @Override
