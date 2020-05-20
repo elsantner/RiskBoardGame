@@ -18,15 +18,17 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnLobbyListChangedListener;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
 
-public class LobbyListScreen extends AbstractScreen {
+public class LobbyListScreen extends AbstractScreen implements OnLobbyListChangedListener {
 
     private static final String TAG = "LobbyScreen";
     private Texture background;
@@ -34,14 +36,18 @@ public class LobbyListScreen extends AbstractScreen {
     private Texture lobbyOverlay;
     private Texture line;
     private SpriteBatch batch;
+    private Table lobbyListTable;
 
     private Stage stage;
 
     private List<LobbyListMessage.LobbyData> lobbyData;
 
-    public LobbyListScreen(RiskGame game, List<LobbyListMessage.LobbyData> lobbyData) {
+    public LobbyListScreen(RiskGame game) {
         super(game);
-        this.lobbyData = lobbyData;
+
+        lobbyData = new ArrayList<>();
+        Database.getInstance().getListeners().setLobbyListChangedListener(this);
+        Database.getInstance().triggerLobbyListUpdate();
     }
 
     @Override
@@ -94,26 +100,7 @@ public class LobbyListScreen extends AbstractScreen {
         Gdx.input.setInputProcessor(this.stage);
         final Skin skin = assetManager.get(AssetName.UI_SKIN_2);
 
-        Table lobbyListTable = new Table();
-        lobbyListTable.setBounds(0,0,1600, 1600);
-
-        for (LobbyListMessage.LobbyData l: lobbyData) {
-            Label text = new Label(l.getHost().getNickname(), skin, "font-big", Color.BLACK);
-            Label text2 = new Label("Players: " + l.getPlayerCount(), skin, "font-big", Color.BLACK);
-            TextButton text3 = new TextButton("Beitreten", skin);
-            text3.addListener(new ClickListener() {
-                @Override
-                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                    new JoinLobbyDialog("Beitreten", assetManager.get(AssetName.UI_SKIN_1, Skin.class), l.getLobbyID()).show(stage);
-                    return true;
-                }
-            });
-
-            lobbyListTable.add(text).minHeight(80f).minWidth(250f).pad(50f);
-            lobbyListTable.add(text2).minHeight(30f).minWidth(250f).pad(50f);
-            lobbyListTable.add(text3).minHeight(30f).minWidth(250f).pad(50f);
-            lobbyListTable.row();
-        }
+        fillLobbyList(assetManager, skin);
 
         final ScrollPane scroller = new ScrollPane(lobbyListTable);
 
@@ -141,6 +128,33 @@ public class LobbyListScreen extends AbstractScreen {
         this.stage.addActor(outerTable);
     }
 
+    private void fillLobbyList(AssetManager assetManager, Skin skin) {
+        if (lobbyListTable == null) {
+            lobbyListTable = new Table();
+            lobbyListTable.setBounds(0, 0, 1600, 1600);
+        } else {
+            lobbyListTable.clearChildren();
+        }
+
+        for (LobbyListMessage.LobbyData l: lobbyData) {
+            Label text = new Label(l.getHost().getNickname(), skin, "font-big", Color.BLACK);
+            Label text2 = new Label("Players: " + l.getPlayerCount(), skin, "font-big", Color.BLACK);
+            TextButton text3 = new TextButton("Beitreten", skin);
+            text3.addListener(new ClickListener() {
+                @Override
+                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                    new JoinLobbyDialog("Beitreten", assetManager.get(AssetName.UI_SKIN_1, Skin.class), l.getLobbyID()).show(stage);
+                    return true;
+                }
+            });
+
+            lobbyListTable.add(text).minHeight(80f).minWidth(250f).pad(50f);
+            lobbyListTable.add(text2).minHeight(30f).minWidth(250f).pad(50f);
+            lobbyListTable.add(text3).minHeight(30f).minWidth(250f).pad(50f);
+            lobbyListTable.row();
+        }
+    }
+
     @Override
     public void dispose() {
         Gdx.app.log(TAG, "dispose");
@@ -148,5 +162,13 @@ public class LobbyListScreen extends AbstractScreen {
         lobbyOverlay = null;
         line = null;
         lobbyText = null;
+    }
+
+    @Override
+    public void lobbyListChanged(List<LobbyListMessage.LobbyData> lobbyList) {
+        lobbyData = lobbyList;
+        AssetManager assetManager = getGame().getAssetManager();
+        final Skin skin = assetManager.get(AssetName.UI_SKIN_2);
+        fillLobbyList(assetManager, skin);
     }
 }

@@ -79,11 +79,6 @@ public class RiskGame extends Game {
 			lobbyScreen = new LobbyScreen(this);
 			setScreen(lobbyScreen);
 		}));
-		db.getListeners().setLobbyListChangedListener(lobbyList -> Gdx.app.postRunnable(() -> {
-			lobbyListScreen = new LobbyListScreen(this, lobbyList);
-			setScreen(lobbyListScreen);
-		}));
-
 		db.getListeners().setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override
 			public void connected(Player thisPlayer) {
@@ -176,6 +171,13 @@ public class RiskGame extends Game {
 			mainMenuScreen = new MainMenu(this);
 			setScreen(mainMenuScreen);
 		}
+	}
+
+	public void openLobbyListScreen() {
+		Gdx.app.postRunnable(() -> {
+			lobbyListScreen = new LobbyListScreen(this);
+			setScreen(lobbyListScreen);
+		});
 	}
 
 	private void assetPostProcessing() {

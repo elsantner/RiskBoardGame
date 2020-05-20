@@ -285,6 +285,7 @@ public class MainServer implements PlayerLostConnectionListener {
             ds.removeLobby(lobbyToLeave.getLobbyID());
             lobbyToLeave.resetPlayers();
             server.broadcastMessage(new LeftLobbyMessage(true), lobbyToLeave.getPlayers());
+            broadcastLobbyList(-1);
         }
     }
 
@@ -320,11 +321,19 @@ public class MainServer implements PlayerLostConnectionListener {
     }
 
     private synchronized void handleRequestLobbyListMessage(RequestLobbyListMessage msg) {
+        broadcastLobbyList(msg.getFromPlayerID());
+    }
+
+    private synchronized void broadcastLobbyList(int fromPlayerID) {
         List<LobbyListMessage.LobbyData> lobbyData = new ArrayList<>();
         for (Lobby l : ds.getJoinableLobbyList()) {
             lobbyData.add(new LobbyListMessage.LobbyData(l.getLobbyID(), l.getHost(), l.getPlayers().size()));
         }
-        server.broadcastMessage(new LobbyListMessage(lobbyData), ds.getPlayerByID(msg.getFromPlayerID()));
+        if (fromPlayerID >= 0) {
+            server.broadcastMessage(new LobbyListMessage(lobbyData), ds.getPlayerByID(fromPlayerID));
+        } else {
+            server.broadcastMessage(new LobbyListMessage(lobbyData), ds.getAllOnlinePlayers());
+        }
     }
 
     private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
@@ -398,6 +407,7 @@ public class MainServer implements PlayerLostConnectionListener {
                     newLobby.getPlayers(), newLobby.getHost()), newLobby.getHost());
             server.broadcastMessage(new PlayersChangedMessage(newLobby.getLobbyID(),
                     SERVER_PLAYER_ID, newLobby.getPlayers()), newLobby.getPlayers());
+            broadcastLobbyList(-1);
         }
     }
 

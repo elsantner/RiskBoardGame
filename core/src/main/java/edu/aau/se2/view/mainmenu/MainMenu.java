@@ -85,7 +85,7 @@ public class MainMenu extends AbstractScreen {
         join.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Database.getInstance().triggerLobbyListUpdate();
+                getGame().openLobbyListScreen();
             }
         });
 
