@@ -189,7 +189,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                 Math.min(db.getLobby().getTerritoryByID(fromTerritoryID).getArmyCount() - 1, 3),
                 result -> {
                     if (result > 0) {
-                        db.attackStarted(fromTerritoryID, onTerritoryID, result);
+                        db.startAttack(fromTerritoryID, onTerritoryID, result);
                     }
                     boardStage.setInteractable(true);
                 });
@@ -289,7 +289,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     @Override
-    public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
+    public void startAttack(int fromTerritoryID, int onTerritoryID, int count) {
         Gdx.app.postRunnable(() -> showStartAttackDialog(fromTerritoryID, onTerritoryID));
     }
 

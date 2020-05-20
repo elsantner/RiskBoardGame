@@ -409,7 +409,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     @Override
-    public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
+    public void startAttack(int fromTerritoryID, int onTerritoryID, int count) {
         if (currentPhase == Phase.ATTACKING) {
             client.sendMessage(new AttackStartedMessage(lobby.getLobbyID(), thisPlayer.getUid(), fromTerritoryID, onTerritoryID, count));
         }
