@@ -75,7 +75,7 @@ public class MainMenu extends AbstractScreen {
                         setButtonsEnabled(true);
                     }
                 });
-        dialog.show(stage);
+        showDialog(dialog, stage, 3);
     }
 
     private void setButtonsEnabled(boolean enabled) {

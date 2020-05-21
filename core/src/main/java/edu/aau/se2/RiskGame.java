@@ -151,7 +151,7 @@ public class RiskGame extends Game {
 		assetManager.load(AssetName.FONT_3, BitmapFont.class, parameterFont3);
 
 		assetManager.load(AssetName.PHASE_DISPLAY_BG, Texture.class);
-		assetManager.load(AssetName.UI_SKIN_1, Skin.class);
+        assetManager.load(AssetName.UI_SKIN_1, Skin.class);
 		assetManager.load(AssetName.TEX_LOBBY_SCREEN, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBY_2, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBY_LINE, Texture.class);
@@ -183,7 +183,7 @@ public class RiskGame extends Game {
 	}
 
 	private void assetPostProcessing() {
-		((Skin)assetManager.get(AssetName.UI_SKIN_1)).getFont("default-font").getData().setScale(0.5f);
+		//((Skin)assetManager.get(AssetName.UI_SKIN_1)).getFont("default-font").getData().setScale(0.5f);
 	}
 
 	@Override
