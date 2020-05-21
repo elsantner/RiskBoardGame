@@ -92,17 +92,21 @@ public class RiskGame extends Game {
 			@Override
 			public void disconnected() {
 				LoggerConfigurator.getConfiguredLogger(TAG, Level.SEVERE).log(Level.SEVERE, "Connection lost");
-				popupMessageDisplay.showMessage("Verbindung verloren");
-				System.exit(-1);
+				showMenuScreenWithConnectionLostDialog();
 			}
 		});
 		try {
 			db.connectIfNotConnected();
 		} catch (IOException e) {
             LoggerConfigurator.getConfiguredLogger(TAG, Level.SEVERE).log(Level.SEVERE, "Connection Error: ", e);
-			popupMessageDisplay.showMessage("Verbindungsfehler");
-			System.exit(-1);
 		}
+	}
+
+	private void showMenuScreenWithConnectionLostDialog() {
+		Gdx.app.postRunnable(() -> {
+			mainMenuScreen = new MainMenu(this, true);
+			setScreen(mainMenuScreen);
+		});
 	}
 
 	private void setupAssetManagerLoadingScreen() {
@@ -173,7 +177,7 @@ public class RiskGame extends Game {
 		if(assetManager.update() && !isDoneLoadingAssets) {
 			isDoneLoadingAssets = true;
 			assetPostProcessing();
-			mainMenuScreen = new MainMenu(this);
+			mainMenuScreen = new MainMenu(this, !Database.getInstance().isConnected());
 			setScreen(mainMenuScreen);
 		}
 	}

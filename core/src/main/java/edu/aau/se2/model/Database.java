@@ -427,6 +427,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     @Override
     public void disconnected() {
         isConnected = false;
+        resetLobby();
         listenerManager.notifyDisconnectedListener();
     }
 
