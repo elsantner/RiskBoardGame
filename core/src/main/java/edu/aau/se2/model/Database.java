@@ -60,7 +60,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private Logger log;
-    private NetworkClientKryo client;
+    protected NetworkClientKryo client;
     private boolean isConnected;
     private ListenerManager listenerManager;
 
@@ -86,7 +86,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     public boolean connectIfNotConnected() throws IOException {
-        if (!isConnected) {
+        if (!client.isConnected()) {
             return connect();
         }
         return false;
