@@ -37,12 +37,10 @@ public class ReconnectDialog extends Dialog {
 
     private void setupUI(Skin uiSkin, String text) {
         this.pad(Gdx.graphics.getHeight()/50f);
-        getContentTable().padTop(Gdx.graphics.getHeight()/25f);
 
         this.lblText = new Label(text, uiSkin);
-        getContentTable().add(lblText).center().row();
+        getContentTable().add(lblText).center().colspan(2).row();
 
-        getContentTable().row().center();
         TextButton btnReconnect = new TextButton ("Erneut verbinden", uiSkin);
         btnReconnect.addListener(new ClickListener() {
             @Override
@@ -56,8 +54,16 @@ public class ReconnectDialog extends Dialog {
                 result(Database.getInstance().isConnected());
             }
         });
+        TextButton btnExit = new TextButton ("Spiel verlassen", uiSkin);
+        btnExit.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Gdx.app.exit();
+            }
+        });
 
-        getContentTable().add(btnReconnect).center().row();
+        getContentTable().add(btnReconnect).center().minWidth(Gdx.graphics.getWidth()/15f);
+        getContentTable().add(btnExit).center().minWidth(Gdx.graphics.getWidth()/15f);
     }
 
     @Override
