@@ -20,6 +20,12 @@ public interface NetworkClient {
     void disconnect();
 
     /**
+     * Gets connection status.
+     * @return connection status
+     */
+    boolean isConnected();
+
+    /**
      * Registers a callback which gets called if a message is received.
      *
      * @param callback Called if message is received.

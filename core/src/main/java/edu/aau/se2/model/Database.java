@@ -85,14 +85,16 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         PLACING, ATTACKING, MOVING, NONE
     }
 
-    public void connectIfNotConnected() throws IOException {
+    public boolean connectIfNotConnected() throws IOException {
         if (!isConnected) {
-            connect();
+            return connect();
         }
+        return false;
     }
 
-    public void connect() throws IOException {
+    public boolean connect() throws IOException {
         this.client.connect(serverAddress);
+        return client.isConnected();
     }
 
     /**

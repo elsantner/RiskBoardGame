@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Timer;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -36,7 +37,8 @@ public class ReconnectDialog extends Dialog {
     }
 
     private void setupUI(Skin uiSkin, String text) {
-        this.pad(Gdx.graphics.getHeight()/50f);
+        this.pad(Gdx.graphics.getHeight() * 0.02f);
+        getContentTable().padTop(Gdx.graphics.getHeight() * 0.01f);
 
         this.lblText = new Label(text, uiSkin);
         getContentTable().add(lblText).center().colspan(2).row();
@@ -45,13 +47,19 @@ public class ReconnectDialog extends Dialog {
         btnReconnect.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                try {
-                    lblText.setText("Verbinde ...");
-                    Database.getInstance().connectIfNotConnected();
-                } catch (IOException e) {
-                    LoggerConfigurator.getConfiguredLogger("ReconnectDialog", Level.INFO).info("Reconnect failed");
-                }
-                result(Database.getInstance().isConnected());
+                lblText.setText("Verbinde ...");
+                Timer.post(new Timer.Task() {
+                    @Override
+                    public void run() {
+                        boolean success = false;
+                        try {
+                            success = Database.getInstance().connectIfNotConnected();
+                        } catch (IOException e) {
+                            LoggerConfigurator.getConfiguredLogger("ReconnectDialog", Level.INFO).info("Reconnect failed");
+                        }
+                        result(success);
+                    }
+                });
             }
         });
         TextButton btnExit = new TextButton ("Spiel verlassen", uiSkin);

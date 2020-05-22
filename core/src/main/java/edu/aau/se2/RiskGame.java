@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.Timer;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -95,11 +96,16 @@ public class RiskGame extends Game {
 				showMenuScreenWithConnectionLostDialog();
 			}
 		});
-		try {
-			db.connectIfNotConnected();
-		} catch (IOException e) {
-            LoggerConfigurator.getConfiguredLogger(TAG, Level.SEVERE).log(Level.SEVERE, "Connection Error: ", e);
-		}
+		Timer.post(new Timer.Task() {
+			@Override
+			public void run() {
+				try {
+					db.connectIfNotConnected();
+				} catch (IOException e) {
+					LoggerConfigurator.getConfiguredLogger(TAG, Level.SEVERE).log(Level.SEVERE, "Connection Error: ", e);
+				}
+			}
+		});
 	}
 
 	private void showMenuScreenWithConnectionLostDialog() {
