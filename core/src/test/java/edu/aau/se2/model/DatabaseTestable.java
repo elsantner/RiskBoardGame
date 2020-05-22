@@ -13,6 +13,7 @@ import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.Callback;
+import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 
 public class DatabaseTestable extends Database {
     public DatabaseTestable() {
@@ -216,6 +217,10 @@ public class DatabaseTestable extends Database {
             }
         }
         return null;
+    }
+
+    public NetworkClientKryo getClient() {
+        return this.client;
     }
 
     private static void wait(WaitingCondition condition, int timeoutMS) throws TimeoutException {

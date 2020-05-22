@@ -60,6 +60,11 @@ public class NetworkClientKryo implements NetworkClient, KryoNetComponent {
     }
 
     @Override
+    public boolean isConnected() {
+        return client.isConnected();
+    }
+
+    @Override
     public void registerCallback(Callback<BaseMessage> callback) {
         this.callback = callback;
     }

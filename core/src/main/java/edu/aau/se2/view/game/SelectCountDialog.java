@@ -38,7 +38,6 @@ public class SelectCountDialog extends Dialog {
 
     private void setupUI(Skin uiSkin, String text) {
         this.pad(Gdx.graphics.getHeight()/50f);
-        getContentTable().padTop(Gdx.graphics.getHeight()/25f);
         if (text != null) {
             getContentTable().add(new Label(text, uiSkin)).center().colspan(2).row();
         }

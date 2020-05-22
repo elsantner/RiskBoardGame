@@ -60,7 +60,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private Logger log;
-    private NetworkClientKryo client;
+    protected NetworkClientKryo client;
     private boolean isConnected;
     private ListenerManager listenerManager;
 
@@ -85,14 +85,16 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         PLACING, ATTACKING, MOVING, NONE
     }
 
-    public void connectIfNotConnected() throws IOException {
-        if (!isConnected) {
-            connect();
+    public boolean connectIfNotConnected() throws IOException {
+        if (!client.isConnected()) {
+            return connect();
         }
+        return false;
     }
 
-    public void connect() throws IOException {
+    public boolean connect() throws IOException {
         this.client.connect(serverAddress);
+        return client.isConnected();
     }
 
     /**
@@ -427,6 +429,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     @Override
     public void disconnected() {
         isConnected = false;
+        resetLobby();
         listenerManager.notifyDisconnectedListener();
     }
 

@@ -230,8 +230,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     private void showDialog(Dialog dialog) {
-        dialog.show(hudStage).moveBy(0, hudStage.getViewport().getWorldHeight() * 0.1f);
-        dialog.setOrigin(Align.center);
+        super.showDialog(dialog, hudStage, 3);
     }
 
     private void showAskForCardExchange() {

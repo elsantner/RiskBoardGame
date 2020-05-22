@@ -104,7 +104,7 @@ public class LobbyListScreen extends AbstractScreen {
             text3.addListener(new ClickListener() {
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                    new JoinLobbyDialog("Beitreten", assetManager.get(AssetName.UI_SKIN_1, Skin.class), l.getLobbyID()).show(stage);
+                    showDialog(new JoinLobbyDialog("Beitreten", assetManager.get(AssetName.UI_SKIN_1, Skin.class), l.getLobbyID()), stage, 3);
                     return true;
                 }
             });
