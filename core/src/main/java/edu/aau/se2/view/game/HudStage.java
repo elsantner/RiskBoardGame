@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.List;
+import java.util.Locale;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
@@ -123,6 +124,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     }
 
     private void setMessage(boolean isPlayersTurn) {
+        System.out.println("###server client");
         if (isPlayersTurn) {
             this.yourTurn = "Deine Runde";
         } else {

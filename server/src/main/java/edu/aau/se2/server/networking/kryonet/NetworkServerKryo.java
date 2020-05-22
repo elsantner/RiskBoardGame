@@ -16,6 +16,7 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.Callback;
 import edu.aau.se2.server.networking.NetworkServer;
 import edu.aau.se2.server.networking.dto.BaseMessage;
+import edu.aau.se2.server.networking.dto.prelobby.CollectInitialNiknameMessage;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 
 public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
@@ -51,6 +52,10 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
             public void connected(Connection connection) {
                 super.connected(connection);
                 Player newPlayer = ds.newPlayer();
+                //set test device name
+                //newPlayer.setNickname("New Device" + newPlayer.getUid());
+                newPlayer.setNickname("New Device" + newPlayer.getUid());
+
                 connections.put(newPlayer.getUid(), connection);
                 synchronized (newPlayer) {
                     try {
@@ -61,6 +66,7 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
                 }
                 Logger.getAnonymousLogger().info("Sending ConnectedMessage");
                 broadcastMessage(new ConnectedMessage(newPlayer), newPlayer);
+                broadcastMessage(new CollectInitialNiknameMessage(newPlayer), newPlayer);
             }
 
             @Override
