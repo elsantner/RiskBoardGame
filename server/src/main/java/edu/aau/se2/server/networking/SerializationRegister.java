@@ -27,7 +27,7 @@ import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
-import edu.aau.se2.server.networking.dto.prelobby.CollectInitialNiknameMessage;
+import edu.aau.se2.server.networking.dto.prelobby.CollectInitialNicknameMessage;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
@@ -72,6 +72,6 @@ public interface SerializationRegister {
         component.registerClass(OccupyTerritoryMessage.class);
         component.registerClass(Card[].class);
         component.registerClass(DefenderDiceCountMessage.class);
-        component.registerClass(CollectInitialNiknameMessage.class);
+        component.registerClass(CollectInitialNicknameMessage.class);
     }
 }

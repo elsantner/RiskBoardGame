@@ -22,6 +22,7 @@ import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.utils.LoggerConfigurator;
+import edu.aau.se2.view.DefaultNameProvider;
 import edu.aau.se2.view.PopupMessageDisplay;
 import edu.aau.se2.view.asset.AssetName;
 import edu.aau.se2.view.game.GameScreen;
@@ -37,6 +38,7 @@ public class RiskGame extends Game {
 	private AssetManager assetManager;
 	private boolean isDoneLoadingAssets = false;
 	private PopupMessageDisplay popupMessageDisplay;
+	private DefaultNameProvider defaultNameProvider;
 
 	private GameScreen gameScreen;
 	private LobbyScreen lobbyScreen;
@@ -44,12 +46,18 @@ public class RiskGame extends Game {
 	private MainMenu mainMenuScreen;
 	private LoadingScreen loadingScreen;
 
-	public RiskGame(PopupMessageDisplay popupMessageDisplay) {
+	public RiskGame(PopupMessageDisplay popupMessageDisplay, DefaultNameProvider defaultNameProvider) {
 		if (popupMessageDisplay == null) {
 			throw new NullPointerException("popupMessageDisplay must not be null");
 		}
 
+		if (defaultNameProvider == null) {
+			throw new NullPointerException("defaultNameProvider must not be null");
+		}
+
 		this.popupMessageDisplay = popupMessageDisplay;
+		this.defaultNameProvider = defaultNameProvider;
+		System.out.println("### defaultNameProvider " + defaultNameProvider);
 	}
 
 	@Override
@@ -63,6 +71,9 @@ public class RiskGame extends Game {
 		setScreen(loadingScreen);
 
         Database db = Database.getInstance();
+
+        //new -> devicename
+		defaultNameProvider.setDefaultName("### this is a test");
 
 		db.getListeners().setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
             gameScreen = new GameScreen(this);

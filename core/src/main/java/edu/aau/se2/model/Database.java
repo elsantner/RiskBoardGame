@@ -37,10 +37,11 @@ import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
-import edu.aau.se2.server.networking.dto.prelobby.CollectInitialNiknameMessage;
+import edu.aau.se2.server.networking.dto.prelobby.CollectInitialNicknameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkConstants;
 import edu.aau.se2.utils.LoggerConfigurator;
+import edu.aau.se2.view.DefaultNameProvider;
 import edu.aau.se2.view.game.OnBoardInteractionListener;
 
 public class Database implements OnBoardInteractionListener, NetworkClient.OnConnectionChangedListener {
@@ -152,14 +153,16 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleDiceResultMessage((DiceResultMessage) msg);
             } else if (msg instanceof DefenderDiceCountMessage) {
                 handleDefenderDiceCountMessage((DefenderDiceCountMessage) msg);
-            } else if (msg instanceof CollectInitialNiknameMessage) {
-                handleCollectInitialNiknameMessage((CollectInitialNiknameMessage) msg);
+            } else if (msg instanceof CollectInitialNicknameMessage) {
+                handleCollectInitialNicknameMessage((CollectInitialNicknameMessage) msg);
             }
         });
     }
 
-    private void handleCollectInitialNiknameMessage(CollectInitialNiknameMessage msg) {
-            System.out.println("### DEVICE: "  );
+    private void handleCollectInitialNicknameMessage(CollectInitialNicknameMessage msg) {
+        thisPlayer.setNickname("Device");
+
+        System.out.println("### DEVICE: " + msg.getPlayer().getNickname());
     }
 
 

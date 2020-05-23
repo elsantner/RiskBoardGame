@@ -41,6 +41,7 @@ import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.CollectInitialNicknameMessage;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
@@ -120,12 +121,18 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleOccupyTerritoryMessage((OccupyTerritoryMessage) arg);
                 } else if (arg instanceof DefenderDiceCountMessage) {
                     handleDefenderDiceCountMessage((DefenderDiceCountMessage) arg);
+                } else if (arg instanceof CollectInitialNicknameMessage) {
+                    handleCollectInitialNicknameMessage((CollectInitialNicknameMessage) arg);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 log.log(Level.SEVERE, "Exception: " + ex.getMessage(), ex);
             }
         });
+    }
+
+    public void handleCollectInitialNicknameMessage(CollectInitialNicknameMessage msg) {
+        //TODO: handling
     }
 
     private synchronized void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
