@@ -20,6 +20,7 @@ import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.game.LeftGameMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
@@ -155,6 +156,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleDefenderDiceCountMessage((DefenderDiceCountMessage) msg);
             } else if (msg instanceof PlayerLostMessage) {
                 handlePlayerLostMessage((PlayerLostMessage) msg);
+            } else if (msg instanceof LeftGameMessage) {
+                handleLeftGameMessage((LeftGameMessage) msg);
             }
         });
     }
@@ -188,6 +191,38 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             }
         }
         lobby.setTurnOrder(turnOrder);
+    }
+
+    private void handleLeftGameMessage(LeftGameMessage msg) {
+        lobby.removePlayer(msg.getFromPlayerID());
+        // player who left is sent back to main menu
+        if (thisPlayer.getUid() == msg.getFromPlayerID()) {
+            resetLobby();
+            listenerManager.notifyLeftLobbyListener(true);
+            return;
+        }
+        // todo fix this (fix turnOrder / make sure next turn is started if player leaves)
+        // if player left / disconnected without losing set his territories unoccupied and remove him from turnOrder
+        if (!msg.isHasLost()) {
+
+            List<Integer> turnOrder = lobby.getTurnOrder();
+            for (int i = 0; i < turnOrder.size(); i++) {
+                if (turnOrder.get(i) == msg.getFromPlayerID()) {
+                    turnOrder.remove(i);
+                    break;
+                }
+            }
+            lobby.setTurnOrder(turnOrder);
+
+            Territory[] territories = lobby.getTerritoriesOccupiedByPlayer(msg.getFromPlayerID());
+            int[] territoryIds = new int[territories.length];
+            for (int i = 0; i < territories.length; i++) {
+                territoryIds[i] = territories[i].getId();
+                territories[i] = new Territory(territories[i].getId());
+            }
+            listenerManager.notifyLeftGameListener(territoryIds);
+        }
+
     }
 
     private void handleAttackResultMessage(AttackResultMessage msg) {

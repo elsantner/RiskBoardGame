@@ -216,10 +216,9 @@ public class Lobby {
     }
 
     public void leave(Player p) {
-        if (p.getUid() == host.getUid()) {
-            throw new IllegalArgumentException("host cannot leave lobby");
-        } else if (isStarted) {
-            throw new IllegalArgumentException("cannot leave started lobby");
+        Territory[] territories = getTerritoriesOccupiedByPlayer(p.getUid());
+        for (int i = 0; i < territories.length; i++) {
+            territories[i] = new Territory(territories[i].getId());
         }
         players.remove(p.getUid());
     }

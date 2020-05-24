@@ -10,6 +10,7 @@ import edu.aau.se2.model.listener.OnConnectionChangedListener;
 import edu.aau.se2.model.listener.OnErrorListener;
 import edu.aau.se2.model.listener.OnGameStartListener;
 import edu.aau.se2.model.listener.OnJoinedLobbyListener;
+import edu.aau.se2.model.listener.OnLeftGameListener;
 import edu.aau.se2.model.listener.OnLeftLobbyListener;
 import edu.aau.se2.model.listener.OnLobbyListChangedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
@@ -34,33 +35,67 @@ public class ListenerManager {
     private OnPhaseChangedListener phaseChangedListener;
     private OnArmiesMovedListener armiesMovedListener;
     private OnAttackUpdatedListener attackUpdatedListener;
+    private OnLeftGameListener leftGameListener;
 
-    public void setArmiesMovedListener(OnArmiesMovedListener l) { this.armiesMovedListener = l; }
-    public void setPhaseChangedListener(OnPhaseChangedListener l) { this.phaseChangedListener = l; }
+    public void setArmiesMovedListener(OnArmiesMovedListener l) {
+        this.armiesMovedListener = l;
+    }
+
+    public void setPhaseChangedListener(OnPhaseChangedListener l) {
+        this.phaseChangedListener = l;
+    }
+
     public void setErrorListener(OnErrorListener l) {
         this.errorListener = l;
     }
+
     public void setLeftLobbyListener(OnLeftLobbyListener l) {
         this.onLeftLobbyListener = l;
     }
-    public void setLobbyListChangedListener(OnLobbyListChangedListener l) { this.lobbyListChangedListener = l; }
-    public void setConnectionChangedListener(OnConnectionChangedListener l) { this.connectionChangedListener = l; }
+
+    public void setLobbyListChangedListener(OnLobbyListChangedListener l) {
+        this.lobbyListChangedListener = l;
+    }
+
+    public void setConnectionChangedListener(OnConnectionChangedListener l) {
+        this.connectionChangedListener = l;
+    }
+
     public void setGameStartListener(OnGameStartListener l) {
         this.gameStartListener = l;
     }
-    public void setPlayersChangedListener(OnPlayersChangedListener l) { this.playersChangedListener = l; }
-    public void setTerritoryUpdateListener(OnTerritoryUpdateListener l) { this.territoryUpdateListener = l; }
+
+    public void setPlayersChangedListener(OnPlayersChangedListener l) {
+        this.playersChangedListener = l;
+    }
+
+    public void setTerritoryUpdateListener(OnTerritoryUpdateListener l) {
+        this.territoryUpdateListener = l;
+    }
+
     public void setNextTurnListener(OnNextTurnListener l) {
         this.nextTurnListener = l;
     }
+
     public void setCardsChangedListener(OnCardsChangedListener l) {
         this.cardsChangedListener = l;
     }
+
     public void setJoinedLobbyListener(OnJoinedLobbyListener l) {
         this.joinedLobbyListener = l;
     }
-    public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) { this.armyReserveChangedListener = l; }
-    public void setAttackUpdatedListener(OnAttackUpdatedListener l) { this.attackUpdatedListener = l; }
+
+    public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) {
+        this.armyReserveChangedListener = l;
+    }
+
+    public void setAttackUpdatedListener(OnAttackUpdatedListener l) {
+        this.attackUpdatedListener = l;
+    }
+
+    public void setLeftGameListener(OnLeftGameListener l) {
+        this.leftGameListener = l;
+    }
 
     void notifyPhaseChangedListener(Database.Phase phase) {
         if (phaseChangedListener != null) {
@@ -167,6 +202,12 @@ public class ListenerManager {
     void notifyAttackFinishedListener() {
         if (attackUpdatedListener != null) {
             attackUpdatedListener.attackFinished();
+        }
+    }
+
+    void notifyLeftGameListener(int[] ids) {
+        if (leftGameListener != null) {
+            leftGameListener.removePlayerTerritories(ids);
         }
     }
 }

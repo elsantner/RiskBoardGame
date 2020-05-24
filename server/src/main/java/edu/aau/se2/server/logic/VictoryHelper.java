@@ -43,6 +43,8 @@ public abstract class VictoryHelper {
 
     private static InLobbyMessage handlePlayerLost(Lobby l, int uid) {
 
+        //todo make turnOrder removal a global method
+        //todo make sure turnOrder cant choose same player 2 times in row..
         List<Integer> turnOrder = l.getTurnOrder();
         for (int i = 0; i < turnOrder.size(); i++) {
             if (turnOrder.get(i) == uid) {

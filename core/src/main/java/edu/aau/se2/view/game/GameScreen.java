@@ -14,6 +14,7 @@ import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnArmyReserveChangedListener;
 import edu.aau.se2.model.listener.OnAttackUpdatedListener;
+import edu.aau.se2.model.listener.OnLeftGameListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
@@ -25,7 +26,7 @@ import edu.aau.se2.view.dices.DiceStage;
 
 public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
         OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener, OnAttackUpdatedListener,
-        OnArmyReserveChangedListener {
+        OnArmyReserveChangedListener, OnLeftGameListener {
     private BoardStage boardStage;
     private DiceStage diceStage;
     private CardStage cardStage;
@@ -50,6 +51,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         db.getListeners().setCardsChangedListener(cardStage);
         db.getListeners().setAttackUpdatedListener(this);
         db.getListeners().setArmyReserveChangedListener(this);
+        db.getListeners().setLeftGameListener(this);
 
         diceStage = new DiceStage(new FitViewport(width, height), this);
 
@@ -355,5 +357,13 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void newArmyCount(int armyCount, boolean isInitialCount) {
         hudStage.setArmyReserveCount(armyCount);
+    }
+
+    @Override
+    public void removePlayerTerritories(int[] ids) {
+        for (int i : ids
+        ) {
+            boardStage.setArmyCount(i, 0);
+        }
     }
 }

@@ -29,6 +29,7 @@ import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.game.LeftGameMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
@@ -281,7 +282,13 @@ public class MainServer implements PlayerLostConnectionListener {
     private synchronized void handleRequestLeaveLobby(RequestLeaveLobby msg) {
         Lobby lobbyToLeave = ds.getLobbyByID(msg.getLobbyID());
         Player playerToLeave = ds.getPlayerByID(msg.getFromPlayerID());
-        try {
+        playerLeaves(lobbyToLeave, playerToLeave);
+    }
+
+    private void playerLeaves(Lobby lobbyToLeave, Player playerToLeave) {
+
+        //todo send victory message if only 1 player is left and won the game because all others left before losing properly
+        if (!lobbyToLeave.isStarted()) {
             lobbyToLeave.leave(playerToLeave);
             playerToLeave.reset();
             ds.updateLobby(lobbyToLeave);
@@ -289,11 +296,40 @@ public class MainServer implements PlayerLostConnectionListener {
             server.broadcastMessage(new LeftLobbyMessage(), playerToLeave);
             server.broadcastMessage(new PlayersChangedMessage(lobbyToLeave.getLobbyID(),
                     SERVER_PLAYER_ID, lobbyToLeave.getPlayers()), lobbyToLeave.getPlayers());
-        } catch (IllegalArgumentException ex) {
-            // if player could not leave the lobby (host, game already started), close lobby and inform all players
+        } else if (playerToLeave.isHasLost()) {
+            // if player has already lost he can be safely removed from game
+            server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid(), true), lobbyToLeave.getPlayers());
+            lobbyToLeave.leave(playerToLeave);
+            playerToLeave.reset();
+            ds.updateLobby(lobbyToLeave);
+
+        } else if (lobbyToLeave.getPlayers().size() >= 2) {
+            boolean wasPlayersTurn = lobbyToLeave.isPlayersTurn(playerToLeave.getUid());
+            // if more then 2 players are left remove that player (in lobby his territories will be set unoccupied)
+            List<Integer> turnOrder = lobbyToLeave.getTurnOrder();
+            for (int i = 0; i < turnOrder.size(); i++) {
+                if (turnOrder.get(i) == playerToLeave.getUid()) {
+                    turnOrder.remove(i);
+                    break;
+                }
+            }
+            lobbyToLeave.setTurnOrder(turnOrder);
+            server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid()), lobbyToLeave.getPlayers());
+            lobbyToLeave.leave(playerToLeave);
+            if (wasPlayersTurn) {
+                lobbyToLeave.nextPlayersTurn();
+                server.broadcastMessage(new NextTurnMessage(lobbyToLeave.getLobbyID(), SERVER_PLAYER_ID,
+                        lobbyToLeave.getPlayerToAct().getUid()), lobbyToLeave.getPlayers());
+            }
+            playerToLeave.reset();
+            ds.updateLobby(lobbyToLeave);
+        } else if (lobbyToLeave.getPlayers().size() == 1) {
+            // last player leaves lobby -> remove it
+            // todo check if this works properly
+            server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid()), lobbyToLeave.getPlayers());
+            lobbyToLeave.leave(playerToLeave);
+            playerToLeave.reset();
             ds.removeLobby(lobbyToLeave.getLobbyID());
-            lobbyToLeave.resetPlayers();
-            server.broadcastMessage(new LeftLobbyMessage(true), lobbyToLeave.getPlayers());
         }
     }
 
@@ -362,7 +398,6 @@ public class MainServer implements PlayerLostConnectionListener {
 
             lobby.nextPlayersTurn();
             ds.updateLobby(lobby);
-            int x = lobby.getPlayerToAct().getUid();
 
             server.broadcastMessage(new NextTurnMessage(lobby.getLobbyID(), SERVER_PLAYER_ID,
                     lobby.getPlayerToAct().getUid()), lobby.getPlayers());
@@ -509,20 +544,6 @@ public class MainServer implements PlayerLostConnectionListener {
 
     @Override
     public void playerLostConnection(Player player, Lobby playerLobby) {
-        try {
-            if (playerLobby != null) {
-                playerLobby.leave(player);
-                player.reset();
-                ds.updateLobby(playerLobby);
-                // if player could successfully leave the lobby, inform all remaining players
-                server.broadcastMessage(new PlayersChangedMessage(playerLobby.getLobbyID(),
-                        SERVER_PLAYER_ID, playerLobby.getPlayers()), playerLobby.getPlayers());
-            }
-        } catch (IllegalArgumentException ex) {
-            // if player could not leave the lobby (host, game already started), close lobby and inform all remaining players
-            ds.removeLobby(playerLobby.getLobbyID());
-            playerLobby.resetPlayers();
-            server.broadcastMessage(new LeftLobbyMessage(true), playerLobby.getPlayers());
-        }
+        playerLeaves(playerLobby, player);
     }
 }
