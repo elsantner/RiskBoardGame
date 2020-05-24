@@ -182,7 +182,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private void handlePlayerLostMessage(PlayerLostMessage msg) {
-        // ? fix turnOrder to only be handled by server and not each client individually
         List<Integer> turnOrder = lobby.getTurnOrder();
         for (int i = 0; i < turnOrder.size(); i++) {
             if (turnOrder.get(i) == msg.getFromPlayerID()) {
@@ -191,6 +190,10 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             }
         }
         lobby.setTurnOrder(turnOrder);
+
+        boolean thisPlayerLost = false;
+        if (msg.getFromPlayerID() == thisPlayer.getUid()) thisPlayerLost = true;
+        listenerManager.notifyPlayerLostListener(getLobby().getPlayerByID(msg.getFromPlayerID()).getNickname(), thisPlayerLost);
     }
 
     private void handleLeftGameMessage(LeftGameMessage msg) {
@@ -201,7 +204,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             listenerManager.notifyLeftLobbyListener(true);
             return;
         }
-        // todo fix this (fix turnOrder / make sure next turn is started if player leaves)
         // if player left / disconnected without losing set his territories unoccupied and remove him from turnOrder
         if (!msg.isHasLost()) {
 

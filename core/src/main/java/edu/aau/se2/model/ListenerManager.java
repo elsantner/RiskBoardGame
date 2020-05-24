@@ -15,6 +15,7 @@ import edu.aau.se2.model.listener.OnLeftLobbyListener;
 import edu.aau.se2.model.listener.OnLobbyListChangedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
+import edu.aau.se2.model.listener.OnPlayerLostListener;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
 import edu.aau.se2.server.data.Player;
@@ -36,6 +37,7 @@ public class ListenerManager {
     private OnArmiesMovedListener armiesMovedListener;
     private OnAttackUpdatedListener attackUpdatedListener;
     private OnLeftGameListener leftGameListener;
+    private OnPlayerLostListener playerLostListener;
 
     public void setArmiesMovedListener(OnArmiesMovedListener l) {
         this.armiesMovedListener = l;
@@ -95,6 +97,10 @@ public class ListenerManager {
 
     public void setLeftGameListener(OnLeftGameListener l) {
         this.leftGameListener = l;
+    }
+
+    public void setPlayerLostListener(OnPlayerLostListener l) {
+        this.playerLostListener = l;
     }
 
     void notifyPhaseChangedListener(Database.Phase phase) {
@@ -208,6 +214,12 @@ public class ListenerManager {
     void notifyLeftGameListener(int[] ids) {
         if (leftGameListener != null) {
             leftGameListener.removePlayerTerritories(ids);
+        }
+    }
+
+    void notifyPlayerLostListener(String playerName, boolean thisPlayerLost) {
+        if (playerLostListener != null) {
+            playerLostListener.informPlayersThatPlayerLost(playerName, thisPlayerLost);
         }
     }
 }
