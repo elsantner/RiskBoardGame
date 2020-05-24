@@ -178,8 +178,6 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
         if (selectedTerritory == null) {
             if (clickedTerritory.getOccupierPlayerID() == db.getThisPlayer().getUid() &&
                     clickedTerritory.getArmyCount() > 1) {
-                // TODO: maybe appropriate error message if army count == 1 ?
-
                 selectedTerritory = t;
                 if (highlightAttackableTerritories(t) == 0) {
                     clearTerritorySelection();
@@ -188,7 +186,7 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
         }
         // move to second clicked territory if it is a neighbour of first clicked
         else if (TerritoryHelper.areNeighbouring(selectedTerritory.getID(), t.getID()) &&
-                clickedTerritory.getOccupierPlayerID() != db.getThisPlayer().getUid()) {
+                !clickedTerritory.isNotOccupied() && clickedTerritory.getOccupierPlayerID() != db.getThisPlayer().getUid()) {
 
             boardListener.attackStarted(selectedTerritory.getID(), t.getID(), -1);
             clearTerritorySelection();
@@ -199,7 +197,8 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
         int highlightedCount = 0;
         for (int territoryID: TerritoryHelper.getNeighbouringTerritories(t.getID())) {
             Territory neighbour = Territory.getByID(territoryID);
-            if (db.getLobby().getTerritoryByID(territoryID).getOccupierPlayerID() != db.getThisPlayer().getUid()) {
+            if (!db.getLobby().getTerritoryByID(territoryID).isNotOccupied() &&
+                    db.getLobby().getTerritoryByID(territoryID).getOccupierPlayerID() != db.getThisPlayer().getUid()) {
                 neighbour.setHighlighted(true);
                 highlightedCount++;
             }
@@ -222,7 +221,8 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
         }
         // move to second clicked territory if it is a neighbour of first clicked
         else if (TerritoryHelper.areNeighbouring(selectedTerritory.getID(), t.getID()) &&
-                clickedTerritory.getOccupierPlayerID() == db.getThisPlayer().getUid()) {
+                (clickedTerritory.getOccupierPlayerID() == db.getThisPlayer().getUid() ||
+                        clickedTerritory.isNotOccupied())) {
 
             boardListener.armyMoved(selectedTerritory.getID(), t.getID(), -1);
             clearTerritorySelection();
@@ -238,7 +238,8 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
         int highlightedCount = 0;
         for (int territoryID: TerritoryHelper.getNeighbouringTerritories(t.getID())) {
             Territory neighbour = Territory.getByID(territoryID);
-            if (db.getLobby().getTerritoryByID(territoryID).getOccupierPlayerID() == db.getThisPlayer().getUid()) {
+            if (db.getLobby().getTerritoryByID(territoryID).getOccupierPlayerID() == db.getThisPlayer().getUid() ||
+                    db.getLobby().getTerritoryByID(territoryID).isNotOccupied()) {
                 neighbour.setHighlighted(true);
                 highlightedCount++;
             }

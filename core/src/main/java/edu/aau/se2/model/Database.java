@@ -216,13 +216,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             }
             lobby.setTurnOrder(turnOrder);
 
-            Territory[] territories = lobby.getTerritoriesOccupiedByPlayer(msg.getFromPlayerID());
-            int[] territoryIds = new int[territories.length];
-            for (int i = 0; i < territories.length; i++) {
-                territoryIds[i] = territories[i].getId();
-                territories[i] = new Territory(territories[i].getId());
-            }
-            listenerManager.notifyLeftGameListener(territoryIds);
+            // clear players territories
+            listenerManager.notifyLeftGameListener(lobby.clearTerritoriesOfPlayer(msg.getFromPlayerID()));
         }
 
     }
@@ -263,6 +258,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         // update territory state
         lobby.getTerritoryByID(msg.getFromTerritoryID()).subFromArmyCount(msg.getArmyCountMoved());
         lobby.getTerritoryByID(msg.getToTerritoryID()).addToArmyCount(msg.getArmyCountMoved());
+        lobby.getTerritoryByID(msg.getToTerritoryID()).setOccupierPlayerID(msg.getFromPlayerID());
         listenerManager.notifyArmiesMovedListener(msg.getFromPlayerID(), msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getArmyCountMoved());
 
         notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getFromTerritoryID()));

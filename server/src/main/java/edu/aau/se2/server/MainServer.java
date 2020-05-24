@@ -263,11 +263,12 @@ public class MainServer implements PlayerLostConnectionListener {
             Territory toTerritory = lobby.getTerritoryByID(msg.getToTerritoryID());
             // if player occupies both territories and there are more armies than being moved (at least 1 needs to remain)
             if (fromTerritory.getOccupierPlayerID() == player.getUid() &&
-                    toTerritory.getOccupierPlayerID() == player.getUid() &&
+                    (toTerritory.getOccupierPlayerID() == player.getUid() || toTerritory.isNotOccupied()) &&
                     fromTerritory.getArmyCount() > msg.getArmyCountMoved()) {
 
                 fromTerritory.subFromArmyCount(msg.getArmyCountMoved());
                 toTerritory.addToArmyCount(msg.getArmyCountMoved());
+                toTerritory.setOccupierPlayerID(msg.getFromPlayerID());
                 lobby.nextPlayersTurn();
                 ds.updateLobby(lobby);
 
@@ -277,6 +278,10 @@ public class MainServer implements PlayerLostConnectionListener {
                         lobby.getPlayerToAct().getUid()), lobby.getPlayers());
             }
         }
+    }
+
+    private void handleNextTurn() {
+
     }
 
     private synchronized void handleRequestLeaveLobby(RequestLeaveLobby msg) {
@@ -317,6 +322,7 @@ public class MainServer implements PlayerLostConnectionListener {
                 }
             }
             lobbyToLeave.setTurnOrder(turnOrder);
+            lobbyToLeave.clearTerritoriesOfPlayer(playerToLeave.getUid());
             server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid()), lobbyToLeave.getPlayers());
             lobbyToLeave.leave(playerToLeave);
             if (wasPlayersTurn) {

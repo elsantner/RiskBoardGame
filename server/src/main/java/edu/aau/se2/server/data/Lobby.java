@@ -294,4 +294,14 @@ public class Lobby {
     public int getNumberOfTerritories() {
         return this.territories.length;
     }
+
+    public List<Integer> clearTerritoriesOfPlayer(int playerID) {
+        ArrayList<Integer> territoryIDs = new ArrayList<>();
+        for (Territory t : getTerritoriesOccupiedByPlayer(playerID)) {
+            t.setOccupierPlayerID(-1);
+            t.setArmyCount(0);
+            territoryIDs.add(t.getId());
+        }
+        return territoryIDs;
+    }
 }

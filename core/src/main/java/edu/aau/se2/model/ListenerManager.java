@@ -211,7 +211,7 @@ public class ListenerManager {
         }
     }
 
-    void notifyLeftGameListener(int[] ids) {
+    void notifyLeftGameListener(List<Integer> ids) {
         if (leftGameListener != null) {
             leftGameListener.removePlayerTerritories(ids);
         }

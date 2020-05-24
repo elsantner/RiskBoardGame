@@ -397,9 +397,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     @Override
-    public void removePlayerTerritories(int[] ids) {
-        for (int i : ids
-        ) {
+    public void removePlayerTerritories(List<Integer> ids) {
+        for (int i : ids) {
             boardStage.setArmyCount(i, 0);
         }
     }
