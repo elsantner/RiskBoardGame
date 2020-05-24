@@ -269,19 +269,38 @@ public class MainServer implements PlayerLostConnectionListener {
                 fromTerritory.subFromArmyCount(msg.getArmyCountMoved());
                 toTerritory.addToArmyCount(msg.getArmyCountMoved());
                 toTerritory.setOccupierPlayerID(msg.getFromPlayerID());
-                lobby.nextPlayersTurn();
-                ds.updateLobby(lobby);
 
                 // broadcast message to all players & start next turn
                 server.broadcastMessage(msg, lobby.getPlayers());
-                server.broadcastMessage(new NextTurnMessage(lobby.getLobbyID(), SERVER_PLAYER_ID,
-                        lobby.getPlayerToAct().getUid()), lobby.getPlayers());
+                handleNextTurn(msg);
             }
         }
     }
 
-    private void handleNextTurn() {
+    private void handleNextTurn(InLobbyMessage msg) {
+        Lobby lobby = ds.getLobbyByID(msg.getLobbyID());
+        // now: at the end of turn give new random card to player
+        // todo: only give card if player has occupied new territory
+        int id = msg.getFromPlayerID();
+        Card c = lobby.getCardDeck().getRandomCard(id);
 
+        // test if there is a set for trading in (if yes -> ask player for trade at start of next turn)
+        lobby.getPlayerToAct().setTradableSet(lobby.getCardDeck().getCardSet(id));
+        boolean b = false;
+        if (lobby.getPlayerToAct().getTradableSet().length == 3) {
+            b = true;
+        }
+
+        if (c != null) { // if c is null, there are no cards left
+            // send name of new Card to player of last turn
+            server.broadcastMessage(new NewCardMessage(lobby.getLobbyID(), id, c.getCardName(), b), lobby.getPlayerToAct());
+        }
+
+        lobby.nextPlayersTurn();
+        ds.updateLobby(lobby);
+
+        server.broadcastMessage(new NextTurnMessage(lobby.getLobbyID(), SERVER_PLAYER_ID,
+                lobby.getPlayerToAct().getUid()), lobby.getPlayers());
     }
 
     private synchronized void handleRequestLeaveLobby(RequestLeaveLobby msg) {
@@ -387,29 +406,7 @@ public class MainServer implements PlayerLostConnectionListener {
         if (lobby.getPlayerToAct().getUid() == msg.getFromPlayerID() &&
                 lobby.hasCurrentPlayerToActPlacedNewArmies()) {
 
-            // now: at the end of turn give new random card to player
-            // todo: only give card if player has occupied new territory
-            int id = msg.getFromPlayerID();
-            Card c = lobby.getCardDeck().getRandomCard(id);
-
-            // test if there is a set for trading in (if yes -> ask player for trade at start of next turn)
-            lobby.getPlayerToAct().setTradableSet(lobby.getCardDeck().getCardSet(id));
-            boolean b = false;
-            if (lobby.getPlayerToAct().getTradableSet().length == 3) {
-                b = true;
-            }
-
-
-            if (c != null) { // if c is null, there are no cards left
-                // send name of new Card to player of last turn
-                server.broadcastMessage(new NewCardMessage(lobby.getLobbyID(), id, c.getCardName(), b), lobby.getPlayerToAct());
-            }
-
-            lobby.nextPlayersTurn();
-            ds.updateLobby(lobby);
-
-            server.broadcastMessage(new NextTurnMessage(lobby.getLobbyID(), SERVER_PLAYER_ID,
-                    lobby.getPlayerToAct().getUid()), lobby.getPlayers());
+            handleNextTurn(msg);
         }
     }
 
