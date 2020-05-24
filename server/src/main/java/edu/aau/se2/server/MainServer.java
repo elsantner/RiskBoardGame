@@ -292,6 +292,9 @@ public class MainServer implements PlayerLostConnectionListener {
             lobbyToLeave.leave(playerToLeave);
             playerToLeave.reset();
             ds.updateLobby(lobbyToLeave);
+            if (lobbyToLeave.getPlayers().size() == 0) {
+                ds.removeLobby(lobbyToLeave.getLobbyID());
+            }
             // if player could successfully leave the lobby, inform him and all remaining players
             server.broadcastMessage(new LeftLobbyMessage(), playerToLeave);
             server.broadcastMessage(new PlayersChangedMessage(lobbyToLeave.getLobbyID(),
