@@ -21,6 +21,7 @@ public abstract class VictoryHelper {
 
     public static InLobbyMessage handleTerritoryOccupation(OccupyTerritoryMessage msg) {
         Lobby l = ds.getLobbyByID(msg.getLobbyID());
+        if (l == null) return null;
 
         // one player has every occupied territory => Victory
         if (l.getNumberOfTerritories() - l.getTerritoriesOccupiedByPlayer(msg.getFromPlayerID()).length - l.getUnoccupiedTerritories().length == 0) {
