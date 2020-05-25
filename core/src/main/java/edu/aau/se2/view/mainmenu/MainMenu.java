@@ -41,6 +41,7 @@ public class MainMenu extends AbstractScreen {
 
     public MainMenu(RiskGame riskGame, boolean showDisconnectedDialog) {
         super(riskGame);
+
         mySkin = getGame().getAssetManager().get(AssetName.UI_SKIN_2);
         gamePort = new ScreenViewport();
         stage = new Stage(gamePort);
@@ -56,12 +57,12 @@ public class MainMenu extends AbstractScreen {
         setupLogo();
         setupButtons();
         onClickButtons();
+
+        addInputProcessor(stage);
         if (showDisconnectedDialog) {
             setButtonsEnabled(false);
             displayDisconnectedDialog();
         }
-
-        Gdx.input.setInputProcessor(stage);
     }
 
     private void displayDisconnectedDialog() {
@@ -119,7 +120,7 @@ public class MainMenu extends AbstractScreen {
         join.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Database.getInstance().triggerLobbyListUpdate();
+                getGame().openLobbyListScreen();
             }
         });
 
@@ -137,6 +138,11 @@ public class MainMenu extends AbstractScreen {
     @Override
     public void show() {
         //currently unused
+    }
+
+    @Override
+    public void handleBackButton() {
+        Gdx.app.exit();
     }
 
     @Override

@@ -45,6 +45,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     private boolean showCards;
     private Database db;
     private int armyReserve;
+    private boolean leaveDialogVisible = false;
 
     //Labels
     private Label[] currentPlayerLabels;
@@ -136,6 +137,23 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         } else {
             this.yourTurn = getCurrentPlayerNickname() + " ist am Zug";
         }
+    }
+
+    public void showLeaveDialog() {
+        if (leaveDialogVisible) return;
+
+        leaveDialogVisible = true;
+
+        getScreen().showDialog(new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1),
+                "Verlassen",
+                "Spiel wirklich verlassen?",
+                "Ja",
+                "Nein",
+                res -> {
+                    if (res)
+                        db.leaveLobby();
+                    leaveDialogVisible = false;
+                }), this, 3);
     }
 
     public void setCurrentPlayersColorOnHud(List<Player> currentPlayers) {

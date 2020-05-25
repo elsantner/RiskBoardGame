@@ -66,9 +66,11 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
 
     @Override
     public void show() {
-        this.stage = new Stage(new StretchViewport(1920,1080));
+        stage = new Stage(new StretchViewport(1920,1080));
         stage.stageToScreenCoordinates(new Vector2(0,0));
-        Gdx.input.setInputProcessor(this.stage);
+
+        addInputProcessor(stage);
+
         skin = getGame().getAssetManager().get(AssetName.UI_SKIN_2);
 
         Table outerTable = new Table();
@@ -164,6 +166,11 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
         catch (Exception ex) {
             LoggerConfigurator.getConfiguredLogger(TAG, Level.WARNING).log(Level.WARNING, "Error disposing assets", ex);
         }
+    }
+
+    @Override
+    public void handleBackButton() {
+        db.leaveLobby();
     }
 
     private void assets() {
