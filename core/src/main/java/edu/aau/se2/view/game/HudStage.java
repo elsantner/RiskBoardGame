@@ -44,6 +44,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     private boolean showCards;
     private Database db;
     private int armyReserve;
+    private boolean leaveDialogVisible = false;
 
     //Labels
     private Label[] currentPlayerLabels;
@@ -131,6 +132,10 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     }
 
     public void showLeaveDialog() {
+        if (leaveDialogVisible) return;
+
+        leaveDialogVisible = true;
+
         new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1),
                 "Verlassen",
                 "Spiel wirklich verlassen?",
@@ -139,6 +144,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
                 res -> {
                     if (res)
                         db.leaveLobby();
+                    leaveDialogVisible = false;
         }).show(this);
     }
 

@@ -180,6 +180,10 @@ public class RiskGame extends Game {
 		});
 	}
 
+	public void showMessage(String msg) {
+		popupMessageDisplay.showMessage(msg);
+	}
+
 	private void assetPostProcessing() {
 		((Skin)assetManager.get(AssetName.UI_SKIN_1)).getFont("default-font").getData().setScale(0.5f);
 	}

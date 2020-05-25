@@ -23,12 +23,14 @@ import java.util.List;
 
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnErrorListener;
 import edu.aau.se2.model.listener.OnLobbyListChangedListener;
+import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.asset.AssetName;
 
-public class LobbyListScreen extends AbstractScreen implements OnLobbyListChangedListener {
+public class LobbyListScreen extends AbstractScreen implements OnLobbyListChangedListener, OnErrorListener {
 
     private static final String TAG = "LobbyScreen";
     private Texture background;
@@ -47,6 +49,7 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
 
         lobbyData = new ArrayList<>();
         Database.getInstance().getListeners().setLobbyListChangedListener(this);
+        Database.getInstance().getListeners().setErrorListener(this);
         Database.getInstance().triggerLobbyListUpdate();
     }
 
@@ -110,6 +113,15 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
         outerTable.setFillParent(true);
         outerTable.pad(120f);
 
+        TextButton updateButton = new TextButton("Aktualisieren", skin);
+        updateButton.addListener(new ClickListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                Database.getInstance().triggerLobbyListUpdate();
+                return true;
+            }
+        });
+
         TextButton exitButton = new TextButton("Verlassen", skin);
         exitButton.addListener(new ClickListener() {
             @Override
@@ -119,9 +131,13 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
             }
         });
 
+        Table buttonTable = new Table();
 
         outerTable.add(new Image(lobbyText)).minHeight(lobbyText.getHeight());
-        outerTable.add(exitButton);
+        buttonTable.add(updateButton);
+        buttonTable.row();
+        buttonTable.add(exitButton);
+        outerTable.add(buttonTable).fill();
         outerTable.row();
         outerTable.add(new Image(line));
         outerTable.row();
@@ -172,5 +188,17 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
         AssetManager assetManager = getGame().getAssetManager();
         final Skin skin = assetManager.get(AssetName.UI_SKIN_2);
         fillLobbyList(assetManager, skin);
+    }
+
+    @Override
+    public void onError(int errorCode) {
+        String errorMessage =
+                errorCode == ErrorMessage.JOIN_LOBBY_ALREADY_JOINED     ? "Already joined."
+                : errorCode == ErrorMessage.JOIN_LOBBY_CLOSED           ? "Lobby closed"
+                : errorCode == ErrorMessage.JOIN_LOBBY_FULL             ? "Lobby full"
+                : "Unknown error while joining";
+        
+         getGame().showMessage(errorMessage);
+         Database.getInstance().triggerLobbyListUpdate();
     }
 }

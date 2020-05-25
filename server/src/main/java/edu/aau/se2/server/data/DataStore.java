@@ -72,10 +72,6 @@ public class DataStore {
         return playersOnline.get(playerID);
     }
 
-    public synchronized List<Player> getAllOnlinePlayers() {
-        return new ArrayList<>(playersOnline.values());
-    }
-
     private synchronized int getNextPlayerID() {
         return nextPlayerID++;
     }
