@@ -21,6 +21,7 @@ import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
 import edu.aau.se2.server.networking.dto.game.PlayerLostMessage;
 import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.game.VictoryMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
@@ -75,5 +76,6 @@ public interface SerializationRegister {
         component.registerClass(DefenderDiceCountMessage.class);
         component.registerClass(PlayerLostMessage.class);
         component.registerClass(LeftGameMessage.class);
+        component.registerClass(VictoryMessage.class);
     }
 }

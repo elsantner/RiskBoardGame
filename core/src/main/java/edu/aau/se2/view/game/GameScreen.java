@@ -19,6 +19,7 @@ import edu.aau.se2.model.listener.OnNextTurnListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnPlayerLostListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.model.listener.OnVictoryListener;
 import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.view.AbstractScreen;
@@ -27,7 +28,7 @@ import edu.aau.se2.view.dices.DiceStage;
 
 public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListener, OnNextTurnListener,
         OnHUDInteractionListener, OnPhaseChangedListener, OnBoardInteractionListener, OnAttackUpdatedListener,
-        OnArmyReserveChangedListener, OnLeftGameListener, OnPlayerLostListener {
+        OnArmyReserveChangedListener, OnLeftGameListener, OnPlayerLostListener, OnVictoryListener {
     private BoardStage boardStage;
     private DiceStage diceStage;
     private CardStage cardStage;
@@ -54,6 +55,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         db.getListeners().setArmyReserveChangedListener(this);
         db.getListeners().setLeftGameListener(this);
         db.getListeners().setPlayerLostListener(this);
+        db.getListeners().setVictoryListener(this);
 
         diceStage = new DiceStage(new FitViewport(width, height), this);
 
@@ -272,7 +274,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                     this.remove();
                 }
             };
-            dialog.text("Du kannst das Spiel nun verlassen oder bleiben...");
+            dialog.text("Du kannst das Spiel nun verlassen");
             dialog.button("Okay");
 
         } else {
@@ -285,8 +287,43 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                     this.remove();
                 }
             };
-            dialog.text("Player " + playerName + " hat das Spiel verloren!");
+            dialog.text("Spieler " + playerName + " hat das Spiel verloren!");
             dialog.button("Okay");
+        }
+
+
+        showDialog(dialog);
+    }
+
+    private void showVictoryDialog(String playerName, boolean thisPLayerWon) {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        boardStage.setInteractable(false);
+        Dialog dialog;
+        if (thisPLayerWon) {
+            dialog = new Dialog("Glückwunsch!", uiSkin) {
+                @Override
+                protected void result(Object object) {
+                    super.result(object);
+                    db.leaveLobby();
+                    this.hide();
+                    this.remove();
+                }
+            };
+            dialog.text("Du hast das Spiel gewonnen!");
+            dialog.button("Spiel verlassen");
+
+        } else {
+            dialog = new Dialog("Spielende", uiSkin) {
+                @Override
+                protected void result(Object object) {
+                    super.result(object);
+                    db.leaveLobby();
+                    this.hide();
+                    this.remove();
+                }
+            };
+            dialog.text("Spieler " + playerName + " hat das Spiel gewonnen!");
+            dialog.button("Spiel verlassen");
         }
 
 
@@ -406,5 +443,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void informPlayersThatPlayerLost(String playerName, boolean thisPlayerLost) {
         showPlayerLostDialog(playerName, thisPlayerLost);
+    }
+
+    @Override
+    public void playerWon(String playerName, boolean thisPlayerWon) {
+        showVictoryDialog(playerName, thisPlayerWon);
     }
 }

@@ -9,6 +9,7 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.dto.InLobbyMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
 import edu.aau.se2.server.networking.dto.game.PlayerLostMessage;
+import edu.aau.se2.server.networking.dto.game.VictoryMessage;
 
 public abstract class VictoryHelper {
     private VictoryHelper() {
@@ -23,22 +24,26 @@ public abstract class VictoryHelper {
 
         // one player has every occupied territory => Victory
         if (l.getNumberOfTerritories() - l.getTerritoriesOccupiedByPlayer(msg.getFromPlayerID()).length - l.getUnoccupiedTerritories().length == 0) {
-            return handlePlayerVictory();
+            return handlePlayerVictory(l, msg.getFromPlayerID());
         }
 
         // check if player has 0 Territories left => Lose
         ArrayList<Player> players = new ArrayList<>(l.getPlayers());
         for (int i = 0; i < players.size(); i++) {
-            if (l.getTerritoriesOccupiedByPlayer(players.get(i).getUid()).length == 0)
-                return handlePlayerLost(l, players.get(i).getUid());
+            if (l.getTerritoriesOccupiedByPlayer(l.getTurnOrder().get(i)).length == 0)
+                return handlePlayerLost(l, l.getTurnOrder().get(i));
         }
 
         return null;
     }
 
-    private static InLobbyMessage handlePlayerVictory() {
-        //todo handle player victory
-        return null;
+    private static InLobbyMessage handlePlayerVictory(Lobby l, int uid) {
+        for (int i = 0; i < l.getTurnOrder().size(); i++) {
+            if (l.getTurnOrder().get(i) != uid) {
+                l.getPlayerByID(l.getTurnOrder().get(i)).setHasLost(true);
+            }
+        }
+        return new VictoryMessage(l.getLobbyID(), uid);
     }
 
     private static InLobbyMessage handlePlayerLost(Lobby l, int uid) {
@@ -52,6 +57,7 @@ public abstract class VictoryHelper {
                 break;
             }
         }
+        l.getPlayerByID(uid).setHasLost(true);
         l.setTurnOrder(turnOrder);
         ds.updateLobby(l);
         return new PlayerLostMessage(l.getLobbyID(), uid);

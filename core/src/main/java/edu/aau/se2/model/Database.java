@@ -28,6 +28,7 @@ import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
 import edu.aau.se2.server.networking.dto.game.PlayerLostMessage;
 import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.game.VictoryMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
@@ -158,6 +159,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handlePlayerLostMessage((PlayerLostMessage) msg);
             } else if (msg instanceof LeftGameMessage) {
                 handleLeftGameMessage((LeftGameMessage) msg);
+            } else if (msg instanceof VictoryMessage) {
+                handleVictoryMessage((VictoryMessage) msg);
             }
         });
     }
@@ -194,6 +197,12 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         boolean thisPlayerLost = false;
         if (msg.getFromPlayerID() == thisPlayer.getUid()) thisPlayerLost = true;
         listenerManager.notifyPlayerLostListener(getLobby().getPlayerByID(msg.getFromPlayerID()).getNickname(), thisPlayerLost);
+    }
+
+    private void handleVictoryMessage(VictoryMessage msg) {
+        boolean thisPlayerWon = false;
+        if (msg.getFromPlayerID() == thisPlayer.getUid()) thisPlayerWon = true;
+        listenerManager.notifyVictoryListener(getLobby().getPlayerByID(msg.getFromPlayerID()).getNickname(), thisPlayerWon);
     }
 
     private void handleLeftGameMessage(LeftGameMessage msg) {

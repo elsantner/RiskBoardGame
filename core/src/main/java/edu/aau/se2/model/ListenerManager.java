@@ -18,6 +18,7 @@ import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnPlayerLostListener;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
+import edu.aau.se2.model.listener.OnVictoryListener;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 
@@ -38,6 +39,7 @@ public class ListenerManager {
     private OnAttackUpdatedListener attackUpdatedListener;
     private OnLeftGameListener leftGameListener;
     private OnPlayerLostListener playerLostListener;
+    private OnVictoryListener victoryListener;
 
     public void setArmiesMovedListener(OnArmiesMovedListener l) {
         this.armiesMovedListener = l;
@@ -101,6 +103,10 @@ public class ListenerManager {
 
     public void setPlayerLostListener(OnPlayerLostListener l) {
         this.playerLostListener = l;
+    }
+
+    public void setVictoryListener(OnVictoryListener l) {
+        this.victoryListener = l;
     }
 
     void notifyPhaseChangedListener(Database.Phase phase) {
@@ -220,6 +226,12 @@ public class ListenerManager {
     void notifyPlayerLostListener(String playerName, boolean thisPlayerLost) {
         if (playerLostListener != null) {
             playerLostListener.informPlayersThatPlayerLost(playerName, thisPlayerLost);
+        }
+    }
+
+    void notifyVictoryListener(String playerName, boolean thisPLayerWon) {
+        if (victoryListener != null) {
+            victoryListener.playerWon(playerName, thisPLayerWon);
         }
     }
 }

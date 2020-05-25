@@ -36,6 +36,7 @@ import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
 import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.game.VictoryMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
@@ -311,7 +312,6 @@ public class MainServer implements PlayerLostConnectionListener {
 
     private void playerLeaves(Lobby lobbyToLeave, Player playerToLeave) {
 
-        //todo send victory message if only 1 player is left and won the game because all others left before losing properly
         if (!lobbyToLeave.isStarted()) {
             lobbyToLeave.leave(playerToLeave);
             playerToLeave.reset();
@@ -330,7 +330,8 @@ public class MainServer implements PlayerLostConnectionListener {
             playerToLeave.reset();
             ds.updateLobby(lobbyToLeave);
 
-        } else if (lobbyToLeave.getPlayers().size() >= 2) {
+            // todo make sure its always possible to leave (disconnect during attack etc)
+        } else if (lobbyToLeave.getTurnOrder().size() >= 2) {
             boolean wasPlayersTurn = lobbyToLeave.isPlayersTurn(playerToLeave.getUid());
             // if more then 2 players are left remove that player (in lobby his territories will be set unoccupied)
             List<Integer> turnOrder = lobbyToLeave.getTurnOrder();
@@ -340,20 +341,28 @@ public class MainServer implements PlayerLostConnectionListener {
                     break;
                 }
             }
+
             lobbyToLeave.setTurnOrder(turnOrder);
             lobbyToLeave.clearTerritoriesOfPlayer(playerToLeave.getUid());
             server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid()), lobbyToLeave.getPlayers());
             lobbyToLeave.leave(playerToLeave);
+            ds.updateLobby(lobbyToLeave);
+
+            // if only one player is left he has won the game, inform everyone
+            if (lobbyToLeave.getTurnOrder().size() == 1) {
+                server.broadcastMessage(new VictoryMessage(lobbyToLeave.getLobbyID(), lobbyToLeave.getPlayerToAct().getUid()), lobbyToLeave.getPlayers());
+            }
+
             if (wasPlayersTurn) {
                 lobbyToLeave.nextPlayersTurn();
                 server.broadcastMessage(new NextTurnMessage(lobbyToLeave.getLobbyID(), SERVER_PLAYER_ID,
                         lobbyToLeave.getPlayerToAct().getUid()), lobbyToLeave.getPlayers());
             }
+
             playerToLeave.reset();
             ds.updateLobby(lobbyToLeave);
         } else if (lobbyToLeave.getPlayers().size() == 1) {
             // last player leaves lobby -> remove it
-            // todo check if this works properly
             server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid()), lobbyToLeave.getPlayers());
             lobbyToLeave.leave(playerToLeave);
             playerToLeave.reset();
