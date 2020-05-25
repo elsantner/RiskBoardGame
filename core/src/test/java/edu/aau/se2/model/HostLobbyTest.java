@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import edu.aau.se2.model.listener.OnConnectionChangedListener;
-import edu.aau.se2.server.MainServer;
 import edu.aau.se2.server.data.Player;
 
 public class HostLobbyTest extends AbstractDatabaseTest {
@@ -77,8 +76,6 @@ public class HostLobbyTest extends AbstractDatabaseTest {
             }
         });
         dbs[0].connectIfNotConnected();
-        dbs[1].connectIfNotConnected();
-        // test if connecting only when not connected
         dbs[1].connectIfNotConnected();
     }
 

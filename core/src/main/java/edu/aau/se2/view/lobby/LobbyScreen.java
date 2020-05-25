@@ -155,6 +155,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     @Override
     public void dispose() {
         try {
+            batch.dispose();
             background = null;
             lobbyOverlay = null;
             line = null;

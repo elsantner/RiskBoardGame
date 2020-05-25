@@ -197,7 +197,7 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
                 : errorCode == ErrorMessage.JOIN_LOBBY_CLOSED           ? "Lobby closed"
                 : errorCode == ErrorMessage.JOIN_LOBBY_FULL             ? "Lobby full"
                 : "Unknown error while joining";
-        
+
          getGame().showMessage(errorMessage);
          Database.getInstance().triggerLobbyListUpdate();
     }

@@ -5,6 +5,9 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.utils.Align;
 
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
@@ -76,5 +79,11 @@ public abstract class AbstractScreen implements Screen, InputProcessor {
     @Override
     public boolean scrolled(int amount) {
         return false;
+    }
+
+    public void showDialog(Dialog dialog, Stage stage, float scale) {
+        dialog.show(stage);
+        dialog.setScale(scale);
+        dialog.setOrigin(Align.center);
     }
 }
