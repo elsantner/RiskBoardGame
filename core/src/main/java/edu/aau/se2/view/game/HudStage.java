@@ -139,6 +139,23 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         }
     }
 
+    public void showLeaveDialog() {
+        if (leaveDialogVisible) return;
+
+        leaveDialogVisible = true;
+
+        getScreen().showDialog(new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1),
+                "Verlassen",
+                "Spiel wirklich verlassen?",
+                "Ja",
+                "Nein",
+                res -> {
+                    if (res)
+                        db.leaveLobby();
+                    leaveDialogVisible = false;
+                }), this, 3);
+    }
+
     public void setCurrentPlayersColorOnHud(List<Player> currentPlayers) {
         for (int i = 0; i < currentPlayers.size(); i++) {
             this.currentPlayerNames[i] = currentPlayers.get(i).getNickname();
