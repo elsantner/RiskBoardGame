@@ -291,7 +291,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
             dialog.button("Okay");
         }
 
-
+        dialog.setMovable(false);
         showDialog(dialog);
     }
 
@@ -300,7 +300,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         boardStage.setInteractable(false);
         Dialog dialog;
         if (thisPLayerWon) {
-            dialog = new Dialog("Glückwunsch!", uiSkin) {
+            dialog = new Dialog("Glueckwunsch!", uiSkin) {
                 @Override
                 protected void result(Object object) {
                     super.result(object);
@@ -326,7 +326,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
             dialog.button("Spiel verlassen");
         }
 
-
+        dialog.setMovable(false);
         showDialog(dialog);
     }
 

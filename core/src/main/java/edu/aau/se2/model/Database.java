@@ -9,6 +9,7 @@ import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
+import edu.aau.se2.server.logic.VictoryHelper;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
@@ -185,15 +186,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private void handlePlayerLostMessage(PlayerLostMessage msg) {
-        List<Integer> turnOrder = lobby.getTurnOrder();
-        for (int i = 0; i < turnOrder.size(); i++) {
-            if (turnOrder.get(i) == msg.getFromPlayerID()) {
-                turnOrder.remove(i);
-                break;
-            }
-        }
-        lobby.setTurnOrder(turnOrder);
-
+        VictoryHelper.removePlayerFromTurnOrder(lobby, msg.getFromPlayerID());
         boolean thisPlayerLost = false;
         if (msg.getFromPlayerID() == thisPlayer.getUid()) thisPlayerLost = true;
         listenerManager.notifyPlayerLostListener(getLobby().getPlayerByID(msg.getFromPlayerID()).getNickname(), thisPlayerLost);
@@ -215,16 +208,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
         // if player left / disconnected without losing set his territories unoccupied and remove him from turnOrder
         if (!msg.isHasLost()) {
-
-            List<Integer> turnOrder = lobby.getTurnOrder();
-            for (int i = 0; i < turnOrder.size(); i++) {
-                if (turnOrder.get(i) == msg.getFromPlayerID()) {
-                    turnOrder.remove(i);
-                    break;
-                }
-            }
-            lobby.setTurnOrder(turnOrder);
-
+            VictoryHelper.removePlayerFromTurnOrder(lobby, msg.getFromPlayerID());
             // clear players territories
             listenerManager.notifyLeftGameListener(lobby.clearTerritoriesOfPlayer(msg.getFromPlayerID()));
         }

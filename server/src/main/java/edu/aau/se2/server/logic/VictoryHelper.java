@@ -48,9 +48,13 @@ public abstract class VictoryHelper {
     }
 
     private static InLobbyMessage handlePlayerLost(Lobby l, int uid) {
+        removePlayerFromTurnOrder(l, uid);
+        l.getPlayerByID(uid).setHasLost(true);
+        ds.updateLobby(l);
+        return new PlayerLostMessage(l.getLobbyID(), uid);
+    }
 
-        //todo make turnOrder removal a global method
-        //todo make sure turnOrder cant choose same player 2 times in row..
+    public static void removePlayerFromTurnOrder(Lobby l, int uid) {
         List<Integer> turnOrder = l.getTurnOrder();
         for (int i = 0; i < turnOrder.size(); i++) {
             if (turnOrder.get(i) == uid) {
@@ -58,9 +62,6 @@ public abstract class VictoryHelper {
                 break;
             }
         }
-        l.getPlayerByID(uid).setHasLost(true);
         l.setTurnOrder(turnOrder);
-        ds.updateLobby(l);
-        return new PlayerLostMessage(l.getLobbyID(), uid);
     }
 }

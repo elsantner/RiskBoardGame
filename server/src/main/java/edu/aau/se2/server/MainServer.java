@@ -334,22 +334,14 @@ public class MainServer implements PlayerLostConnectionListener {
         } else if (lobbyToLeave.getTurnOrder().size() >= 2) {
             boolean wasPlayersTurn = lobbyToLeave.isPlayersTurn(playerToLeave.getUid());
             // if more then 2 players are left remove that player (in lobby his territories will be set unoccupied)
-            List<Integer> turnOrder = lobbyToLeave.getTurnOrder();
-            for (int i = 0; i < turnOrder.size(); i++) {
-                if (turnOrder.get(i) == playerToLeave.getUid()) {
-                    turnOrder.remove(i);
-                    break;
-                }
-            }
-
-            lobbyToLeave.setTurnOrder(turnOrder);
+            VictoryHelper.removePlayerFromTurnOrder(lobbyToLeave, playerToLeave.getUid());
             lobbyToLeave.clearTerritoriesOfPlayer(playerToLeave.getUid());
             server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid()), lobbyToLeave.getPlayers());
             lobbyToLeave.leave(playerToLeave);
             ds.updateLobby(lobbyToLeave);
 
             // if only one player is left he has won the game, inform everyone
-            if (lobbyToLeave.getTurnOrder().size() == 1) {
+            if (lobbyToLeave.getTurnOrder().size() == 1 && !(lobbyToLeave.getPlayerByID(lobbyToLeave.getTurnOrder().get(0)).isHasLost())) {
                 server.broadcastMessage(new VictoryMessage(lobbyToLeave.getLobbyID(), lobbyToLeave.getPlayerToAct().getUid()), lobbyToLeave.getPlayers());
             }
 
