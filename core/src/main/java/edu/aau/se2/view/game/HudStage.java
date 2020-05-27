@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -44,6 +45,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     private boolean showCards;
     private Database db;
     private int armyReserve;
+    private boolean leaveDialogVisible = false;
 
     //Labels
     private Label[] currentPlayerLabels;
@@ -67,7 +69,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         setupHUD();
         this.hudInteractionListener = l;
         setupAttackDisplay();
-        attackDisplay.setVisible(true);
         setArmyReserveCount(db.getCurrentArmyReserve());
     }
 
@@ -84,10 +85,18 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         });
 
         TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
+        Stage thisStage = this;
+        buttonLeaveGame.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                ConfirmDialog dialog = new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1),
+                        "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein",
+                        res -> {if (res) db.leaveLobby();});
 
-        buttonLeaveGame.addListener(event -> {
-            new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1), "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein", res -> {if (res) db.leaveLobby();}).show(this);
-            return true;
+                dialog.show(thisStage);
+                dialog.setScale(3);
+                dialog.setOrigin(Align.center);
+            }
         });
 
         Table table = new Table();
@@ -128,6 +137,23 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         } else {
             this.yourTurn = getCurrentPlayerNickname() + " ist am Zug";
         }
+    }
+
+    public void showLeaveDialog() {
+        if (leaveDialogVisible) return;
+
+        leaveDialogVisible = true;
+
+        getScreen().showDialog(new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1),
+                "Verlassen",
+                "Spiel wirklich verlassen?",
+                "Ja",
+                "Nein",
+                res -> {
+                    if (res)
+                        db.leaveLobby();
+                    leaveDialogVisible = false;
+                }), this, 3);
     }
 
     public void setCurrentPlayersColorOnHud(List<Player> currentPlayers) {

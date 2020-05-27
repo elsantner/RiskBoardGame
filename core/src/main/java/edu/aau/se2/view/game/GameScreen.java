@@ -1,7 +1,6 @@
 package edu.aau.se2.view.game;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -77,12 +76,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void show() {
-        InputMultiplexer inputMultiplexer = new InputMultiplexer();
-        inputMultiplexer.addProcessor(hudStage);
-        inputMultiplexer.addProcessor(new CustomGestureDetector(boardStage));
-        inputMultiplexer.addProcessor(diceStage);
-        inputMultiplexer.addProcessor(cardStage);
-        Gdx.input.setInputProcessor(inputMultiplexer);
+        addInputProcessor(hudStage);
+        addInputProcessor(new CustomGestureDetector(boardStage));
+        addInputProcessor(diceStage);
+        addInputProcessor(cardStage);
     }
 
     @Override
@@ -126,6 +123,11 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void hide() {
         // currently unused but needed because of interface implementation
+    }
+
+    @Override
+    public void handleBackButton() {
+        hudStage.showLeaveDialog();
     }
 
     @Override
@@ -195,7 +197,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                 Math.min(db.getLobby().getTerritoryByID(fromTerritoryID).getArmyCount() - 1, 3),
                 result -> {
                     if (result > 0) {
-                        db.attackStarted(fromTerritoryID, onTerritoryID, result);
+                        db.startAttack(fromTerritoryID, onTerritoryID, result);
                     }
                     boardStage.setInteractable(true);
                 });
@@ -236,8 +238,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     private void showDialog(Dialog dialog) {
-        dialog.show(hudStage).moveBy(0, hudStage.getViewport().getWorldHeight() * 0.1f);
-        dialog.setOrigin(Align.center);
+        super.showDialog(dialog, hudStage, 3);
     }
 
     private void showAskForCardExchange() {
@@ -365,7 +366,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     }
 
     @Override
-    public void attackStarted(int fromTerritoryID, int onTerritoryID, int count) {
+    public void startAttack(int fromTerritoryID, int onTerritoryID, int count) {
         Gdx.app.postRunnable(() -> showStartAttackDialog(fromTerritoryID, onTerritoryID));
     }
 
@@ -393,8 +394,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void attackUpdated() {
         Attack a = db.getLobby().getCurrentAttack();
-        hudStage.setCurrentAttack(a);
         Gdx.app.postRunnable(() -> {
+            hudStage.setCurrentAttack(a);
+
             if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
                 diceStage.hide();
                 showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());

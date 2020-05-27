@@ -64,7 +64,7 @@ public class AttackTest extends AbstractDatabaseTest {
         DatabaseTestable clientToAct = DatabaseTestable.getClientToAct(dbs);
         Territory fromTerritory = clientToAct.getMyTerritory(2);
         Territory toTerritory = DatabaseTestable.getDifferentClient(dbs, clientToAct).getMyTerritories()[0];
-        clientToAct.attackStarted(fromTerritory.getId(), toTerritory.getId(), 1);
+        clientToAct.startAttack(fromTerritory.getId(), toTerritory.getId(), 1);
 
         Thread.sleep(2000);
         for (DatabaseTestable db : dbs) {

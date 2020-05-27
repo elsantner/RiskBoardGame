@@ -188,7 +188,7 @@ public class BoardStage extends AbstractStage implements IGameBoard, GestureDete
         else if (TerritoryHelper.areNeighbouring(selectedTerritory.getID(), t.getID()) &&
                 !clickedTerritory.isNotOccupied() && clickedTerritory.getOccupierPlayerID() != db.getThisPlayer().getUid()) {
 
-            boardListener.attackStarted(selectedTerritory.getID(), t.getID(), -1);
+            boardListener.startAttack(selectedTerritory.getID(), t.getID(), -1);
             clearTerritorySelection();
         }
     }

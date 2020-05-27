@@ -24,10 +24,25 @@ public class AttackDisplay extends Group {
     private Table tableContainer;
     private Texture attackArrow;
     private Drawable background;
+    private Label labelAttacker;
+    private Label labelDefender;
+    private Label labelTerritoryAttacker;
+    private Label labelTerritoryDefender;
+    private Label labelArmyCount;
+    private Label labelArmiesLostAttacker;
+    private Label labelArmiesLostDefender;
 
     public AttackDisplay(AssetManager assetManager) {
         this.assetManager = assetManager;
         getAssets();
+        setupDisplay();
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        if (tableContainer != null) {
+            tableContainer.setVisible(visible);
+        }
     }
 
     private void getAssets() {
@@ -36,26 +51,21 @@ public class AttackDisplay extends Group {
         background = new TextureRegionDrawable(new TextureRegion(assetManager.get(AssetName.BG_ATTACK_DISPLAY, Texture.class)));
     }
 
-    private void setupDisplay(String attackerName, String defenderName,
-                            String attackerTerritoryName, String defenderTerritoryName, int count, int armiesLostAttacker, int armiesLostDefender) {
-        if (tableContainer != null) {
-            tableContainer.remove();
-            tableContainer = null;
-        }
+    private void setupDisplay() {
 
-        Label labelAttacker = new Label(attackerName,
+        labelAttacker = new Label("",
                 new Label.LabelStyle(font, new Color(1, 1, 1, 1)));
-        Label labelDefender = new Label(defenderName,
+        labelDefender = new Label("",
                 new Label.LabelStyle(font, new Color(1, 1, 1, 1)));
-        Label labelTerritoryAttacker = new Label(attackerTerritoryName,
+        labelTerritoryAttacker = new Label("",
                 new Label.LabelStyle(font, new Color(1, 1, 1, 1)));
-        Label labelTerritoryDefender = new Label(defenderTerritoryName,
+        labelTerritoryDefender = new Label("",
                 new Label.LabelStyle(font, new Color(1, 1, 1, 1)));
-        Label labelArmyCount = new Label(Integer.toString(count),
+        labelArmyCount = new Label("",
                 new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
-        Label labelArmiesLostAttacker = new Label(Integer.toString(- armiesLostAttacker),
+        labelArmiesLostAttacker = new Label("",
                 new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
-        Label labelArmiesLostDefender = new Label(Integer.toString(- armiesLostDefender),
+        labelArmiesLostDefender = new Label("",
                 new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
 
         labelAttacker.setOrigin(Align.center);
@@ -82,12 +92,10 @@ public class AttackDisplay extends Group {
         tableContent.add(imgArrow).minWidth(imgArrow.getMinWidth()).padLeft(width / 30f).padRight(width / 30f);
         tableContent.add(labelTerritoryDefender).minHeight(font.getLineHeight());
         tableContent.row();
-        if (armiesLostAttacker != -1 && armiesLostDefender != -1) {
-            tableContent.add(labelArmiesLostAttacker).minHeight(font.getLineHeight());
-            tableContent.add().minHeight(font.getLineHeight()).expand().fill();
-            tableContent.add(labelArmiesLostDefender).minHeight(font.getLineHeight());
-            tableContent.row();
-        }
+        tableContent.add(labelArmiesLostAttacker).minHeight(font.getLineHeight());
+        tableContent.add().minHeight(font.getLineHeight()).expand().fill();
+        tableContent.add(labelArmiesLostDefender).minHeight(font.getLineHeight());
+        tableContent.row();
 
 
         Container<Table> container = new Container<>(tableContent);
@@ -99,6 +107,14 @@ public class AttackDisplay extends Group {
     }
 
     public void updateData(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender) {
-        setupDisplay(attacker, defender, fromTerritory, toTerritory, armyCount, armiesLostAttacker, armiesLostDefender);
+        labelAttacker.setText(attacker);
+        labelDefender.setText(defender);
+        labelTerritoryAttacker.setText(fromTerritory);
+        labelTerritoryDefender.setText(toTerritory);
+        labelArmyCount.setText(Integer.toString(armyCount));
+        labelArmiesLostAttacker.setText(Integer.toString(-armiesLostAttacker));
+        labelArmiesLostDefender.setText(Integer.toString(-armiesLostDefender));
+        labelArmiesLostAttacker.setVisible(armiesLostAttacker != -1 && armiesLostDefender != -1);
+        labelArmiesLostDefender.setVisible(armiesLostAttacker != -1 && armiesLostDefender != -1);
     }
 }
