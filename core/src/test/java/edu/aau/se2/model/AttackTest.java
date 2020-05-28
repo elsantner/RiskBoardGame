@@ -11,12 +11,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.server.data.Territory;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class AttackTest extends AbstractDatabaseTest {
     private static final int NUM_CLIENTS = 3;
 
     private AtomicInteger attackStartedCount;
+    private AtomicInteger defenderCount;
 
     public AttackTest() {
         super(NUM_CLIENTS);
@@ -25,6 +26,7 @@ public class AttackTest extends AbstractDatabaseTest {
     @Before
     public void setup() throws IOException, TimeoutException {
         attackStartedCount = new AtomicInteger(0);
+        defenderCount = new AtomicInteger(0);
         server.start();
         setupScenario();
     }
@@ -47,6 +49,9 @@ public class AttackTest extends AbstractDatabaseTest {
                 @Override
                 public void attackStarted() {
                     attackStartedCount.addAndGet(1);
+                    if (db.isThisPlayerDefender()) {
+                        defenderCount.addAndGet(1);
+                    }
                 }
 
                 @Override
@@ -62,8 +67,11 @@ public class AttackTest extends AbstractDatabaseTest {
         }
 
         DatabaseTestable clientToAct = DatabaseTestable.getClientToAct(dbs);
+        DatabaseTestable defender = DatabaseTestable.getDifferentClient(dbs, clientToAct);
         Territory fromTerritory = clientToAct.getMyTerritory(2);
-        Territory toTerritory = DatabaseTestable.getDifferentClient(dbs, clientToAct).getMyTerritories()[0];
+        Territory toTerritory = defender.getMyTerritories()[0];
+        // is defender must be false before attack start
+        assertFalse(defender.isThisPlayerDefender());
         clientToAct.startAttack(fromTerritory.getId(), toTerritory.getId(), 1);
 
         Thread.sleep(2000);
@@ -74,6 +82,8 @@ public class AttackTest extends AbstractDatabaseTest {
             assertEquals(Database.Phase.ATTACKING, db.getCurrentPhase());
         }
         assertEquals(NUM_CLIENTS, attackStartedCount.get());
+        assertEquals(1, defenderCount.get());
+        assertTrue(defender.isThisPlayerDefender());
     }
 
     @After

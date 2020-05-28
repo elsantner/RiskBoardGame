@@ -135,6 +135,9 @@ public class Lobby {
     }
 
     public Player getPlayerToAct() {
+        if (turnOrder == null) {
+            return null;
+        }
         return players.get(turnOrder.get(currentTurnIndex));
     }
 
