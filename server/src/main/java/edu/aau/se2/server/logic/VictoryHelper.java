@@ -39,11 +39,14 @@ public abstract class VictoryHelper {
     }
 
     private static InLobbyMessage handlePlayerVictory(Lobby l, int uid) {
-        for (int i = 0; i < l.getTurnOrder().size(); i++) {
-            if (l.getTurnOrder().get(i) != uid) {
-                l.getPlayerByID(l.getTurnOrder().get(i)).setHasLost(true);
+        List<Integer> turnOrder = l.getTurnOrder();
+        for (int i = 0; i < turnOrder.size(); i++) {
+            if (turnOrder.get(i) != uid) {
+                l.getPlayerByID(turnOrder.get(i)).setHasLost(true);
+                removePlayerFromTurnOrder(l, turnOrder.get(i));
             }
         }
+        ds.updateLobby(l);
         return new VictoryMessage(l.getLobbyID(), uid);
     }
 

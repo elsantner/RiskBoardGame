@@ -330,8 +330,16 @@ public class MainServer implements PlayerLostConnectionListener {
             playerToLeave.reset();
             ds.updateLobby(lobbyToLeave);
 
-            // todo make sure its always possible to leave (disconnect during attack etc)
         } else if (lobbyToLeave.getTurnOrder().size() >= 2) {
+
+            // end attacking phase if player is attacker or defender
+            if (lobbyToLeave.getCurrentAttack() != null && (playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getFromTerritoryID()).getUid() ||
+                    playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getToTerritoryID()).getUid())) {
+                lobbyToLeave.setCurrentAttack(null);
+                server.broadcastMessage(new AttackResultMessage(lobbyToLeave.getLobbyID(), lobbyToLeave.getPlayerToAct().getUid(),
+                        0, 0, false, false), lobbyToLeave.getPlayers());
+            }
+
             boolean wasPlayersTurn = lobbyToLeave.isPlayersTurn(playerToLeave.getUid());
             // if more then 2 players are left remove that player (in lobby his territories will be set unoccupied)
             VictoryHelper.removePlayerFromTurnOrder(lobbyToLeave, playerToLeave.getUid());
