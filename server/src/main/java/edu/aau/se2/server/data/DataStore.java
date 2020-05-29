@@ -20,6 +20,7 @@ public class DataStore {
     private int nextLobbyID;
     private int nextPlayerID;
     private PlayerLostConnectionListener lostConnectionListener;
+    private PlayerDeviceNameListener deviceNameListener;
 
     protected DataStore() {
         lobbies = new TreeMap<>();
@@ -116,4 +117,16 @@ public class DataStore {
     public void setLostConnectionListener(PlayerLostConnectionListener l) {
         this.lostConnectionListener = l;
     }
+
+    public void setDeviceNameListener(PlayerDeviceNameListener listener) {
+        this.deviceNameListener = listener;
+    }
+
+    public void setPlayerName(int playerID, String newName) {
+        String nickname = playersOnline.get(playerID).getNickname();
+        if(nickname != newName){
+            playersOnline.get(playerID).setNickname(newName);
+        }
+    }
+
 }

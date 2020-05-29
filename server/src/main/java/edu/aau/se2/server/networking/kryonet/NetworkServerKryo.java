@@ -16,7 +16,7 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.Callback;
 import edu.aau.se2.server.networking.NetworkServer;
 import edu.aau.se2.server.networking.dto.BaseMessage;
-import edu.aau.se2.server.networking.dto.prelobby.CollectInitialNicknameMessage;
+import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 
 public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
@@ -53,23 +53,22 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
                 super.connected(connection);
                 Player newPlayer = ds.newPlayer();
 
-                //set test device name
-                //newPlayer.setNickname("TEST: " + newPlayer.getNickname());
-                CollectInitialNicknameMessage collectInitialNicknameMessage = new CollectInitialNicknameMessage();
-                collectInitialNicknameMessage.getNickname();
-                System.out.println("### asd: " + collectInitialNicknameMessage.getNickname());
-
                 connections.put(newPlayer.getUid(), connection);
                 synchronized (newPlayer) {
                     try {
                         newPlayer.wait(500);
+                        //set test device name
+                        //CollectInitialNicknameMessage collectInitialNicknameMessage = new CollectInitialNicknameMessage();
+                        //collectInitialNicknameMessage.getNickname();
+                        //System.out.println("### TESTNICKNAME: " + collectInitialNicknameMessage.getNickname());
+                        //ds.setPlayerName(newPlayer.getUid(), collectInitialNicknameMessage.getNickname());
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
                 }
                 Logger.getAnonymousLogger().info("Sending ConnectedMessage");
                 broadcastMessage(new ConnectedMessage(newPlayer), newPlayer);
-                broadcastMessage(new CollectInitialNicknameMessage(newPlayer), newPlayer);
+                broadcastMessage(new ChangeNicknameMessage(newPlayer), newPlayer);
             }
 
             @Override

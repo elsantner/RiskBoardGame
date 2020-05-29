@@ -14,15 +14,9 @@ public class DeviceNameDisplay implements DefaultNameProvider {
         this.appl = appl;
     }
 
-    @Override
-    public void setDefaultName(String message) {
-        Player player = new Player();
-        player.setNickname(Build.MODEL);
-        System.out.println("###MODEL " + Build.MODEL);
-        //System.out.println("###BRAND " + Build.BRAND);
-        //System.out.println("###DEVICE" + Build.DEVICE);
-        //System.out.println("###MANUFACTURER" + Build.MANUFACTURER);
-        //System.out.println("###USER " + Build.USER);
-        //System.out.println("###HARDWARE "+ Build.HARDWARE);
+    public String getDeviceName(){
+        //String deviceName = Build.MODEL;
+        String deviceName = Build.BRAND;
+        return deviceName;
     }
 }

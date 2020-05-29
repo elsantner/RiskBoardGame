@@ -72,8 +72,9 @@ public class RiskGame extends Game {
 
         Database db = Database.getInstance();
 
-        //new -> devicename
-		defaultNameProvider.setDefaultName("### this is a test");
+		//String nickname = defaultNameProvider.getDeviceName();
+		//System.out.println("### DEVICENAME" + nickname);
+
 
 		db.getListeners().setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
             gameScreen = new GameScreen(this);
@@ -83,7 +84,7 @@ public class RiskGame extends Game {
 			if (wasClosed) {
 				popupMessageDisplay.showMessage("Spiel geschlossen");
 			}
-			mainMenuScreen = new MainMenu(this);
+			mainMenuScreen = new MainMenu(this, defaultNameProvider);
 			setScreen(mainMenuScreen);
 		}));
 		db.getListeners().setJoinedLobbyListener((lobbyID, host, players) -> Gdx.app.postRunnable(() -> {
@@ -184,7 +185,7 @@ public class RiskGame extends Game {
 		if(assetManager.update() && !isDoneLoadingAssets) {
 			isDoneLoadingAssets = true;
 			assetPostProcessing();
-			mainMenuScreen = new MainMenu(this);
+			mainMenuScreen = new MainMenu(this, defaultNameProvider);
 			setScreen(mainMenuScreen);
 		}
 	}

@@ -17,7 +17,9 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
+import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
 import edu.aau.se2.view.AbstractScreen;
+import edu.aau.se2.view.DefaultNameProvider;
 import edu.aau.se2.view.asset.AssetName;
 
 public class MainMenu extends AbstractScreen {
@@ -29,13 +31,15 @@ public class MainMenu extends AbstractScreen {
     private Button exit;
     private Texture backgroundTxt;
     private Table table;
+    private Button settings;
+    private DefaultNameProvider defaultNameProvider;
 
-
-    public MainMenu(RiskGame riskGame){
+    public MainMenu(RiskGame riskGame, DefaultNameProvider defaultNameProvider){
         super(riskGame);
         mySkin = getGame().getAssetManager().get(AssetName.UI_SKIN_2);
         gamePort = new ScreenViewport();
         stage = new Stage(gamePort);
+        this.defaultNameProvider = defaultNameProvider;
 
         backgroundTxt = getGame().getAssetManager().get(AssetName.TEX_LOBBY_SCREEN);
 
@@ -55,12 +59,16 @@ public class MainMenu extends AbstractScreen {
         create = new TextButton("Spiel erstellen", mySkin);
         join = new TextButton("Spiel beitreten", mySkin);
         exit = new TextButton("Spiel verlassen", mySkin);
+        settings = new TextButton("Einstellungen", mySkin);
 
-        table.add(create).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.15f).padBottom(gamePort.getWorldHeight() * 0.05f);
+
+        table.add(create).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.1f).padBottom(gamePort.getWorldHeight() * 0.03f);
         table.row();
-        table.add(join).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.15f).padBottom(gamePort.getWorldHeight() * 0.05f);
+        table.add(join).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.1f).padBottom(gamePort.getWorldHeight() * 0.03f);
         table.row();
-        table.add(exit).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.15f);
+        table.add(exit).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.1f).padBottom(gamePort.getWorldHeight() * 0.03f);
+        table.row();
+        table.add(settings).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.1f);
 
     }
 
@@ -97,7 +105,12 @@ public class MainMenu extends AbstractScreen {
             }
         });
 
-
+        settings.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Database.getInstance().setPlayerNickname(defaultNameProvider.getDeviceName());
+            }
+        });
     }
 
     @Override

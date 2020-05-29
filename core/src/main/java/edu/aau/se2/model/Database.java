@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.server.data.PlayerDeviceNameListener;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
@@ -37,11 +38,10 @@ import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
-import edu.aau.se2.server.networking.dto.prelobby.CollectInitialNicknameMessage;
+import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkConstants;
 import edu.aau.se2.utils.LoggerConfigurator;
-import edu.aau.se2.view.DefaultNameProvider;
 import edu.aau.se2.view.game.OnBoardInteractionListener;
 
 public class Database implements OnBoardInteractionListener, NetworkClient.OnConnectionChangedListener {
@@ -153,18 +153,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleDiceResultMessage((DiceResultMessage) msg);
             } else if (msg instanceof DefenderDiceCountMessage) {
                 handleDefenderDiceCountMessage((DefenderDiceCountMessage) msg);
-            } else if (msg instanceof CollectInitialNicknameMessage) {
-                handleCollectInitialNicknameMessage((CollectInitialNicknameMessage) msg);
+            } else if (msg instanceof ChangeNicknameMessage) {
+                handleChangeNicknameMessage((ChangeNicknameMessage) msg);
             }
         });
     }
-
-    private void handleCollectInitialNicknameMessage(CollectInitialNicknameMessage msg) {
-        thisPlayer.setNickname("Device");
-
-        System.out.println("### DEVICE: " + msg.getPlayer().getNickname());
-    }
-
 
     private void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
         if (lobby.attackRunning()) {
@@ -513,4 +506,14 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     public Lobby getLobby() {
         return lobby;
     }
+
+    public synchronized void setPlayerNickname(String nickname) {
+        client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), nickname));
+    }
+
+    private void handleChangeNicknameMessage(ChangeNicknameMessage msg) {
+        listenerManager.notifyNicknameChangeListener("handle message");
+        client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), "Test from handleChangeNicknameMessage"));
+    }
+
 }

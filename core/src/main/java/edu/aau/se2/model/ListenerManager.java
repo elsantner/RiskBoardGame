@@ -13,6 +13,7 @@ import edu.aau.se2.model.listener.OnJoinedLobbyListener;
 import edu.aau.se2.model.listener.OnLeftLobbyListener;
 import edu.aau.se2.model.listener.OnLobbyListChangedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
+import edu.aau.se2.model.listener.OnNicknameChangeListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
 import edu.aau.se2.model.listener.OnTerritoryUpdateListener;
@@ -34,6 +35,7 @@ public class ListenerManager {
     private OnPhaseChangedListener phaseChangedListener;
     private OnArmiesMovedListener armiesMovedListener;
     private OnAttackUpdatedListener attackUpdatedListener;
+    private OnNicknameChangeListener nicknameChangeListener;
 
     public void setArmiesMovedListener(OnArmiesMovedListener l) { this.armiesMovedListener = l; }
     public void setPhaseChangedListener(OnPhaseChangedListener l) { this.phaseChangedListener = l; }
@@ -61,6 +63,13 @@ public class ListenerManager {
     }
     public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) { this.armyReserveChangedListener = l; }
     public void setAttackUpdatedListener(OnAttackUpdatedListener l) { this.attackUpdatedListener = l; }
+    public void setNicknameListener(OnNicknameChangeListener l) { this.nicknameChangeListener = l; }
+
+    void notifyNicknameChangeListener(String nickname) {
+        if (nicknameChangeListener != null) {
+            nicknameChangeListener.nicknameChanged(nickname);
+        }
+    }
 
     void notifyPhaseChangedListener(Database.Phase phase) {
         if (phaseChangedListener != null) {
