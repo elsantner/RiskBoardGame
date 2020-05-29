@@ -85,9 +85,11 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             }
         });
 
-        TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
+        ImageButton endGame = new ImageButton(new TextureRegionDrawable(new TextureRegion((Texture) this.getScreen().getGame().getAssetManager().get(AssetName.END_GAME))));
+        endGame.getImage().setFillParent(true);
+        endGame.bottom().left();
         Stage thisStage = this;
-        buttonLeaveGame.addListener(new ClickListener() {
+        endGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 ConfirmDialog dialog = new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1),
@@ -128,9 +130,9 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         table.row();
         table.add(armyReserveLabel).width(vp.getScreenWidth() / 3f).padLeft(vp.getWorldWidth() * 0.01f);
         table.row();
-        table.add(cards).expandY().size(vp.getWorldHeight() * 0.132f).left().padLeft(vp.getWorldWidth() * 0.01f).bottom().padBottom(vp.getWorldHeight() * 0.005f);
+        table.add(cards).expandY().size(vp.getWorldHeight() * 0.132f).left().padLeft(vp.getWorldWidth() * 0.01f).bottom().padBottom(vp.getWorldHeight() * 0.01f);
         table.row();
-        table.add(buttonLeaveGame).left().padLeft(vp.getWorldWidth() * 0.01f).bottom().padBottom(vp.getWorldHeight() * 0.01f);
+        table.add(endGame).size(vp.getWorldHeight() * 0.132f).left().padLeft(vp.getWorldWidth() * 0.01f).bottom().padBottom(vp.getWorldHeight() * 0.01f);
         this.addActor(table);
     }
 

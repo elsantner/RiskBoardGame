@@ -169,6 +169,7 @@ public class RiskGame extends Game {
 		assetManager.load(AssetName.ICON_INFANTRY, Texture.class);
 		assetManager.load(AssetName.CARDS_BUTTON, Texture.class);
 		assetManager.load(AssetName.END_TURN, Texture.class);
+		assetManager.load(AssetName.END_GAME, Texture.class);
 	}
 
 	@Override
