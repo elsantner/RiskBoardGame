@@ -41,10 +41,4 @@ public class ChangeNicknameMessage extends BaseMessage {
         this.fromPlayerID = fromPlayerID;
     }
 
-    @Override
-    public String toString() {
-        return "ConnectedMessage{" +
-                "player=" + player +
-                '}';
-    }
 }

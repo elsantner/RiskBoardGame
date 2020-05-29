@@ -75,7 +75,6 @@ public class RiskGame extends Game {
 		//String nickname = defaultNameProvider.getDeviceName();
 		//System.out.println("### DEVICENAME" + nickname);
 
-
 		db.getListeners().setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
             gameScreen = new GameScreen(this);
             setScreen(gameScreen);

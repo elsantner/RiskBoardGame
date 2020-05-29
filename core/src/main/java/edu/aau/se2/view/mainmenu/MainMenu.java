@@ -15,14 +15,17 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import java.util.Collections;
+
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
+import edu.aau.se2.model.listener.OnNicknameChangeListener;
 import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.DefaultNameProvider;
 import edu.aau.se2.view.asset.AssetName;
 
-public class MainMenu extends AbstractScreen {
+public class MainMenu extends AbstractScreen implements OnNicknameChangeListener {
     private Skin mySkin;
     private Stage stage;
     private Viewport gamePort;
@@ -33,6 +36,7 @@ public class MainMenu extends AbstractScreen {
     private Table table;
     private Button settings;
     private DefaultNameProvider defaultNameProvider;
+    private String nickname;
 
     public MainMenu(RiskGame riskGame, DefaultNameProvider defaultNameProvider){
         super(riskGame);
@@ -157,5 +161,10 @@ public class MainMenu extends AbstractScreen {
     @Override
     public void dispose() {
         stage.dispose();
+    }
+
+    @Override
+    public void nicknameChanged(String nickname) {
+        this.nickname = nickname;
     }
 }

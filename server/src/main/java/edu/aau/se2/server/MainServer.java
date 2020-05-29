@@ -132,12 +132,12 @@ public class MainServer implements PlayerLostConnectionListener {
     }
 
     public void handleChangelNicknameMessage(ChangeNicknameMessage msg) {
-        //TODO: handling
         Player player = ds.getPlayerByID(msg.getFromPlayerID());
         String name = player.getNickname();
         String changedName = msg.getNickname();
         System.out.println("###handleChangelNicknameMessage new: " + changedName);
         player.setNickname(changedName);
+        //TODO: broadcast message to all players
     }
 
     private synchronized void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {

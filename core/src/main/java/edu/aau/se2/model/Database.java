@@ -42,6 +42,7 @@ import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkConstants;
 import edu.aau.se2.utils.LoggerConfigurator;
+import edu.aau.se2.view.DefaultNameProvider;
 import edu.aau.se2.view.game.OnBoardInteractionListener;
 
 public class Database implements OnBoardInteractionListener, NetworkClient.OnConnectionChangedListener {
@@ -70,6 +71,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private int currentArmyReserve;
     private Phase currentPhase;
     private Lobby lobby;
+    private String deviceName;
+    private DefaultNameProvider defaultNameProvider;
 
     protected Database() {
         resetLobby();
@@ -157,6 +160,18 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleChangeNicknameMessage((ChangeNicknameMessage) msg);
             }
         });
+    }
+
+
+    public synchronized void setPlayerNickname(String nickname) {
+        client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), nickname));
+    }
+
+    private void handleChangeNicknameMessage(ChangeNicknameMessage msg) {
+        //defaultNameProvider.getDeviceName();
+        listenerManager.notifyNicknameChangeListener(msg.getNickname());
+        //client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), defaultNameProvider.getDeviceName()));
+        client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), "ClientName"));
     }
 
     private void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
@@ -507,13 +522,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         return lobby;
     }
 
-    public synchronized void setPlayerNickname(String nickname) {
-        client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), nickname));
-    }
 
-    private void handleChangeNicknameMessage(ChangeNicknameMessage msg) {
-        listenerManager.notifyNicknameChangeListener("handle message");
-        client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), "Test from handleChangeNicknameMessage"));
-    }
 
 }
