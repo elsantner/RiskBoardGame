@@ -323,6 +323,13 @@ public class MainServer implements PlayerLostConnectionListener {
             server.broadcastMessage(new LeftLobbyMessage(), playerToLeave);
             server.broadcastMessage(new PlayersChangedMessage(lobbyToLeave.getLobbyID(),
                     SERVER_PLAYER_ID, lobbyToLeave.getPlayers()), lobbyToLeave.getPlayers());
+
+        } else if (!lobbyToLeave.areInitialArmiesPlaced()) {
+            // if player disconnects/leaves in initial army placement already, end game for everyone
+            server.broadcastMessage(new LeftLobbyMessage(true), lobbyToLeave.getPlayers());
+            ds.removeLobby(lobbyToLeave.getLobbyID());
+            lobbyToLeave.resetPlayers();
+
         } else if (playerToLeave.isHasLost()) {
             // if player has already lost he can be safely removed from game
             server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid(), true), lobbyToLeave.getPlayers());
@@ -331,7 +338,6 @@ public class MainServer implements PlayerLostConnectionListener {
             ds.updateLobby(lobbyToLeave);
 
         } else if (lobbyToLeave.getTurnOrder().size() >= 2) {
-
             // end attacking phase if player is attacker or defender
             if (lobbyToLeave.getCurrentAttack() != null && (playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getFromTerritoryID()).getUid() ||
                     playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getToTerritoryID()).getUid())) {
@@ -358,9 +364,9 @@ public class MainServer implements PlayerLostConnectionListener {
                 server.broadcastMessage(new NextTurnMessage(lobbyToLeave.getLobbyID(), SERVER_PLAYER_ID,
                         lobbyToLeave.getPlayerToAct().getUid()), lobbyToLeave.getPlayers());
             }
-
             playerToLeave.reset();
             ds.updateLobby(lobbyToLeave);
+
         } else if (lobbyToLeave.getPlayers().size() == 1) {
             // last player leaves lobby -> remove it
             server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid()), lobbyToLeave.getPlayers());
