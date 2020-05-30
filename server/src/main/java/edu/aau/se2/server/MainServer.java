@@ -330,8 +330,9 @@ public class MainServer implements PlayerLostConnectionListener {
             ds.removeLobby(lobbyToLeave.getLobbyID());
             lobbyToLeave.resetPlayers();
 
-        } else if (playerToLeave.isHasLost()) {
+        } else if (playerToLeave.isHasLost() || lobbyToLeave.getTurnOrder().size() == 1) {
             // if player has already lost he can be safely removed from game
+            // if player has already won he can return to main menu
             server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid(), true), lobbyToLeave.getPlayers());
             lobbyToLeave.leave(playerToLeave);
             playerToLeave.reset();
