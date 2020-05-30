@@ -339,6 +339,8 @@ public class MainServer implements PlayerLostConnectionListener {
             ds.updateLobby(lobbyToLeave);
 
         } else if (lobbyToLeave.getTurnOrder().size() >= 2) {
+            // player has not won or lost the game, thus he has to be removed carefully
+
             // end attacking phase if player is attacker or defender
             if (lobbyToLeave.getCurrentAttack() != null && (playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getFromTerritoryID()).getUid() ||
                     playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getToTerritoryID()).getUid())) {
@@ -368,11 +370,9 @@ public class MainServer implements PlayerLostConnectionListener {
             playerToLeave.reset();
             ds.updateLobby(lobbyToLeave);
 
-        } else if (lobbyToLeave.getPlayers().size() == 1) {
-            // last player leaves lobby -> remove it
-            server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid()), lobbyToLeave.getPlayers());
-            lobbyToLeave.leave(playerToLeave);
-            playerToLeave.reset();
+        }
+        // make sure Lobby is removed if after above steps all players are gone
+        if (lobbyToLeave.getPlayers().size() == 0 && ds.getLobbyByID(lobbyToLeave.getLobbyID()) != null) {
             ds.removeLobby(lobbyToLeave.getLobbyID());
         }
     }

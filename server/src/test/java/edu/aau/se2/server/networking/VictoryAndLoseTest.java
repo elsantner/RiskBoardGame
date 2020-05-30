@@ -20,9 +20,10 @@ import edu.aau.se2.server.networking.dto.game.VictoryMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Tests regarding NewCardMessages
+ * Tests regarding Victory- and PlayerLostMessage
  */
 public class VictoryAndLoseTest extends AbstractServerTest {
     private static final int NUM_CLIENTS = 3;
@@ -63,6 +64,7 @@ public class VictoryAndLoseTest extends AbstractServerTest {
     public void testPlayerVictory() throws InterruptedException {
         Lobby l = server.getDataStore().getLobbyByID(lobbyID);
         Player attacker = clientPlayers.get(turnOrder.get(0));
+        Player loser = l.getPlayerByID(l.getTurnOrder().get(1));
 
         Territory attackerTerritory = l.getTerritoriesOccupiedByPlayer(attacker.getUid())[0];
         Territory defenderTerritory = l.getTerritoriesOccupiedByPlayer(clientPlayers.get(turnOrder.get(1)).getUid())[0];
@@ -96,6 +98,9 @@ public class VictoryAndLoseTest extends AbstractServerTest {
         assertEquals(0, playerLostMsgCount.get());
         assertEquals(3, victoryMsgCount.get());
         assertEquals(3, occupyTerritoryMsgCount.get());
+
+        // make sure player is set to have lost
+        assertTrue(loser.isHasLost());
     }
 
 
@@ -152,6 +157,7 @@ public class VictoryAndLoseTest extends AbstractServerTest {
     public void testPlayerLose() throws InterruptedException {
         Lobby l = server.getDataStore().getLobbyByID(lobbyID);
         Player attacker = clientPlayers.get(turnOrder.get(0));
+        Player loser = l.getPlayerByID(l.getTurnOrder().get(1));
 
         Territory attackerTerritory = l.getTerritoriesOccupiedByPlayer(attacker.getUid())[0];
         Territory defenderTerritory = l.getTerritoriesOccupiedByPlayer(clientPlayers.get(turnOrder.get(1)).getUid())[0];
@@ -184,6 +190,9 @@ public class VictoryAndLoseTest extends AbstractServerTest {
         assertEquals(3, playerLostMsgCount.get());
         assertEquals(0, victoryMsgCount.get());
         assertEquals(3, occupyTerritoryMsgCount.get());
+
+        // make sure player is set to have lost
+        assertTrue(loser.isHasLost());
     }
 
     @After
