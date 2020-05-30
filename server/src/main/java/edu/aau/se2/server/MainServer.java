@@ -160,7 +160,7 @@ public class MainServer implements PlayerLostConnectionListener {
             server.broadcastMessage(msg, l.getPlayers());
 
             // test if a player has lost/won -> inform clients
-            InLobbyMessage victoryOrLose = VictoryHelper.handleTerritoryOccupation(msg);
+            InLobbyMessage victoryOrLose = VictoryHelper.handleTerritoryOccupation(l, msg.getFromPlayerID());
             if (victoryOrLose != null) {
                 server.broadcastMessage(victoryOrLose, l.getPlayers());
             }

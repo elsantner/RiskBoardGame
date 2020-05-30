@@ -16,16 +16,12 @@ public abstract class VictoryHelper {
         // no instance required
     }
 
-    private static DataStore ds = DataStore.getInstance();
-
-
-    public static InLobbyMessage handleTerritoryOccupation(OccupyTerritoryMessage msg) {
-        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+    public static InLobbyMessage handleTerritoryOccupation(Lobby l, int attackerUid) {
         if (l == null) return null;
 
         // one player has every occupied territory => Victory
-        if (l.getNumberOfTerritories() - l.getTerritoriesOccupiedByPlayer(msg.getFromPlayerID()).length - l.getUnoccupiedTerritories().length == 0) {
-            return handlePlayerVictory(l, msg.getFromPlayerID());
+        if (l.getNumberOfTerritories() - l.getTerritoriesOccupiedByPlayer(attackerUid).length - l.getUnoccupiedTerritories().length == 0) {
+            return handlePlayerVictory(l, attackerUid);
         }
 
         // check if player has 0 Territories left => Lose
@@ -46,14 +42,12 @@ public abstract class VictoryHelper {
                 removePlayerFromTurnOrder(l, turnOrder.get(i));
             }
         }
-        ds.updateLobby(l);
         return new VictoryMessage(l.getLobbyID(), uid);
     }
 
     private static InLobbyMessage handlePlayerLost(Lobby l, int uid) {
         removePlayerFromTurnOrder(l, uid);
         l.getPlayerByID(uid).setHasLost(true);
-        ds.updateLobby(l);
         return new PlayerLostMessage(l.getLobbyID(), uid);
     }
 
