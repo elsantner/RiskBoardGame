@@ -82,7 +82,7 @@ public abstract class AbstractScreen implements Screen, InputProcessor {
     }
 
     public void showDialog(Dialog dialog, Stage stage, float scale) {
-        dialog.show(stage);
+        dialog.show(stage).moveBy(0, stage.getViewport().getWorldHeight() * 0.11f);
         dialog.setScale(scale);
         dialog.setOrigin(Align.center);
     }

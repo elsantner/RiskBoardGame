@@ -13,12 +13,15 @@ import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.game.LeftGameMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.PlayerLostMessage;
 import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.game.VictoryMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
@@ -71,5 +74,8 @@ public interface SerializationRegister {
         component.registerClass(OccupyTerritoryMessage.class);
         component.registerClass(Card[].class);
         component.registerClass(DefenderDiceCountMessage.class);
+        component.registerClass(PlayerLostMessage.class);
+        component.registerClass(LeftGameMessage.class);
+        component.registerClass(VictoryMessage.class);
     }
 }

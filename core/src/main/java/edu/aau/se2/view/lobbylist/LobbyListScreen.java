@@ -61,7 +61,7 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
 
         batch.begin();
         batch.draw(background, 0, 0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
-        batch.draw(lobbyOverlay, 0, 0,  stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
+        batch.draw(lobbyOverlay, 0, 0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
         batch.end();
 
         stage.act();
@@ -98,8 +98,8 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
         line = assetManager.get(AssetName.TEX_LOBBYLIST_LINE);
         batch = new SpriteBatch();
 
-        stage = new Stage(new StretchViewport(1920,1080));
-        stage.stageToScreenCoordinates(new Vector2(0,0));
+        stage = new Stage(new StretchViewport(1920, 1080));
+        stage.stageToScreenCoordinates(new Vector2(0, 0));
 
         addInputProcessor(stage);
 
@@ -134,7 +134,7 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
         Table buttonTable = new Table();
 
         outerTable.add(new Image(lobbyText)).minHeight(lobbyText.getHeight());
-        buttonTable.add(updateButton);
+        buttonTable.add(updateButton).padBottom(stage.getViewport().getWorldHeight() * 0.01f);
         buttonTable.row();
         buttonTable.add(exitButton);
         outerTable.add(buttonTable).fill();
@@ -154,7 +154,7 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
             lobbyListTable.clearChildren();
         }
 
-        for (LobbyListMessage.LobbyData l: lobbyData) {
+        for (LobbyListMessage.LobbyData l : lobbyData) {
             Label text = new Label(l.getHost().getNickname(), skin, "font-big", Color.BLACK);
             Label text2 = new Label("Players: " + l.getPlayerCount(), skin, "font-big", Color.BLACK);
             TextButton text3 = new TextButton("Beitreten", skin);
@@ -193,12 +193,12 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
     @Override
     public void onError(int errorCode) {
         String errorMessage =
-                errorCode == ErrorMessage.JOIN_LOBBY_ALREADY_JOINED     ? "Already joined."
-                : errorCode == ErrorMessage.JOIN_LOBBY_CLOSED           ? "Lobby closed"
-                : errorCode == ErrorMessage.JOIN_LOBBY_FULL             ? "Lobby full"
-                : "Unknown error while joining";
+                errorCode == ErrorMessage.JOIN_LOBBY_ALREADY_JOINED ? "Already joined."
+                        : errorCode == ErrorMessage.JOIN_LOBBY_CLOSED ? "Lobby closed"
+                        : errorCode == ErrorMessage.JOIN_LOBBY_FULL ? "Lobby full"
+                        : "Unknown error while joining";
 
-         getGame().showMessage(errorMessage);
-         Database.getInstance().triggerLobbyListUpdate();
+        getGame().showMessage(errorMessage);
+        Database.getInstance().triggerLobbyListUpdate();
     }
 }
