@@ -3,11 +3,9 @@ package edu.aau.se2.server.logic;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.aau.se2.server.data.DataStore;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.dto.InLobbyMessage;
-import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
 import edu.aau.se2.server.networking.dto.game.PlayerLostMessage;
 import edu.aau.se2.server.networking.dto.game.VictoryMessage;
 

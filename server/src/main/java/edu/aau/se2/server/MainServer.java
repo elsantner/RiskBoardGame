@@ -340,41 +340,45 @@ public class MainServer implements PlayerLostConnectionListener {
 
         } else if (lobbyToLeave.getTurnOrder().size() >= 2) {
             // player has not won or lost the game, thus he has to be removed carefully
-
-            // end attacking phase if player is attacker or defender
-            if (lobbyToLeave.getCurrentAttack() != null && (playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getFromTerritoryID()).getUid() ||
-                    playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getToTerritoryID()).getUid())) {
-                lobbyToLeave.setCurrentAttack(null);
-                server.broadcastMessage(new AttackResultMessage(lobbyToLeave.getLobbyID(), lobbyToLeave.getPlayerToAct().getUid(),
-                        0, 0, false, false), lobbyToLeave.getPlayers());
-            }
-
-            boolean wasPlayersTurn = lobbyToLeave.isPlayersTurn(playerToLeave.getUid());
-            // if more then 2 players are left remove that player (in lobby his territories will be set unoccupied)
-            VictoryHelper.removePlayerFromTurnOrder(lobbyToLeave, playerToLeave.getUid());
-            lobbyToLeave.clearTerritoriesOfPlayer(playerToLeave.getUid());
-            server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid()), lobbyToLeave.getPlayers());
-            lobbyToLeave.leave(playerToLeave);
-            ds.updateLobby(lobbyToLeave);
-
-            // if only one player is left he has won the game, inform everyone
-            if (lobbyToLeave.getTurnOrder().size() == 1 && !(lobbyToLeave.getPlayerByID(lobbyToLeave.getTurnOrder().get(0)).isHasLost())) {
-                server.broadcastMessage(new VictoryMessage(lobbyToLeave.getLobbyID(), lobbyToLeave.getPlayerToAct().getUid()), lobbyToLeave.getPlayers());
-            }
-
-            if (wasPlayersTurn) {
-                lobbyToLeave.nextPlayersTurn();
-                server.broadcastMessage(new NextTurnMessage(lobbyToLeave.getLobbyID(), SERVER_PLAYER_ID,
-                        lobbyToLeave.getPlayerToAct().getUid()), lobbyToLeave.getPlayers());
-            }
-            playerToLeave.reset();
-            ds.updateLobby(lobbyToLeave);
-
+            playerLeavesAdvanced(lobbyToLeave, playerToLeave);
+            
         }
         // make sure Lobby is removed if after above steps all players are gone
         if (lobbyToLeave.getPlayers().size() == 0 && ds.getLobbyByID(lobbyToLeave.getLobbyID()) != null) {
             ds.removeLobby(lobbyToLeave.getLobbyID());
         }
+    }
+
+    private void playerLeavesAdvanced(Lobby lobbyToLeave, Player playerToLeave) {
+
+        // end attacking phase if player is attacker or defender
+        if (lobbyToLeave.getCurrentAttack() != null && (playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getFromTerritoryID()).getUid() ||
+                playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getToTerritoryID()).getUid())) {
+            lobbyToLeave.setCurrentAttack(null);
+            server.broadcastMessage(new AttackResultMessage(lobbyToLeave.getLobbyID(), lobbyToLeave.getPlayerToAct().getUid(),
+                    0, 0, false, false), lobbyToLeave.getPlayers());
+        }
+
+        boolean wasPlayersTurn = lobbyToLeave.isPlayersTurn(playerToLeave.getUid());
+        // if more then 2 players are left remove that player (in lobby his territories will be set unoccupied)
+        VictoryHelper.removePlayerFromTurnOrder(lobbyToLeave, playerToLeave.getUid());
+        lobbyToLeave.clearTerritoriesOfPlayer(playerToLeave.getUid());
+        server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid()), lobbyToLeave.getPlayers());
+        lobbyToLeave.leave(playerToLeave);
+        ds.updateLobby(lobbyToLeave);
+
+        // if only one player is left he has won the game, inform everyone
+        if (lobbyToLeave.getTurnOrder().size() == 1 && !(lobbyToLeave.getPlayerByID(lobbyToLeave.getTurnOrder().get(0)).isHasLost())) {
+            server.broadcastMessage(new VictoryMessage(lobbyToLeave.getLobbyID(), lobbyToLeave.getPlayerToAct().getUid()), lobbyToLeave.getPlayers());
+        }
+
+        if (wasPlayersTurn) {
+            lobbyToLeave.nextPlayersTurn();
+            server.broadcastMessage(new NextTurnMessage(lobbyToLeave.getLobbyID(), SERVER_PLAYER_ID,
+                    lobbyToLeave.getPlayerToAct().getUid()), lobbyToLeave.getPlayers());
+        }
+        playerToLeave.reset();
+        ds.updateLobby(lobbyToLeave);
     }
 
     private synchronized void handleRequestJoinLobbyMessage(RequestJoinLobbyMessage msg) {
