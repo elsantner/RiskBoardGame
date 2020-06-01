@@ -217,7 +217,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     }
 
-    private synchronized void handleAttackResultMessage(AttackResultMessage msg) {
+    protected synchronized void handleAttackResultMessage(AttackResultMessage msg) {
         log.info("Attacker armies lost: " + msg.getArmiesLostAttacker());
         log.info("Defender armies lost: " + msg.getArmiesLostDefender());
 
