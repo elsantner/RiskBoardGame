@@ -66,8 +66,8 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
 
     @Override
     public void show() {
-        stage = new Stage(new StretchViewport(1920,1080));
-        stage.stageToScreenCoordinates(new Vector2(0,0));
+        stage = new Stage(new StretchViewport(1920, 1080));
+        stage.stageToScreenCoordinates(new Vector2(0, 0));
 
         addInputProcessor(stage);
 
@@ -82,8 +82,8 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
         TextButton exit = new TextButton("Verlassen", skin);
         exit.addListener(new ExitButtonListener());
 
-        outerTable.add(ready).width(stage.getViewport().getWorldWidth() *0.2f).pad(10f).row();
-        outerTable.add(exit).width(stage.getViewport().getWorldWidth() *0.2f).pad(10f);
+        outerTable.add(ready).width(stage.getViewport().getWorldWidth() * 0.2f).padBottom(stage.getViewport().getWorldHeight() * 0.01f).row();
+        outerTable.add(exit).width(stage.getViewport().getWorldWidth() * 0.2f);
         this.stage.addActor(outerTable);
     }
 
@@ -110,7 +110,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     private void renderUsers() {
 
         int xCord = (width * 55) / 1080;
-        int yCord = (height  * 760) / 1080;
+        int yCord = (height * 760) / 1080;
 
         batch.begin();
         for (Player us : users
@@ -121,10 +121,10 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
             font.draw(batch, name, xCord, yCord);
             if (ready) {
                 font.setColor(new Color(0, 0.8f, 0, 1));
-                font.draw(batch, "ready", (xCord + (int)((width * 1200)/ 1920)), yCord);
+                font.draw(batch, "ready", (xCord + (int) ((width * 1200) / 1920)), yCord);
             } else {
                 font.setColor(new Color(0.8f, 0, 0, 1));
-                font.draw(batch, "!ready", (xCord +(int)((width * 1200)/ 1920)), yCord);
+                font.draw(batch, "!ready", (xCord + (int) ((width * 1200) / 1920)), yCord);
             }
             yCord -= (height * 150) / 1080;
         }
@@ -162,8 +162,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
             font = null;
             lobbyText = null;
             skin = null;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             LoggerConfigurator.getConfiguredLogger(TAG, Level.WARNING).log(Level.WARNING, "Error disposing assets", ex);
         }
     }
@@ -174,7 +173,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     }
 
     private void assets() {
-        Gdx.app.log(TAG, "Loading assets" + Gdx.graphics.getDensity() + "  "+ height);
+        Gdx.app.log(TAG, "Loading assets" + Gdx.graphics.getDensity() + "  " + height);
         AssetManager assetManager = getGame().getAssetManager();
 
         background = assetManager.get(AssetName.TEX_LOBBY_SCREEN);
