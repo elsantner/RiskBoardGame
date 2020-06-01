@@ -168,6 +168,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private void handleChangeNicknameMessage(ChangeNicknameMessage msg) {
+        //TODO: give the device's name to the ChangeNicknameMessage
         //defaultNameProvider.getDeviceName();
         listenerManager.notifyNicknameChangeListener(msg.getNickname());
         //client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), defaultNameProvider.getDeviceName()));

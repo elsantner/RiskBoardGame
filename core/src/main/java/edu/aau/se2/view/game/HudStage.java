@@ -21,7 +21,6 @@ import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.List;
-import java.util.Locale;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNextTurnListener;
@@ -54,7 +53,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
 
     public HudStage(AbstractScreen screen, Viewport vp, List<Player> currentPlayers, OnHUDInteractionListener l) {
         super(vp, screen);
-        System.out.println("###andorid ");
         db = Database.getInstance();
         currentPlayerNames = new String[currentPlayers.size()];
         currentPlayerColors = new Color[currentPlayers.size()];
