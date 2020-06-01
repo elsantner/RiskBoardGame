@@ -207,7 +207,7 @@ public class MainServer implements PlayerLostConnectionListener {
             Collections.sort(defenderResults, Collections.reverseOrder());
 
             for(int i = 0; i < Math.min(attackerResults.size(), defenderResults.size()); i++) {
-                if (attackerResults.get(i) < defenderResults.get(i)) {
+                if (attackerResults.get(i) <= defenderResults.get(i)) {
                     armiesLostAttacker++;
                 } else {
                     armiesLostDefender++;

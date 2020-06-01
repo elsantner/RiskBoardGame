@@ -210,7 +210,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                     boardStage.setInteractable(true);
                 });
         dialog.setAbortAllowed(false);
-        showDialog(dialog);
+
+        super.showDialog(dialog, hudStage, 2, Align.bottomRight);
     }
 
     private void showOccupyTerritoryDialog(int fromTerritoryID, int toTerritoryID) {
