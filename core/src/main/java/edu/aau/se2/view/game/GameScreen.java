@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 import java.util.List;
@@ -303,13 +304,11 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
             boardStage.attackStartable(false);
 
             Attack a = db.getLobby().getCurrentAttack();
-            if (a != null && db.isThisPlayersTurn()) {
-                List<Integer> result = DiceStage.rollDice(a.getAttackerDiceCount());
-                db.sendAttackerResults(result, false);
-                diceStage.showResults(result, true);
-            }
 
-            if (a != null && db.isThisPlayerDefender()) {
+            // player is attacker
+            diceStage.playAttackerDiceAnimation(a.getAttackerDiceCount(), db.isThisPlayersTurn());
+            // player is defender
+            if (db.isThisPlayerDefender()) {
                 showStartDefendDialog(a.getToTerritoryID());
             }
         });
@@ -321,19 +320,26 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         Gdx.app.postRunnable(() -> {
             hudStage.setCurrentAttack(a);
 
+            // defenders armies were eliminated & territory needs to be occupied
             if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
                 diceStage.hide();
                 showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
-            } else if (a != null && a.getDefenderDiceCount() != -1 && a.getDefenderDiceResults() == null && db.isThisPlayerDefender()) {
+            }
+            // received attacker dice results
+            else if (a != null && a.getDefenderDiceCount() != -1 && a.getDefenderDiceResults() == null && db.isThisPlayerDefender()) {
+                diceStage.showAttackerResults(DiceStage.attackerDiceResults(a.getAttackerDiceCount()));
+
                 List<Integer> result = DiceStage.rollDice(a.getDefenderDiceCount());
                 db.sendDefenderResults(result);
-                diceStage.showResults(result, false);
-            } else if (a != null) {
+                diceStage.showDefenderResults(result, true);
+            }
+            // attack was just started
+            else if (a != null) {
                 if (a.getAttackerDiceResults() != null) {
-                    diceStage.showResults(a.getAttackerDiceResults(), true);
+                    diceStage.showAttackerResults(a.getAttackerDiceResults());
                 }
                 if (a.getDefenderDiceResults() != null) {
-                    diceStage.showResults(a.getDefenderDiceResults(), false);
+                    diceStage.showDefenderResults(a.getDefenderDiceResults(), true);
                 }
             }
         });
@@ -343,6 +349,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     public void attackFinished() {
         attackUpdated();
 
+        diceStage.reset();
         Gdx.app.postRunnable(() -> {
             hudStage.setPhaseSkipable(true);
             boardStage.attackStartable(true);
