@@ -50,7 +50,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         db.getListeners().setCardsChangedListener(cardStage);
         db.getListeners().setAttackUpdatedListener(this);
         db.getListeners().setArmyReserveChangedListener(this);
-
         diceStage = new DiceStage(new FitViewport(width, height), this);
 
         // trigger player turn update because listener might not have been registered when
@@ -327,11 +326,10 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
             }
             // received attacker dice results
             else if (a != null && a.getDefenderDiceCount() != -1 && a.getDefenderDiceResults() == null && db.isThisPlayerDefender()) {
-                diceStage.showAttackerResults(DiceStage.attackerDiceResults(a.getAttackerDiceCount()));
+                diceStage.showAttackerResults(a.getAttackerDiceResults());
 
                 List<Integer> result = DiceStage.rollDice(a.getDefenderDiceCount());
                 db.sendDefenderResults(result);
-                diceStage.showDefenderResults(result, true);
             }
             // attack was just started
             else if (a != null) {
