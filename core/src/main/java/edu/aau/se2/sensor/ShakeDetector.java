@@ -10,19 +10,22 @@ import java.util.Random;
 
 public class ShakeDetector {
     private static final float CONST_ACCELERATION = 9.8f;
-    static boolean availableA;
-    static boolean availableV;
 
-    public ShakeDetector(){
-       this.availableA = Gdx.input.isPeripheralAvailable(Input.Peripheral.Accelerometer);
-       this.availableV = Gdx.input.isPeripheralAvailable(Input.Peripheral.Vibrator);
+    private static boolean availableA;
+    private static boolean availableV;
+
+    static {
+        availableA = Gdx.input.isPeripheralAvailable(Input.Peripheral.Accelerometer);
+        availableV = Gdx.input.isPeripheralAvailable(Input.Peripheral.Vibrator);
     }
 
-    public static boolean isAvailableA(){
+    private ShakeDetector() {
+        // defeat instantiation
+    }
+
+    public static boolean isAvailable() {
         return availableA;
     }
-
-
     //the method is checking if the accelerometer is supported and if yes, returning the signal that the phone is being shaked
     public static boolean isShaking() {
         if (availableA) {
@@ -36,7 +39,7 @@ public class ShakeDetector {
         } else{
             throw new UnsupportedOperationException("The Accelerometer is not available on your device");
         }
-        }
+    }
 
     //the method is checking if the vibrator is supported, and if yes, the phone is going to vibrate
     public static void vibrate(){
@@ -45,7 +48,7 @@ public class ShakeDetector {
         }else {
             throw new UnsupportedOperationException("The Vibration is not available on your device");
         }
-     }
+    }
 
 }
 

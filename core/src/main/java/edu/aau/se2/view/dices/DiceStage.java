@@ -10,17 +10,17 @@ import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.sensor.ShakeDetector;
+import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.AbstractStage;
 import edu.aau.se2.view.asset.AssetName;
+import edu.aau.se2.view.dices.DiceAnimationAction;
 
 /**
  * Example use:
@@ -45,8 +45,9 @@ public class DiceStage extends AbstractStage {
 
     private Table outerTable;
 
-    private static List<Integer> attackerDiceResults;
+    private List<Integer> attackerDiceResults;
     private boolean cheated = false;
+    private boolean attackerDicingAnimationRunning = false;
 
     public DiceStage(AbstractScreen screen) {
         super(screen);
@@ -67,11 +68,11 @@ public class DiceStage extends AbstractStage {
     }
 
     public static List<Integer> rollDice(int diceCount) {
-        //List<Integer> results = new ArrayList<>();
+        List<Integer> results = new ArrayList<>();
         for (int i = 0; i < diceCount; i++) {
-            attackerDiceResults.add(ThreadLocalRandom.current().nextInt(1, 6 + 1));
+            results.add(ThreadLocalRandom.current().nextInt(1, 6 + 1));
         }
-        return attackerDiceResults;
+        return results;
     }
 
     private void setup() {
@@ -82,25 +83,31 @@ public class DiceStage extends AbstractStage {
         addActor(outerTable);
     }
 
-    public static List<Integer> cheatDicingResults(){
-        for(int i = 0; i < attackerDiceResults.size(); i++){
-            attackerDiceResults.set(i, (attackerDiceResults.get(i)+2));
-        }
-        return attackerDiceResults;
-    }
-
-    public void act(float delta){
+    @Override
+    public void act(float delta) {
         super.act(delta);
-        if(ShakeDetector.isAvailableA() && ShakeDetector.isShaking()){
+        if (attackerDicingAnimationRunning && !cheated &&
+                ShakeDetector.isAvailable() && ShakeDetector.isShaking()) {
             cheated = true;
             cheatDicingResults();
             ShakeDetector.vibrate();
         }
     }
 
+    private void cheatDicingResults() {
+        List<Integer> cheatedResults = new ArrayList<>();
+        Random rand = new Random();
+        for (int result : attackerDiceResults) {
+            // add random integer between 0 and 2 to each dicing result
+            cheatedResults.add(Math.max(1, Math.min(6, result + rand.nextInt(3))));
+        }
+        attackerDiceResults = cheatedResults;
+    }
+
     public void playAttackerDiceAnimation(int diceCount, boolean isThisPlayerAttacker) {
+        attackerDicingAnimationRunning = true;
         // generate initial results (can be changed by cheating)
-        //attackerDiceResults = rollDice(diceCount);
+        attackerDiceResults = rollDice(diceCount);
 
         // play dicing animation
         outerTable.clearChildren();
@@ -117,13 +124,8 @@ public class DiceStage extends AbstractStage {
             Timer.schedule(new Timer.Task() {
                 @Override
                 public void run() {
-                    if(!cheated){
-                        cheated = true;
-                        Database.getInstance().sendAttackerResults(DiceStage.cheatDicingResults(), cheated);
-                    }else{
-                        Database.getInstance().sendAttackerResults(DiceStage.rollDice(diceCount), cheated);
-                    }
-
+                    attackerDicingAnimationRunning = false;
+                    Database.getInstance().sendAttackerResults(attackerDiceResults, cheated);
                 }
             }, DICE_ANIMATION_SECONDS);
         }
@@ -134,8 +136,8 @@ public class DiceStage extends AbstractStage {
         outerTable.clearChildren();
         TextureRegion[] textures = attackerDiceTextures;
 
-        for(Integer r : results) {
-            Image dice = new Image(textures[r-1]);
+        for (Integer r : results) {
+            Image dice = new Image(textures[r - 1]);
             outerTable.add(dice).pad(20);
         }
         outerTable.row();
@@ -144,8 +146,8 @@ public class DiceStage extends AbstractStage {
     public void showDefenderResults(List<Integer> results, boolean playAnimation) {
         TextureRegion[] textures = defenderDiceTextures;
 
-        for(Integer r : results) {
-            Image dice = new Image(textures[r-1]);
+        for (Integer r : results) {
+            Image dice = new Image(textures[r - 1]);
             if (playAnimation) {
                 dice.addAction(new DiceAnimationAction(DICE_ANIMATION_SECONDS, textures, r));
             }
@@ -154,19 +156,17 @@ public class DiceStage extends AbstractStage {
         outerTable.row();
     }
 
-
-
     private void loadAssets() {
         AssetManager am = getScreen().getGame().getAssetManager();
 
         Texture dicesTexture = am.get(AssetName.TEX_DICE_ATTACKER);
         for (int i = 0; i < 6; i++) {
-            attackerDiceTextures[i] = new TextureRegion(dicesTexture, i*DICE_TEXTURE_WIDTH, 0, DICE_TEXTURE_WIDTH, DICE_TEXTURE_HEIGHT);
+            attackerDiceTextures[i] = new TextureRegion(dicesTexture, i * DICE_TEXTURE_WIDTH, 0, DICE_TEXTURE_WIDTH, DICE_TEXTURE_HEIGHT);
         }
 
         Texture dDicesTexture = am.get(AssetName.TEX_DICE_DEFENDER);
         for (int i = 0; i < 6; i++) {
-            defenderDiceTextures[i] = new TextureRegion(dDicesTexture, i*DICE_TEXTURE_WIDTH, 0, DICE_TEXTURE_WIDTH, DICE_TEXTURE_HEIGHT);
+            defenderDiceTextures[i] = new TextureRegion(dDicesTexture, i * DICE_TEXTURE_WIDTH, 0, DICE_TEXTURE_WIDTH, DICE_TEXTURE_HEIGHT);
         }
     }
 
