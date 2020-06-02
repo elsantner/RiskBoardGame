@@ -16,11 +16,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import edu.aau.se2.model.Database;
 import edu.aau.se2.sensor.ShakeDetector;
-import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.AbstractStage;
 import edu.aau.se2.view.asset.AssetName;
-import edu.aau.se2.view.dices.DiceAnimationAction;
 
 /**
  * Example use:

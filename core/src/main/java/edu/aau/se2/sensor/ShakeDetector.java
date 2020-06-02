@@ -2,11 +2,6 @@ package edu.aau.se2.sensor;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public class ShakeDetector {
     private static final float CONST_ACCELERATION = 9.8f;
