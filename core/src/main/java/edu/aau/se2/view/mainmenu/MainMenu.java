@@ -46,16 +46,18 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
     private boolean changeName;
     private ChangeNameStage changeNameStage;
     private TextInputListener listener;
-    final Preferences prefs = Gdx.app.getPreferences("profile");
+    private Preferences prefs = Gdx.app.getPreferences("profile");
     private PopupMessageDisplay popupMessageDisplay;
 
 
-    public MainMenu(RiskGame riskGame, DefaultNameProvider defaultNameProvider){
+    public MainMenu(RiskGame riskGame, DefaultNameProvider defaultNameProvider, PopupMessageDisplay popupMessageDisplay){
         super(riskGame);
+
         mySkin = getGame().getAssetManager().get(AssetName.UI_SKIN_2);
         gamePort = new ScreenViewport();
         stage = new Stage(gamePort);
         this.defaultNameProvider = defaultNameProvider;
+        this.popupMessageDisplay = popupMessageDisplay;
 
         backgroundTxt = getGame().getAssetManager().get(AssetName.TEX_LOBBY_SCREEN);
 
@@ -74,18 +76,25 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         onClickButtons();
 
         changeNameStage = new ChangeNameStage(this, new FitViewport(screenWidth, screenHeight));
-        if(prefs.getString("name") == "Player" || prefs.getString("name") == null){
+        if(prefs.getString("name") == "New Player"){
+            prefs.remove("name");
             Gdx.input.getTextInput(new Input.TextInputListener() {
+
                 @Override
                 public void input(String text) {
                     Database.getInstance().setPlayerNickname(text);
+                    prefs.putString("name", text);
+                    popupMessageDisplay.showMessage("Nickname: " + text);
                 }
 
                 @Override
                 public void canceled() {
-
+                    Database.getInstance().setPlayerNickname(defaultNameProvider.getDeviceName());
+                    prefs.putString("name",  defaultNameProvider.getDeviceName());
+                    popupMessageDisplay.showMessage("Nickname: " + defaultNameProvider.getDeviceName());
                 }
-            },"Nickname eingeben", nickname, "");
+            },"Nickname eingeben", defaultNameProvider.getDeviceName(), "");
+            prefs.flush();
         }
 
         Gdx.input.setInputProcessor(stage);
@@ -142,27 +151,38 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         });
 
         settings.addListener(new ChangeListener() {
+
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                if(prefs.getString("name") != null && prefs.getString("name") != ""){
+                    nickname = prefs.getString("name");
+                } else {
+                    nickname = defaultNameProvider.getDeviceName();
+                }
                 Gdx.input.getTextInput(new Input.TextInputListener() {
+
                     @Override
                     public void input(String text) {
-                        if(prefs.getString("name") != null){
-                           nickname = prefs.getString("name");
-                        } else {
-                           nickname = defaultNameProvider.getDeviceName();
-                        }
-                        //set username on the server and then put the preference
+
                         Database.getInstance().setPlayerNickname(text);
                         prefs.remove("name");
                         prefs.putString("name", text);
                         prefs.flush();
-                        //popupMessageDisplay
+                        popupMessageDisplay.showMessage("Nickname: " + text);
                     }
 
                     @Override
                     public void canceled() {
-                        Database.getInstance().setPlayerNickname(defaultNameProvider.getDeviceName());
+                        prefs.remove("name");
+                        if(nickname == null){
+                            Database.getInstance().setPlayerNickname(defaultNameProvider.getDeviceName());
+                            prefs.putString("name", defaultNameProvider.getDeviceName());
+                        } else {
+                            Database.getInstance().setPlayerNickname(nickname);
+                            prefs.putString("name", nickname);
+                        }
+                        popupMessageDisplay.showMessage("Nickname: " + nickname);
+                        prefs.flush();
                     }
                 }, "Nickname eingeben", nickname, "");
             }

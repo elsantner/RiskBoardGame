@@ -61,7 +61,6 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
                         //CollectInitialNicknameMessage collectInitialNicknameMessage = new CollectInitialNicknameMessage();
                         //collectInitialNicknameMessage.getNickname();
                         //System.out.println("### TESTNICKNAME: " + collectInitialNicknameMessage.getNickname());
-                        //ds.setPlayerName(newPlayer.getUid(), collectInitialNicknameMessage.getNickname());
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }

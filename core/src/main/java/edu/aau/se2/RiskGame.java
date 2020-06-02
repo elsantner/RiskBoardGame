@@ -57,7 +57,6 @@ public class RiskGame extends Game {
 
 		this.popupMessageDisplay = popupMessageDisplay;
 		this.defaultNameProvider = defaultNameProvider;
-		System.out.println("### defaultNameProvider " + defaultNameProvider);
 	}
 
 	@Override
@@ -72,9 +71,6 @@ public class RiskGame extends Game {
 
         Database db = Database.getInstance();
 
-		//String nickname = defaultNameProvider.getDeviceName();
-		//System.out.println("### DEVICENAME" + nickname);
-
 		db.getListeners().setGameStartListener((players, initialArmyCount) -> Gdx.app.postRunnable(() -> {
             gameScreen = new GameScreen(this);
             setScreen(gameScreen);
@@ -83,7 +79,7 @@ public class RiskGame extends Game {
 			if (wasClosed) {
 				popupMessageDisplay.showMessage("Spiel geschlossen");
 			}
-			mainMenuScreen = new MainMenu(this, defaultNameProvider);
+			mainMenuScreen = new MainMenu(this, defaultNameProvider, popupMessageDisplay);
 			setScreen(mainMenuScreen);
 		}));
 		db.getListeners().setJoinedLobbyListener((lobbyID, host, players) -> Gdx.app.postRunnable(() -> {
@@ -184,7 +180,7 @@ public class RiskGame extends Game {
 		if(assetManager.update() && !isDoneLoadingAssets) {
 			isDoneLoadingAssets = true;
 			assetPostProcessing();
-			mainMenuScreen = new MainMenu(this, defaultNameProvider);
+			mainMenuScreen = new MainMenu(this, defaultNameProvider, popupMessageDisplay);
 			setScreen(mainMenuScreen);
 		}
 	}

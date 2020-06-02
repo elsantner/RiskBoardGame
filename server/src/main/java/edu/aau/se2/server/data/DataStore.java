@@ -122,11 +122,4 @@ public class DataStore {
         this.deviceNameListener = listener;
     }
 
-    public void setPlayerName(int playerID, String newName) {
-        String nickname = playersOnline.get(playerID).getNickname();
-        if(nickname != newName){
-            playersOnline.get(playerID).setNickname(newName);
-        }
-    }
-
 }

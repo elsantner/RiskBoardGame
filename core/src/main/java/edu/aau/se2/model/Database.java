@@ -173,9 +173,13 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private void handleChangeNicknameMessage(ChangeNicknameMessage msg) {
         listenerManager.notifyNicknameChangeListener(msg.getNickname());
-        if(prefs.getString("name") == null){
-            client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), "Player"));
+        if(prefs.getString("name") == "" || prefs.getString("name") == null){
+            client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), "New Player"));
+            prefs.putString("name", "New Player");
+            prefs.flush();
+            System.out.println("### handleChangeNicknameMessage IF " + prefs.getString("name"));
         } else {
+            System.out.println("### handleChangeNicknameMessage ELSE " + prefs.getString("name"));
             client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), prefs.getString("name")));
         }
     }
