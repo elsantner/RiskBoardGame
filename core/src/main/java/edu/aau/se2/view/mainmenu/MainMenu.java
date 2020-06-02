@@ -23,7 +23,6 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNicknameChangeListener;
-import edu.aau.se2.model.listener.TextInputListener;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.DefaultNameProvider;
 import edu.aau.se2.view.PopupMessageDisplay;
@@ -43,11 +42,9 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
     private DefaultNameProvider defaultNameProvider;
     private String nickname;
     private boolean showChangeNameUI;
-    private boolean changeName;
-    private ChangeNameStage changeNameStage;
-    private TextInputListener listener;
     private Preferences prefs = Gdx.app.getPreferences("profile");
     private PopupMessageDisplay popupMessageDisplay;
+    private String nickNameTxt;
 
 
     public MainMenu(RiskGame riskGame, DefaultNameProvider defaultNameProvider, PopupMessageDisplay popupMessageDisplay){
@@ -58,6 +55,7 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         stage = new Stage(gamePort);
         this.defaultNameProvider = defaultNameProvider;
         this.popupMessageDisplay = popupMessageDisplay;
+        this.nickNameTxt = "Nickname";
 
         backgroundTxt = getGame().getAssetManager().get(AssetName.TEX_LOBBY_SCREEN);
 
@@ -66,16 +64,12 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         table.center();
         stage.addActor(table);
 
-        int screenHeight = Gdx.graphics.getHeight();
-        int screenWidth = Gdx.graphics.getWidth();
         showChangeNameUI = false;
-        changeName = false;
 
         setupLogo();
         setupButtons();
         onClickButtons();
 
-        changeNameStage = new ChangeNameStage(this, new FitViewport(screenWidth, screenHeight));
         if(prefs.getString("name") == "New Player"){
             prefs.remove("name");
             Gdx.input.getTextInput(new Input.TextInputListener() {
@@ -84,14 +78,14 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
                 public void input(String text) {
                     Database.getInstance().setPlayerNickname(text);
                     prefs.putString("name", text);
-                    popupMessageDisplay.showMessage("Nickname: " + text);
+                    popupMessageDisplay.showMessage(nickNameTxt + " : " + text);
                 }
 
                 @Override
                 public void canceled() {
                     Database.getInstance().setPlayerNickname(defaultNameProvider.getDeviceName());
                     prefs.putString("name",  defaultNameProvider.getDeviceName());
-                    popupMessageDisplay.showMessage("Nickname: " + defaultNameProvider.getDeviceName());
+                    popupMessageDisplay.showMessage(nickNameTxt + " : " + defaultNameProvider.getDeviceName());
                 }
             },"Nickname eingeben", defaultNameProvider.getDeviceName(), "");
             prefs.flush();
@@ -168,7 +162,7 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
                         prefs.remove("name");
                         prefs.putString("name", text);
                         prefs.flush();
-                        popupMessageDisplay.showMessage("Nickname: " + text);
+                        popupMessageDisplay.showMessage(nickNameTxt + " : " + text);
                     }
 
                     @Override
@@ -181,7 +175,7 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
                             Database.getInstance().setPlayerNickname(nickname);
                             prefs.putString("name", nickname);
                         }
-                        popupMessageDisplay.showMessage("Nickname: " + nickname);
+                        popupMessageDisplay.showMessage(nickNameTxt + " : " + nickname);
                         prefs.flush();
                     }
                 }, "Nickname eingeben", nickname, "");
@@ -191,7 +185,7 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
 
     @Override
     public void show() {
-
+        // this method is not used currently
     }
 
     @Override
@@ -207,22 +201,12 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         stage.act();
         stage.draw();
 
-        //changeNameStage.getViewport().apply();
-        //changeNameStage.draw();
-
-        if (getShowChangeNameUI()) {
-            changeNameStage.getViewport().apply();
-            changeNameStage.act();
-            changeNameStage.draw();
-            System.out.println("this.getShowChangeNameUI(): ### " + getShowChangeNameUI());
-        }
     }
 
     @Override
     public void resize(int width, int height) {
         gamePort.update(width, height, true);
         stage.getViewport().update(width, height);
-        changeNameStage.getViewport().update(width,height);
     }
 
     @Override
@@ -243,7 +227,6 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
     @Override
     public void dispose() {
         stage.dispose();
-        changeNameStage.dispose();
     }
 
     @Override
@@ -258,20 +241,4 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
     public void setShowChangeNameUI(boolean showChangeNameUI) {
         this.showChangeNameUI = showChangeNameUI;
     }
-
-    private void changeNameFunction(TextInputListener listener){
-        String test = listener.getTextInput();
-        System.out.println("###asdas listener.getTextInput()" + test);
-    }
-
-    private BitmapFont generateFont() {
-        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("font/CenturyGothic.ttf"));
-        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = 32;
-        BitmapFont font = generator.generateFont(parameter);
-        font.getData().setScale((gamePort.getWorldWidth() * 1.5f) / Territory.REFERENCE_WIDTH);
-        generator.dispose();
-        return font;
-    }
-
 }

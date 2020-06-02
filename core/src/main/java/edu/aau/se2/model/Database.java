@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
-import edu.aau.se2.server.data.PlayerDeviceNameListener;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
@@ -45,7 +44,6 @@ import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkConstants;
 import edu.aau.se2.utils.LoggerConfigurator;
-import edu.aau.se2.view.DefaultNameProvider;
 import edu.aau.se2.view.game.OnBoardInteractionListener;
 
 public class Database implements OnBoardInteractionListener, NetworkClient.OnConnectionChangedListener {
@@ -74,8 +72,6 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private int currentArmyReserve;
     private Phase currentPhase;
     private Lobby lobby;
-    private String deviceName;
-    private DefaultNameProvider defaultNameProvider;
     private Preferences prefs = Gdx.app.getPreferences("profile");
 
     protected Database() {
@@ -173,13 +169,12 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     private void handleChangeNicknameMessage(ChangeNicknameMessage msg) {
         listenerManager.notifyNicknameChangeListener(msg.getNickname());
+        //at first start of the app -> nickname is "New Player"
         if(prefs.getString("name") == "" || prefs.getString("name") == null){
             client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), "New Player"));
             prefs.putString("name", "New Player");
             prefs.flush();
-            System.out.println("### handleChangeNicknameMessage IF " + prefs.getString("name"));
         } else {
-            System.out.println("### handleChangeNicknameMessage ELSE " + prefs.getString("name"));
             client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), prefs.getString("name")));
         }
     }

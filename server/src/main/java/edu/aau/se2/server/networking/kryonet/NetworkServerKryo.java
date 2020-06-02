@@ -57,10 +57,6 @@ public class NetworkServerKryo implements NetworkServer, KryoNetComponent {
                 synchronized (newPlayer) {
                     try {
                         newPlayer.wait(500);
-                        //set test device name
-                        //CollectInitialNicknameMessage collectInitialNicknameMessage = new CollectInitialNicknameMessage();
-                        //collectInitialNicknameMessage.getNickname();
-                        //System.out.println("### TESTNICKNAME: " + collectInitialNicknameMessage.getNickname());
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }

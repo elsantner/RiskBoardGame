@@ -123,7 +123,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     }
 
     private void setMessage(boolean isPlayersTurn) {
-        System.out.println("###server client");
         if (isPlayersTurn) {
             this.yourTurn = "Deine Runde";
         } else {

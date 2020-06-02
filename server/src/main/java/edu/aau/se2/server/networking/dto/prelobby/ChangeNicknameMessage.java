@@ -18,7 +18,6 @@ public class ChangeNicknameMessage extends BaseMessage {
     public ChangeNicknameMessage(int fromPlayerID, String nickname) {
         this.fromPlayerID = fromPlayerID;
         this.nickname = nickname;
-        //player.setNickname(nickname);
     }
 
     public Player getPlayer() {

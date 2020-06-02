@@ -20,7 +20,6 @@ public class DataStore {
     private int nextLobbyID;
     private int nextPlayerID;
     private PlayerLostConnectionListener lostConnectionListener;
-    private PlayerDeviceNameListener deviceNameListener;
 
     protected DataStore() {
         lobbies = new TreeMap<>();
@@ -116,10 +115,6 @@ public class DataStore {
 
     public void setLostConnectionListener(PlayerLostConnectionListener l) {
         this.lostConnectionListener = l;
-    }
-
-    public void setDeviceNameListener(PlayerDeviceNameListener listener) {
-        this.deviceNameListener = listener;
     }
 
 }

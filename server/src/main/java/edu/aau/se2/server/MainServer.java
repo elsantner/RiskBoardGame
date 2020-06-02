@@ -122,7 +122,7 @@ public class MainServer implements PlayerLostConnectionListener {
                 } else if (arg instanceof DefenderDiceCountMessage) {
                     handleDefenderDiceCountMessage((DefenderDiceCountMessage) arg);
                 } else if (arg instanceof ChangeNicknameMessage) {
-                    handleChangelNicknameMessage((ChangeNicknameMessage) arg);
+                    handleChangedNicknameMessage((ChangeNicknameMessage) arg);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -131,13 +131,10 @@ public class MainServer implements PlayerLostConnectionListener {
         });
     }
 
-    public void handleChangelNicknameMessage(ChangeNicknameMessage msg) {
+    public void handleChangedNicknameMessage(ChangeNicknameMessage msg) {
         Player player = ds.getPlayerByID(msg.getFromPlayerID());
-        String name = player.getNickname();
         String changedName = msg.getNickname();
-        System.out.println("###handleChangelNicknameMessage new: " + changedName);
         player.setNickname(changedName);
-        //TODO: broadcast message to all players
     }
 
     private synchronized void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
