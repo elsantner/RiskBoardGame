@@ -15,8 +15,8 @@ public class DeviceNameDisplay implements DefaultNameProvider {
     }
 
     public String getDeviceName(){
-        //String deviceName = Build.MODEL;
-        String deviceName = Build.BRAND;
+        String deviceName = Build.MODEL;
+        //String deviceName = Build.BRAND;
         return deviceName;
     }
 }

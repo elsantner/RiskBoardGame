@@ -1,5 +1,8 @@
 package edu.aau.se2.model;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
@@ -73,6 +76,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private Lobby lobby;
     private String deviceName;
     private DefaultNameProvider defaultNameProvider;
+    private Preferences prefs = Gdx.app.getPreferences("profile");
 
     protected Database() {
         resetLobby();
@@ -168,11 +172,12 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     }
 
     private void handleChangeNicknameMessage(ChangeNicknameMessage msg) {
-        //TODO: give the device's name to the ChangeNicknameMessage
-        //defaultNameProvider.getDeviceName();
         listenerManager.notifyNicknameChangeListener(msg.getNickname());
-        //client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), defaultNameProvider.getDeviceName()));
-        client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), "ClientName"));
+        if(prefs.getString("name") == null){
+            client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), "Player"));
+        } else {
+            client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), prefs.getString("name")));
+        }
     }
 
     private void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {

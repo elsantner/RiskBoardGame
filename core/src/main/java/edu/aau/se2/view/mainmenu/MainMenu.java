@@ -1,11 +1,13 @@
 package edu.aau.se2.view.mainmenu;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -13,22 +15,20 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import java.util.Collections;
-
 import edu.aau.se2.RiskGame;
 import edu.aau.se2.model.Database;
 import edu.aau.se2.model.listener.OnNicknameChangeListener;
-import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
+import edu.aau.se2.model.listener.TextInputListener;
 import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.DefaultNameProvider;
+import edu.aau.se2.view.PopupMessageDisplay;
 import edu.aau.se2.view.asset.AssetName;
-import edu.aau.se2.view.game.HudStage;
+import edu.aau.se2.view.game.Territory;
 
 public class MainMenu extends AbstractScreen implements OnNicknameChangeListener {
     private Skin mySkin;
@@ -43,7 +43,11 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
     private DefaultNameProvider defaultNameProvider;
     private String nickname;
     private boolean showChangeNameUI;
+    private boolean changeName;
     private ChangeNameStage changeNameStage;
+    private TextInputListener listener;
+    final Preferences prefs = Gdx.app.getPreferences("profile");
+    private PopupMessageDisplay popupMessageDisplay;
 
 
     public MainMenu(RiskGame riskGame, DefaultNameProvider defaultNameProvider){
@@ -63,13 +67,28 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         int screenHeight = Gdx.graphics.getHeight();
         int screenWidth = Gdx.graphics.getWidth();
         showChangeNameUI = false;
+        changeName = false;
 
         setupLogo();
         setupButtons();
         onClickButtons();
-        Gdx.input.setInputProcessor(stage);
 
         changeNameStage = new ChangeNameStage(this, new FitViewport(screenWidth, screenHeight));
+        if(prefs.getString("name") == "Player" || prefs.getString("name") == null){
+            Gdx.input.getTextInput(new Input.TextInputListener() {
+                @Override
+                public void input(String text) {
+                    Database.getInstance().setPlayerNickname(text);
+                }
+
+                @Override
+                public void canceled() {
+
+                }
+            },"Nickname eingeben", nickname, "");
+        }
+
+        Gdx.input.setInputProcessor(stage);
     }
 
     public void setupButtons(){
@@ -77,15 +96,7 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         create = new TextButton("Spiel erstellen", mySkin);
         join = new TextButton("Spiel beitreten", mySkin);
         exit = new TextButton("Spiel verlassen", mySkin);
-        settings = new TextButton("Einstellungen", mySkin);
-        settings.addListener(new ClickListener(){
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                showChangeNameUI = !showChangeNameUI;
-                System.out.println(showChangeNameUI);
-            }
-        });
-
+        settings = new TextButton("Nickname festlegen", mySkin);
 
         table.add(create).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.1f).padBottom(gamePort.getWorldHeight() * 0.03f);
         table.row();
@@ -130,20 +141,37 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
             }
         });
 
-        /* get device name on click
         settings.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Database.getInstance().setPlayerNickname(defaultNameProvider.getDeviceName());
+                Gdx.input.getTextInput(new Input.TextInputListener() {
+                    @Override
+                    public void input(String text) {
+                        if(prefs.getString("name") != null){
+                           nickname = prefs.getString("name");
+                        } else {
+                           nickname = defaultNameProvider.getDeviceName();
+                        }
+                        //set username on the server and then put the preference
+                        Database.getInstance().setPlayerNickname(text);
+                        prefs.remove("name");
+                        prefs.putString("name", text);
+                        prefs.flush();
+                        //popupMessageDisplay
+                    }
+
+                    @Override
+                    public void canceled() {
+                        Database.getInstance().setPlayerNickname(defaultNameProvider.getDeviceName());
+                    }
+                }, "Nickname eingeben", nickname, "");
             }
-        });*/
+        });
     }
 
     @Override
     public void show() {
-        //InputMultiplexer inputMultiplexer = new InputMultiplexer();
-        //inputMultiplexer.addProcessor(changeNameStage);
-        //Gdx.input.setInputProcessor(inputMultiplexer);
+
     }
 
     @Override
@@ -209,6 +237,21 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
 
     public void setShowChangeNameUI(boolean showChangeNameUI) {
         this.showChangeNameUI = showChangeNameUI;
+    }
+
+    private void changeNameFunction(TextInputListener listener){
+        String test = listener.getTextInput();
+        System.out.println("###asdas listener.getTextInput()" + test);
+    }
+
+    private BitmapFont generateFont() {
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("font/CenturyGothic.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        parameter.size = 32;
+        BitmapFont font = generator.generateFont(parameter);
+        font.getData().setScale((gamePort.getWorldWidth() * 1.5f) / Territory.REFERENCE_WIDTH);
+        generator.dispose();
+        return font;
     }
 
 }
