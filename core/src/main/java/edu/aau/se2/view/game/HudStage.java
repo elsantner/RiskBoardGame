@@ -82,7 +82,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
                 showCards = !showCards;
             }
         });
-
+        
         TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
 
         buttonLeaveGame.addListener(event -> {
@@ -223,21 +223,19 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         attackDisplay.updateData(attacker, defender, fromTerritory, toTerritory, armyCount, armiesLostAttacker, armiesLostDefender);
     }
 
-    private void resetTerritoryCount(int playerColor) {
+    private void resetTerritoryCount() {
         for (int i = 0; i < this.playersCount; i++) {
-            if (this.currentPlayerColors[i] == this.playerColors[playerColor]) {
-                this.occupiedTerritoriesCount[i] = 0;
-            }
+            this.occupiedTerritoriesCount[i] = 0;
         }
     }
 
     public void setPlayerTerritoryCount(int territoryID, int playerColor) {
         this.arrayT[territoryID] = Territory.getByID(territoryID).getArmyColor();
-        resetTerritoryCount(playerColor);
+        resetTerritoryCount();
 
         for (Color territoryColor : this.arrayT
         ) {
-            if (territoryColor != null && territoryColor == this.playerColors[playerColor]) {
+            if (territoryColor != null) {
                 for (int i = 0; i < this.playersCount; i++) {
                     if (this.currentPlayerColors[i] == territoryColor) {
                         this.occupiedTerritoriesCount[i] = this.occupiedTerritoriesCount[i] + 1;

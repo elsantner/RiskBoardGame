@@ -32,4 +32,5 @@ public abstract class AssetName {
     public static final String ICON_INFANTRY = "gameBoard/iconInfantry.png";
     public static final String CARDS_BUTTON = "cards/card_button.png";
     public static final String END_TURN = "gameBoard/end_turn.png";
+    public static final String TERRITORY = "gameBoard/territory.png";
 }
