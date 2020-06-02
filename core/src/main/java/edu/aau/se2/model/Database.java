@@ -200,7 +200,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         listenerManager.notifyVictoryListener(getLobby().getPlayerByID(msg.getFromPlayerID()).getNickname(), thisPlayerWon);
     }
 
-    private void handleLeftGameMessage(LeftGameMessage msg) {
+    protected void handleLeftGameMessage(LeftGameMessage msg) {
         lobby.removePlayer(msg.getFromPlayerID());
         // player who left is sent back to main menu
         if (thisPlayer.getUid() == msg.getFromPlayerID()) {
@@ -217,7 +217,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     }
 
-    private synchronized void handleAttackResultMessage(AttackResultMessage msg) {
+    protected synchronized void handleAttackResultMessage(AttackResultMessage msg) {
         log.info("Attacker armies lost: " + msg.getArmiesLostAttacker());
         log.info("Defender armies lost: " + msg.getArmiesLostDefender());
 

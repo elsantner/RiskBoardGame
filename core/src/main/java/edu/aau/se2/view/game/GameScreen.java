@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 import java.util.List;
@@ -215,7 +216,8 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                     boardStage.setInteractable(true);
                 });
         dialog.setAbortAllowed(false);
-        showDialog(dialog);
+
+        super.showDialog(dialog, hudStage, 2, Align.bottomRight);
     }
 
     private void showOccupyTerritoryDialog(int fromTerritoryID, int toTerritoryID) {

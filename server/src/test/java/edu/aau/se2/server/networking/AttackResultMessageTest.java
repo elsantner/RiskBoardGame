@@ -160,8 +160,8 @@ public class AttackResultMessageTest extends AbstractServerTest {
 
         Attack attack = server.getDataStore().getLobbyByID(lobbyID).getCurrentAttack();
         assertNull(attack);
-        assertEquals(3, l.getTerritoryByID(fromTerritoryID).getArmyCount());
-        assertEquals(2, l.getTerritoryByID(toTerritoryID).getArmyCount());
+        assertEquals(2, l.getTerritoryByID(fromTerritoryID).getArmyCount());
+        assertEquals(3, l.getTerritoryByID(toTerritoryID).getArmyCount());
         assertEquals(NUM_CLIENTS, countAttackResultMsgsReceived3.get());
     }
 

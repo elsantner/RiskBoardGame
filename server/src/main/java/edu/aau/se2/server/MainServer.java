@@ -218,7 +218,7 @@ public class MainServer implements PlayerLostConnectionListener {
             Collections.sort(defenderResults, Collections.reverseOrder());
 
             for (int i = 0; i < Math.min(attackerResults.size(), defenderResults.size()); i++) {
-                if (attackerResults.get(i) < defenderResults.get(i)) {
+                if (attackerResults.get(i) <= defenderResults.get(i)) {
                     armiesLostAttacker++;
                 } else {
                     armiesLostDefender++;
@@ -341,7 +341,7 @@ public class MainServer implements PlayerLostConnectionListener {
         } else if (lobbyToLeave.getTurnOrder().size() >= 2) {
             // player has not won or lost the game, thus he has to be removed carefully
             playerLeavesAdvanced(lobbyToLeave, playerToLeave);
-            
+
         }
         // make sure Lobby is removed if after above steps all players are gone
         if (lobbyToLeave.getPlayers().size() == 0 && ds.getLobbyByID(lobbyToLeave.getLobbyID()) != null) {
