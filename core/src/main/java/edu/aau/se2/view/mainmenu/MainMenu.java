@@ -5,8 +5,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
@@ -16,7 +14,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -27,7 +24,6 @@ import edu.aau.se2.view.AbstractScreen;
 import edu.aau.se2.view.DefaultNameProvider;
 import edu.aau.se2.view.PopupMessageDisplay;
 import edu.aau.se2.view.asset.AssetName;
-import edu.aau.se2.view.game.Territory;
 
 public class MainMenu extends AbstractScreen implements OnNicknameChangeListener {
     private Skin mySkin;
@@ -76,9 +72,15 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
 
                 @Override
                 public void input(String text) {
-                    Database.getInstance().setPlayerNickname(text);
-                    prefs.putString("name", text);
-                    popupMessageDisplay.showMessage(nickNameTxt + " : " + text);
+                    if(text.length() > 0) {
+                        Database.getInstance().setPlayerNickname(text);
+                        prefs.putString("name", text);
+                        popupMessageDisplay.showMessage(nickNameTxt + " : " + text);
+                    } else {
+                        Database.getInstance().setPlayerNickname(defaultNameProvider.getDeviceName());
+                        prefs.putString("name", defaultNameProvider.getDeviceName());
+                        popupMessageDisplay.showMessage("Keine Eingabe. Nickname blieb: " + defaultNameProvider.getDeviceName());
+                    }
                 }
 
                 @Override
@@ -157,12 +159,15 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
 
                     @Override
                     public void input(String text) {
-
-                        Database.getInstance().setPlayerNickname(text);
-                        prefs.remove("name");
-                        prefs.putString("name", text);
-                        prefs.flush();
-                        popupMessageDisplay.showMessage(nickNameTxt + " : " + text);
+                        if(text.length() > 0){
+                            Database.getInstance().setPlayerNickname(text);
+                            prefs.remove("name");
+                            prefs.putString("name", text);
+                            prefs.flush();
+                            popupMessageDisplay.showMessage(nickNameTxt + " : " + text);
+                        } else {
+                            popupMessageDisplay.showMessage(nickNameTxt + " darf nicht leer sein.");
+                        }
                     }
 
                     @Override

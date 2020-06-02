@@ -7,11 +7,11 @@ import edu.aau.se2.view.DefaultNameProvider;
 public class DeviceNameDisplay implements DefaultNameProvider {
 
     public DeviceNameDisplay() {
+        //empty method
     }
 
     public String getDeviceName(){
-        String deviceName = Build.MODEL;
         //Alternative for MODEL: BRAND
-        return deviceName;
+        return Build.MODEL;
     }
 }
