@@ -152,7 +152,7 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
 
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if(!prefs.getString("name").equals(null) && !prefs.getString("name").equals("")){
+                if(prefs.getString("name") != null && !prefs.getString("name").equals("")){
                     nickname = prefs.getString("name");
                 } else {
                     nickname = defaultNameProvider.getDeviceName();
