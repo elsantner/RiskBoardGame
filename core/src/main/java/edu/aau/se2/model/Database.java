@@ -176,7 +176,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private void handleChangeNicknameMessage(ChangeNicknameMessage msg) {
         listenerManager.notifyNicknameChangeListener(msg.getNickname());
         //at first start of the app -> nickname is "New Player"
-        if(prefs.getString("name") == "" || prefs.getString("name") == null){
+        if(prefs.getString("name").equals("") || prefs.getString("name").equals(null)){
             client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), "New Player"));
             prefs.putString("name", "New Player");
             prefs.flush();

@@ -66,7 +66,7 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         setupButtons();
         onClickButtons();
 
-        if(prefs.getString("name") == "New Player"){
+        if(prefs.getString("name").equals("New Player")){
             prefs.remove("name");
             Gdx.input.getTextInput(new Input.TextInputListener() {
 
@@ -81,16 +81,18 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
                         prefs.putString("name", defaultNameProvider.getDeviceName());
                         popupMessageDisplay.showMessage("Keine Eingabe. Nickname blieb: " + defaultNameProvider.getDeviceName());
                     }
+                    prefs.flush();
                 }
 
                 @Override
                 public void canceled() {
                     Database.getInstance().setPlayerNickname(defaultNameProvider.getDeviceName());
                     prefs.putString("name",  defaultNameProvider.getDeviceName());
+                    prefs.flush();
                     popupMessageDisplay.showMessage(nickNameTxt + " : " + defaultNameProvider.getDeviceName());
                 }
             },"Nickname eingeben", defaultNameProvider.getDeviceName(), "");
-            prefs.flush();
+
         }
 
         Gdx.input.setInputProcessor(stage);
@@ -107,9 +109,9 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         table.row();
         table.add(join).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.1f).padBottom(gamePort.getWorldHeight() * 0.03f);
         table.row();
-        table.add(exit).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.1f).padBottom(gamePort.getWorldHeight() * 0.03f);
+        table.add(settings).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.1f).padBottom(gamePort.getWorldHeight() * 0.03f);
         table.row();
-        table.add(settings).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.1f);
+        table.add(exit).width(gamePort.getWorldWidth() * 0.35f).height(gamePort.getWorldHeight() * 0.1f);
 
     }
 
@@ -150,7 +152,7 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
 
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if(prefs.getString("name") != null && prefs.getString("name") != ""){
+                if(!prefs.getString("name").equals(null) && !prefs.getString("name").equals("")){
                     nickname = prefs.getString("name");
                 } else {
                     nickname = defaultNameProvider.getDeviceName();
