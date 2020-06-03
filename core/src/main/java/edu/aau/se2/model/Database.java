@@ -72,9 +72,10 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private int currentArmyReserve;
     private Phase currentPhase;
     private Lobby lobby;
-    private Preferences prefs = Gdx.app.getPreferences("profile");
+    private Preferences prefs;
 
-    protected Database() {
+
+    protected Database(Preferences preferences) {
         resetLobby();
         isConnected = false;
 
@@ -84,6 +85,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         registerClientCallback();
         log = LoggerConfigurator.getConfiguredLogger(TAG, Level.INFO);
         this.listenerManager = new ListenerManager();
+        this.prefs = preferences;
+    }
+
+    protected Database(){
+        this(Gdx.app.getPreferences("profile"));
     }
 
     public enum Phase {

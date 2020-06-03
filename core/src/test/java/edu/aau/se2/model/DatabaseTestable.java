@@ -1,5 +1,7 @@
 package edu.aau.se2.model;
 
+import com.badlogic.gdx.Preferences;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,8 +17,8 @@ import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.Callback;
 
 public class DatabaseTestable extends Database {
-    public DatabaseTestable() {
-        super();
+    public DatabaseTestable(Preferences prefs) {
+        super(prefs);
     }
 
     /**
