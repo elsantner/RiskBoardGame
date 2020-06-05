@@ -207,11 +207,13 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private void showStartDefendDialog(int onTerritoryID) {
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Verteidigen", "Wuerfelanzahl waehlen", 1,
+        DefenderDiceCountDialog dialog = new DefenderDiceCountDialog(uiSkin, 1,
                 Math.min(db.getLobby().getTerritoryByID(onTerritoryID).getArmyCount(), 2),
                 result -> {
                     if (result > 0) {
                         db.sendDefenderDiceCount(result);
+                    } else {
+                        db.accuseCheater();
                     }
                     boardStage.setInteractable(true);
                 });

@@ -248,9 +248,6 @@ public class MainServer implements PlayerLostConnectionListener {
                     armiesLostDefender = Math.min(toTerritory.getArmyCount(), l.getCurrentAttack().getAttackerDiceCount());
                 }
             }
-
-
-
             fromTerritory.setArmyCount(Math.max(0, fromTerritory.getArmyCount() - armiesLostAttacker));
             toTerritory.setArmyCount(Math.max(0, toTerritory.getArmyCount() - armiesLostDefender));
 
@@ -262,7 +259,7 @@ public class MainServer implements PlayerLostConnectionListener {
             }
 
             ds.updateLobby(l);
-
+            System.out.println("Server: occupy required" + occupyRequired);
             server.broadcastMessage(new AttackResultMessage(lobbyId, l.getPlayerToAct().getUid(), armiesLostAttacker, armiesLostDefender, wasCheated, occupyRequired), l.getPlayers());
         }
     }

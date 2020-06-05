@@ -240,6 +240,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         notifyTerritoryUpdateListener(lobby.getTerritoryByID(attack.getToTerritoryID()));
 
         listenerManager.notifyAttackUpdatedListener();
+        System.out.println("Client: occupy required" + msg.isOccupyRequired());
         if (!msg.isOccupyRequired()) {
             lobby.setCurrentAttack(null);
             listenerManager.notifyAttackFinishedListener();
