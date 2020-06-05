@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import edu.aau.se2.server.data.Card;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.server.networking.dto.game.AccuseCheaterMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
@@ -71,5 +72,6 @@ public interface SerializationRegister {
         component.registerClass(OccupyTerritoryMessage.class);
         component.registerClass(Card[].class);
         component.registerClass(DefenderDiceCountMessage.class);
+        component.registerClass(AccuseCheaterMessage.class);
     }
 }

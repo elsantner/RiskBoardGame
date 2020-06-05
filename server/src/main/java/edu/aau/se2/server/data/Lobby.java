@@ -292,4 +292,11 @@ public class Lobby {
         }
         players.put(p.getUid(), p);
     }
+
+    public Player getCurrentDefender(){
+        if(getCurrentAttack() == null){
+            return null;
+        }
+        return getPlayerByID(getTerritoryByID(getCurrentAttack().getToTerritoryID()).getOccupierPlayerID());
+    }
 }
