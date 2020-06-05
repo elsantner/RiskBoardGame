@@ -11,6 +11,7 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
+import edu.aau.se2.server.networking.dto.game.AccuseCheaterMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
@@ -155,6 +156,13 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleDefenderDiceCountMessage((DefenderDiceCountMessage) msg);
             }
         });
+    }
+
+    public void accuseCheater(){
+        if(!lobby.attackRunning() || lobby.getDefender().getUid() != thisPlayer.getUid()){
+            throw new IllegalStateException("Player is not defender.");
+        }
+        client.sendMessage(new AccuseCheaterMessage(lobby.getLobbyID(), thisPlayer.getUid()));
     }
 
     private synchronized void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
