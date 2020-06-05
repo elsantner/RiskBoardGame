@@ -46,6 +46,7 @@ public class PhaseDisplay extends Group {
         label.setOrigin(Align.center);
         buttonSkipStage = new ImageButton(new TextureRegionDrawable(new TextureRegion((Texture) assetManager.get(AssetName.END_TURN))));
         buttonSkipStage.getImage().setFillParent(true);
+        buttonSkipStage.left().bottom();
 
         table = new Table();
         table.setFillParent(true);
@@ -53,8 +54,8 @@ public class PhaseDisplay extends Group {
         table.add().expandX();
         table.add(label).minHeight(font.getLineHeight()).center().padLeft(viewport.getWorldWidth() * 0.077f).bottom().padBottom(viewport.getWorldHeight() * 0.012f);
         table.add().expandX();
-        table.add(buttonSkipStage).height(viewport.getWorldHeight() * 0.132f).width(viewport.getWorldWidth() * 0.077f).right()
-                .padRight(viewport.getWorldWidth() * 0.013f).bottom().padBottom(viewport.getWorldHeight() * 0.005f);
+        table.add(buttonSkipStage).size(viewport.getWorldHeight() * 0.132f).right()
+                .padRight(viewport.getWorldWidth() * 0.01f).bottom().padBottom(viewport.getWorldHeight() * 0.01f);
         table.row();
 
 

@@ -12,9 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
@@ -77,6 +75,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
 
         ImageButton cards = new ImageButton(new TextureRegionDrawable(new TextureRegion((Texture) this.getScreen().getGame().getAssetManager().get(AssetName.CARDS_BUTTON))));
         cards.getImage().setFillParent(true);
+        cards.bottom().left();
         cards.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -84,17 +83,21 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             }
         });
 
-        TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
+        ImageButton endGame = new ImageButton(new TextureRegionDrawable(new TextureRegion((Texture) this.getScreen().getGame().getAssetManager().get(AssetName.END_GAME))));
+        endGame.getImage().setFillParent(true);
+        endGame.bottom().left();
         Stage thisStage = this;
-        buttonLeaveGame.addListener(new ClickListener() {
+        endGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 ConfirmDialog dialog = new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1),
                         "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein",
-                        res -> {if (res) db.leaveLobby();});
+                        res -> {
+                            if (res) db.leaveLobby();
+                        });
 
-                dialog.show(thisStage);
-                dialog.setScale(3);
+                dialog.show(thisStage).moveBy(0, thisStage.getViewport().getWorldHeight() * 0.11f);
+                dialog.setScale(thisStage.getViewport().getWorldHeight() * 0.0027f);
                 dialog.setOrigin(Align.center);
             }
         });
@@ -125,9 +128,9 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         table.row();
         table.add(armyReserveLabel).width(vp.getScreenWidth() / 3f).padLeft(vp.getWorldWidth() * 0.01f);
         table.row();
-        table.add(cards).height(vp.getWorldHeight() * 0.132f).width(vp.getWorldWidth() * 0.077f).expandY().left().padLeft(vp.getWorldHeight() * 0.006f).bottom().padBottom(vp.getWorldHeight() * 0.006f);
+        table.add(cards).expandY().size(vp.getWorldHeight() * 0.132f).left().padLeft(vp.getWorldWidth() * 0.01f).bottom().padBottom(vp.getWorldHeight() * 0.01f);
         table.row();
-        table.add(buttonLeaveGame).left().padLeft(vp.getWorldWidth() * 0.02f).bottom();
+        table.add(endGame).size(vp.getWorldHeight() * 0.132f).left().padLeft(vp.getWorldWidth() * 0.01f).bottom().padBottom(vp.getWorldHeight() * 0.01f);
         this.addActor(table);
     }
 

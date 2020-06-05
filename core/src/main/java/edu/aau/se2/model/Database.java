@@ -9,6 +9,7 @@ import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Lobby;
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.Territory;
+import edu.aau.se2.server.logic.VictoryHelper;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
 import edu.aau.se2.server.networking.dto.game.AccuseCheaterMessage;
@@ -21,12 +22,15 @@ import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.game.LeftGameMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.PlayerLostMessage;
 import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.game.VictoryMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
@@ -51,6 +55,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
     /**
      * Gets the singleton instance of Database.
+     *
      * @return Database instance, or null if connection error occurred.
      */
     public static synchronized Database getInstance() {
@@ -154,6 +159,12 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleDiceResultMessage((DiceResultMessage) msg);
             } else if (msg instanceof DefenderDiceCountMessage) {
                 handleDefenderDiceCountMessage((DefenderDiceCountMessage) msg);
+            } else if (msg instanceof PlayerLostMessage) {
+                handlePlayerLostMessage((PlayerLostMessage) msg);
+            } else if (msg instanceof LeftGameMessage) {
+                handleLeftGameMessage((LeftGameMessage) msg);
+            } else if (msg instanceof VictoryMessage) {
+                handleVictoryMessage((VictoryMessage) msg);
             }
         });
     }
@@ -184,7 +195,37 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         listenerManager.notifyAttackFinishedListener();
     }
 
-    private synchronized void handleAttackResultMessage(AttackResultMessage msg) {
+    private void handlePlayerLostMessage(PlayerLostMessage msg) {
+        VictoryHelper.removePlayerFromTurnOrder(lobby, msg.getFromPlayerID());
+        boolean thisPlayerLost = false;
+        if (msg.getFromPlayerID() == thisPlayer.getUid()) thisPlayerLost = true;
+        listenerManager.notifyPlayerLostListener(getLobby().getPlayerByID(msg.getFromPlayerID()).getNickname(), thisPlayerLost);
+    }
+
+    private void handleVictoryMessage(VictoryMessage msg) {
+        boolean thisPlayerWon = false;
+        if (msg.getFromPlayerID() == thisPlayer.getUid()) thisPlayerWon = true;
+        listenerManager.notifyVictoryListener(getLobby().getPlayerByID(msg.getFromPlayerID()).getNickname(), thisPlayerWon);
+    }
+
+    protected void handleLeftGameMessage(LeftGameMessage msg) {
+        lobby.removePlayer(msg.getFromPlayerID());
+        // player who left is sent back to main menu
+        if (thisPlayer.getUid() == msg.getFromPlayerID()) {
+            resetLobby();
+            listenerManager.notifyLeftLobbyListener(true);
+            return;
+        }
+        // if player left / disconnected without losing set his territories unoccupied and remove him from turnOrder
+        if (!msg.isHasLost()) {
+            VictoryHelper.removePlayerFromTurnOrder(lobby, msg.getFromPlayerID());
+            // clear players territories
+            listenerManager.notifyLeftGameListener(lobby.clearTerritoriesOfPlayer(msg.getFromPlayerID()));
+        }
+
+    }
+
+    protected synchronized void handleAttackResultMessage(AttackResultMessage msg) {
         log.info("Attacker armies lost: " + msg.getArmiesLostAttacker());
         log.info("Defender armies lost: " + msg.getArmiesLostDefender());
 
@@ -220,6 +261,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         // update territory state
         lobby.getTerritoryByID(msg.getFromTerritoryID()).subFromArmyCount(msg.getArmyCountMoved());
         lobby.getTerritoryByID(msg.getToTerritoryID()).addToArmyCount(msg.getArmyCountMoved());
+        lobby.getTerritoryByID(msg.getToTerritoryID()).setOccupierPlayerID(msg.getFromPlayerID());
         listenerManager.notifyArmiesMovedListener(msg.getFromPlayerID(), msg.getFromTerritoryID(), msg.getToTerritoryID(), msg.getArmyCountMoved());
 
         notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getFromTerritoryID()));
@@ -334,8 +376,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             lobby.nextPlayersTurn();
             listenerManager.notifyNextTurnListener(lobby.getPlayerToAct().getUid(),
                     thisPlayer.getUid() == lobby.getPlayerToAct().getUid());
-        }
-        else {
+        } else {
             if (msg.getArmyCountRemaining() == 0) {
                 setCurrentPhase(Phase.ATTACKING);
             }
@@ -354,7 +395,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private synchronized void handleDiceResultMessage(DiceResultMessage msg) {
         if (lobby.attackRunning() && msg.isFromAttacker()) {
             lobby.getCurrentAttack().setAttackerDiceResults(msg.getResults());
-        } else if(lobby.attackRunning()) {
+        } else if (lobby.attackRunning()) {
             lobby.getCurrentAttack().setDefenderDiceResults(msg.getResults());
         }
         listenerManager.notifyAttackUpdatedListener();
