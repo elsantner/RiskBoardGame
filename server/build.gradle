@@ -7,6 +7,8 @@ dependencies {
     implementation 'com.esotericsoftware:kryonet:2.22.0-RC1'
     implementation 'com.google.guava:guava:24.1-jre'
     implementation 'junit:junit:4.12'
+    implementation 'org.jetbrains:annotations:15.0'
+    implementation 'org.jetbrains:annotations:15.0'
 }
 
 sourceCompatibility = "8"
