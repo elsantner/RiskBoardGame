@@ -191,10 +191,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
         notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getFromTerritoryID()));
         notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getTerritoryID()));
-        lobby.getCurrentAttack().setOccupyRequired(false); //clear territory that was before occupied
+        if(lobby.attackRunning()){
+            lobby.getCurrentAttack().setOccupyRequired(false); //clear territory that was before occupied
+        }
         listenerManager.notifyAttackFinishedListener();
         lobby.setCurrentAttack(null);
-
     }
 
     private void handlePlayerLostMessage(PlayerLostMessage msg) {
