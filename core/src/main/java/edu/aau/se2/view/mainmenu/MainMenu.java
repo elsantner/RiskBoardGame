@@ -32,6 +32,7 @@ public class MainMenu extends AbstractScreen {
     private Texture backgroundTxt;
     private Table table;
     private SpriteBatch batch;
+    private boolean showDisconnectedDialog;
 
 
     public MainMenu(RiskGame riskGame){
@@ -40,6 +41,7 @@ public class MainMenu extends AbstractScreen {
 
     public MainMenu(RiskGame riskGame, boolean showDisconnectedDialog) {
         super(riskGame);
+        this.showDisconnectedDialog = showDisconnectedDialog;
 
         mySkin = getGame().getAssetManager().get(AssetName.UI_SKIN_2);
         gamePort = new ScreenViewport();
@@ -52,16 +54,6 @@ public class MainMenu extends AbstractScreen {
         table.setFillParent(true);
         table.center();
         stage.addActor(table);
-
-        setupLogo();
-        setupButtons();
-        onClickButtons();
-
-        addInputProcessor(stage);
-        if (showDisconnectedDialog) {
-            setButtonsEnabled(false);
-            displayDisconnectedDialog();
-        }
     }
 
     private void displayDisconnectedDialog() {
@@ -136,7 +128,15 @@ public class MainMenu extends AbstractScreen {
 
     @Override
     public void show() {
-        //currently unused
+        setupLogo();
+        setupButtons();
+        onClickButtons();
+
+        addInputProcessor(stage);
+        if (showDisconnectedDialog) {
+            setButtonsEnabled(false);
+            displayDisconnectedDialog();
+        }
     }
 
     @Override
@@ -161,8 +161,7 @@ public class MainMenu extends AbstractScreen {
 
     @Override
     public void resize(int width, int height) {
-        gamePort.update(width, height, true);
-        stage.getViewport().update(width, height);
+        //currently unused
     }
 
     @Override
