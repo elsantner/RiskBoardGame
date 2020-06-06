@@ -73,8 +73,7 @@ public class CheatedTest extends AbstractDatabaseTest {
 
         Thread.sleep(1000);
 
-        //TODO Make the test work!
-        //assertEquals(NUM_CLIENTS, countAttackResultMsg.get());
+        assertEquals(NUM_CLIENTS, countAttackResultMsg.get());
     }
 
     @After

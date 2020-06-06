@@ -226,19 +226,9 @@ public class MainServer implements PlayerLostConnectionListener {
             if(!accused) {
                 List<Integer> attackerResults = l.getCurrentAttack().getAttackerDiceResults();
                 List<Integer> defenderResults = l.getCurrentAttack().getDefenderDiceResults();
-
-                attackerResults.sort(Integer::compareTo);
-                Collections.sort(attackerResults, Collections.reverseOrder());
-                defenderResults.sort(Integer::compareTo);
-                Collections.sort(defenderResults, Collections.reverseOrder());
-
-                for (int i = 0; i < Math.min(attackerResults.size(), defenderResults.size()); i++) {
-                    if (attackerResults.get(i) <= defenderResults.get(i)) {
-                        armiesLostAttacker++;
-                    } else {
-                        armiesLostDefender++;
-                    }
-                }
+                int[] armiesLost = DiceHelper.getArmiesLost(attackerResults, defenderResults);
+                armiesLostAttacker = armiesLost[0];
+                armiesLostDefender = armiesLost[1];
             }
             else{
                 if(wasCheated){
@@ -259,10 +249,10 @@ public class MainServer implements PlayerLostConnectionListener {
             }
 
             ds.updateLobby(l);
-            System.out.println("Server: occupy required" + occupyRequired);
-            server.broadcastMessage(new AttackResultMessage(lobbyId, l.getPlayerToAct().getUid(), armiesLostAttacker, armiesLostDefender, wasCheated, occupyRequired), l.getPlayers());
+            server.broadcastMessage(new AttackResultMessage(lobbyId, l.getPlayerToAct().getUid(), armiesLostAttacker, armiesLostDefender, wasCheated, occupyRequired, accused), l.getPlayers());
         }
     }
+
 
     private void handleAttackingPhaseFinishedMessage(AttackingPhaseFinishedMessage msg) {
         Lobby l = ds.getLobbyByID(msg.getLobbyID());
@@ -375,7 +365,7 @@ public class MainServer implements PlayerLostConnectionListener {
                 playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getToTerritoryID()).getUid())) {
             lobbyToLeave.setCurrentAttack(null);
             server.broadcastMessage(new AttackResultMessage(lobbyToLeave.getLobbyID(), lobbyToLeave.getPlayerToAct().getUid(),
-                    0, 0, false, false), lobbyToLeave.getPlayers());
+                    0, 0, false, false, false), lobbyToLeave.getPlayers());
         }
 
         boolean wasPlayersTurn = lobbyToLeave.isPlayersTurn(playerToLeave.getUid());

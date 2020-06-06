@@ -5,12 +5,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.aau.se2.model.listener.OnAttackUpdatedListener;
+import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Territory;
 
 import static org.junit.Assert.assertEquals;
@@ -125,8 +127,11 @@ public class AttackTest extends AbstractDatabaseTest {
 
     @Test
     public void testCompleteAttackPhase() throws InterruptedException {
-        for (DatabaseTestable db : dbs) {
-            db.getListeners().setAttackUpdatedListener(new OnAttackUpdatedListener() {
+        Attack[] attack = new Attack[NUM_CLIENTS];
+
+        for (int i = 0; i < NUM_CLIENTS; i++) {
+            int finalI = i;
+            dbs[i].getListeners().setAttackUpdatedListener(new OnAttackUpdatedListener() {
                 @Override
                 public void attackStarted() {
 
@@ -139,7 +144,7 @@ public class AttackTest extends AbstractDatabaseTest {
 
                 @Override
                 public void attackFinished() {
-                    // unused
+                    attack[finalI] = dbs[finalI].getLobby().getCurrentAttack();
                 }
             });
         }
@@ -164,16 +169,16 @@ public class AttackTest extends AbstractDatabaseTest {
 
 
         Thread.sleep(5000);
-        for (DatabaseTestable db : dbs) {
-            assertEquals(fromTerritory.getId(), db.getLobby().getCurrentAttack().getFromTerritoryID());
-            assertEquals(toTerritory.getId(), db.getLobby().getCurrentAttack().getToTerritoryID());
-            assertEquals(1, db.getLobby().getCurrentAttack().getAttackerDiceCount());
-            assertEquals(attackerResults, db.getLobby().getCurrentAttack().getAttackerDiceResults());
-            assertEquals(1, db.getLobby().getCurrentAttack().getDefenderDiceCount());
-            assertEquals(defenderResults, db.getLobby().getCurrentAttack().getDefenderDiceResults());
-            assertEquals(1, db.getLobby().getCurrentAttack().getArmiesLostAttacker());
-            assertEquals(0, db.getLobby().getCurrentAttack().getArmiesLostDefender());
-            assertEquals(Database.Phase.ATTACKING, db.getCurrentPhase());
+        for (int i = 0; i < NUM_CLIENTS; i++) {
+            assertEquals(fromTerritory.getId(), attack[i].getFromTerritoryID());
+            assertEquals(toTerritory.getId(), attack[i].getToTerritoryID());
+            assertEquals(1, attack[i].getAttackerDiceCount());
+            assertEquals(attackerResults, attack[i].getAttackerDiceResults());
+            assertEquals(1, attack[i].getDefenderDiceCount());
+            assertEquals(defenderResults, attack[i].getDefenderDiceResults());
+            assertEquals(1, attack[i].getArmiesLostAttacker());
+            assertEquals(0, attack[i].getArmiesLostDefender());
+            assertEquals(Database.Phase.ATTACKING, dbs[i].getCurrentPhase());
         }
         assertEquals(NUM_CLIENTS * 4, attackUpdatedCount.get());
         Thread.sleep(4000);
