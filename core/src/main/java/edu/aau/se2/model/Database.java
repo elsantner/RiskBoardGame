@@ -232,6 +232,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         log.info("Defender armies lost: " + msg.getArmiesLostDefender());
 
         Attack attack = lobby.getCurrentAttack();
+        attack.setAccused(msg.isAccused());
         attack.setArmiesLostAttacker(msg.getArmiesLostAttacker());
         attack.setArmiesLostDefender(msg.getArmiesLostDefender());
         attack.setCheated(msg.isCheated());

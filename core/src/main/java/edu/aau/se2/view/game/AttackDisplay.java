@@ -63,13 +63,13 @@ public class AttackDisplay extends Group {
         labelTerritoryDefender = new Label("",
                 new Label.LabelStyle(font, new Color(1, 1, 1, 1)));
         labelArmyCount = new Label("",
-                new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
+                new Label.LabelStyle(font, new Color(0.8f, 0, 0, 1)));
         labelArmiesLostAttacker = new Label("",
-                new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
+                new Label.LabelStyle(font, new Color(0.8f, 0, 0, 1)));
         labelArmiesLostDefender = new Label("",
-                new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
+                new Label.LabelStyle(font, new Color(0.8f, 0, 0, 1)));
         cheatingMessage = new Label("",
-                new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
+                new Label.LabelStyle(font, new Color(0.8f, 0, 0, 1)));
 
         labelAttacker.setOrigin(Align.center);
         labelDefender.setOrigin(Align.center);
@@ -111,7 +111,7 @@ public class AttackDisplay extends Group {
         this.addActor(tableContainer);
     }
 
-    public void updateData(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender) {
+    public void updateData(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender, boolean cheated, boolean accused) {
         labelAttacker.setText(attacker);
         labelDefender.setText(defender);
         labelTerritoryAttacker.setText(fromTerritory);
@@ -121,6 +121,15 @@ public class AttackDisplay extends Group {
         labelArmiesLostDefender.setText(Integer.toString(-armiesLostDefender));
         labelArmiesLostAttacker.setVisible(armiesLostAttacker != -1 && armiesLostDefender != -1);
         labelArmiesLostDefender.setVisible(armiesLostAttacker != -1 && armiesLostDefender != -1);
-        cheatingMessage.setText("CheatingMessage");
+        if(accused){
+            cheatingMessage.setVisible(true);
+            if (cheated) {
+                cheatingMessage.setText(attacker + " wurde beim Schummeln erwischt");
+            }else{
+                cheatingMessage.setText(defender + " hat falschlicherweise beschuldigt");
+            }
+        }else {
+            cheatingMessage.setVisible(false);
+        }
     }
 }

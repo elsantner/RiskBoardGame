@@ -219,7 +219,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
                 });
         dialog.setAbortAllowed(false);
 
-        super.showDialog(dialog, hudStage, 2, Align.bottomRight);
+        super.showDialog(dialog, hudStage, hudStage.getViewport().getWorldHeight() * 0.002f, Align.bottomRight);
     }
 
     private void showOccupyTerritoryDialog(int fromTerritoryID, int toTerritoryID) {
@@ -425,6 +425,7 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void attackFinished() {
         attackUpdated();
+        hudStage.setCurrentAttack(null);
 
         diceStage.reset();
         Gdx.app.postRunnable(() -> {
