@@ -12,6 +12,7 @@ import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.VictoryHelper;
 import edu.aau.se2.server.networking.NetworkClient;
 import edu.aau.se2.server.networking.SerializationRegister;
+import edu.aau.se2.server.networking.dto.game.AccuseCheaterMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
@@ -168,6 +169,13 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         });
     }
 
+    public void accuseCheater(){
+        if(!lobby.attackRunning() || lobby.getDefender().getUid() != thisPlayer.getUid()){
+            throw new IllegalStateException("Player is not defender.");
+        }
+        client.sendMessage(new AccuseCheaterMessage(lobby.getLobbyID(), thisPlayer.getUid()));
+    }
+
     private synchronized void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
         if (lobby.attackRunning()) {
             lobby.getCurrentAttack().setDefenderDiceCount(msg.getDiceCount());
@@ -183,8 +191,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
         notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getFromTerritoryID()));
         notifyTerritoryUpdateListener(lobby.getTerritoryByID(msg.getTerritoryID()));
-        lobby.setCurrentAttack(null);
+        if(lobby.attackRunning()){
+            lobby.getCurrentAttack().setOccupyRequired(false); //clear territory that was before occupied
+        }
         listenerManager.notifyAttackFinishedListener();
+        lobby.setCurrentAttack(null);
     }
 
     private void handlePlayerLostMessage(PlayerLostMessage msg) {
@@ -222,6 +233,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         log.info("Defender armies lost: " + msg.getArmiesLostDefender());
 
         Attack attack = lobby.getCurrentAttack();
+        attack.setAccused(msg.isAccused());
         attack.setArmiesLostAttacker(msg.getArmiesLostAttacker());
         attack.setArmiesLostDefender(msg.getArmiesLostDefender());
         attack.setCheated(msg.isCheated());
@@ -233,8 +245,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
         listenerManager.notifyAttackUpdatedListener();
         if (!msg.isOccupyRequired()) {
-            lobby.setCurrentAttack(null);
             listenerManager.notifyAttackFinishedListener();
+            lobby.setCurrentAttack(null);
         }
     }
 

@@ -222,7 +222,9 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             String defenderName = db.getLobby().getPlayerByTerritoryID(attack.getToTerritoryID()).getNickname();
             String fromTerritoryName = Territory.getByID(attack.getFromTerritoryID()).getTerritoryName();
             String toTerritoryName = Territory.getByID(attack.getToTerritoryID()).getTerritoryName();
-            updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName, attack.getAttackerDiceCount(), attack.getArmiesLostAttacker(), attack.getArmiesLostDefender());
+            updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName,
+                    attack.getAttackerDiceCount(), attack.getArmiesLostAttacker(),
+                    attack.getArmiesLostDefender(), attack.isCheated(), attack.isAccused());
             attackDisplay.setVisible(true);
         } else {
             // hide attack display 3 seconds later
@@ -248,8 +250,8 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         attackDisplay.setVisible(false);
     }
 
-    private void updateAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender) {
-        attackDisplay.updateData(attacker, defender, fromTerritory, toTerritory, armyCount, armiesLostAttacker, armiesLostDefender);
+    private void updateAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender, boolean cheated, boolean accused) {
+        attackDisplay.updateData(attacker, defender, fromTerritory, toTerritory, armyCount, armiesLostAttacker, armiesLostDefender, cheated, accused);
     }
 
     private void resetTerritoryCount(int playerColor) {

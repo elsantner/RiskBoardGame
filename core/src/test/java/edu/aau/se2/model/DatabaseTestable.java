@@ -240,9 +240,4 @@ public class DatabaseTestable extends Database {
         boolean isDone();
     }
 
-    @Override
-    protected synchronized void handleAttackResultMessage(AttackResultMessage msg) {
-        msg.setOccupyRequired(true);
-        super.handleAttackResultMessage(msg);
-    }
 }

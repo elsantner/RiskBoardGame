@@ -207,17 +207,19 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     private void showStartDefendDialog(int onTerritoryID) {
         Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
         boardStage.setInteractable(false);
-        SelectCountDialog dialog = new SelectCountDialog(uiSkin, "Verteidigen", "Wuerfelanzahl waehlen", 1,
+        DefenderDiceCountDialog dialog = new DefenderDiceCountDialog(uiSkin, 1,
                 Math.min(db.getLobby().getTerritoryByID(onTerritoryID).getArmyCount(), 2),
                 result -> {
                     if (result > 0) {
                         db.sendDefenderDiceCount(result);
+                    } else {
+                        db.accuseCheater();
                     }
                     boardStage.setInteractable(true);
                 });
         dialog.setAbortAllowed(false);
 
-        super.showDialog(dialog, hudStage, 2, Align.bottomRight);
+        super.showDialog(dialog, hudStage, hudStage.getViewport().getWorldHeight() * 0.002f, Align.bottomRight);
     }
 
     private void showOccupyTerritoryDialog(int fromTerritoryID, int toTerritoryID) {
@@ -380,13 +382,11 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
             boardStage.attackStartable(false);
 
             Attack a = db.getLobby().getCurrentAttack();
-            if (a != null && db.isThisPlayersTurn()) {
-                List<Integer> result = DiceStage.rollDice(a.getAttackerDiceCount());
-                db.sendAttackerResults(result, false);
-                diceStage.showResults(result, true);
-            }
 
-            if (a != null && db.isThisPlayerDefender()) {
+            // player is attacker
+            diceStage.playAttackerDiceAnimation(a.getAttackerDiceCount(), db.isThisPlayersTurn());
+            // player is defender
+            if (db.isThisPlayerDefender()) {
                 showStartDefendDialog(a.getToTerritoryID());
             }
         });
@@ -398,19 +398,25 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
         Gdx.app.postRunnable(() -> {
             hudStage.setCurrentAttack(a);
 
+            // defenders armies were eliminated & territory needs to be occupied
             if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
                 diceStage.hide();
                 showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
-            } else if (a != null && a.getDefenderDiceCount() != -1 && a.getDefenderDiceResults() == null && db.isThisPlayerDefender()) {
+            }
+            // received attacker dice results
+            else if (a != null && a.getDefenderDiceCount() != -1 && a.getDefenderDiceResults() == null && db.isThisPlayerDefender()) {
+                diceStage.showAttackerResults(a.getAttackerDiceResults());
+
                 List<Integer> result = DiceStage.rollDice(a.getDefenderDiceCount());
                 db.sendDefenderResults(result);
-                diceStage.showResults(result, false);
-            } else if (a != null) {
+            }
+            // attack was just started
+            else if (a != null) {
                 if (a.getAttackerDiceResults() != null) {
-                    diceStage.showResults(a.getAttackerDiceResults(), true);
+                    diceStage.showAttackerResults(a.getAttackerDiceResults());
                 }
                 if (a.getDefenderDiceResults() != null) {
-                    diceStage.showResults(a.getDefenderDiceResults(), false);
+                    diceStage.showDefenderResults(a.getDefenderDiceResults(), true);
                 }
             }
         });
@@ -419,7 +425,9 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
     @Override
     public void attackFinished() {
         attackUpdated();
+        hudStage.setCurrentAttack(null);
 
+        diceStage.reset();
         Gdx.app.postRunnable(() -> {
             hudStage.setPhaseSkipable(true);
             boardStage.attackStartable(true);

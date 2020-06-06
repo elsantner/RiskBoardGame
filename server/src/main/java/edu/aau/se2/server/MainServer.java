@@ -19,6 +19,7 @@ import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.DiceHelper;
 import edu.aau.se2.server.logic.VictoryHelper;
 import edu.aau.se2.server.networking.SerializationRegister;
+import edu.aau.se2.server.networking.dto.game.AccuseCheaterMessage;
 import edu.aau.se2.server.networking.dto.InLobbyMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
@@ -124,12 +125,22 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleOccupyTerritoryMessage((OccupyTerritoryMessage) arg);
                 } else if (arg instanceof DefenderDiceCountMessage) {
                     handleDefenderDiceCountMessage((DefenderDiceCountMessage) arg);
+                } else if (arg instanceof AccuseCheaterMessage){
+                    handleAccuseCheaterMessage((AccuseCheaterMessage) arg);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 log.log(Level.SEVERE, "Exception: " + ex.getMessage(), ex);
             }
         });
+    }
+
+    private synchronized void handleAccuseCheaterMessage(AccuseCheaterMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+        //if message is from defender ...
+        if(l.getCurrentAttack()!= null && l.getDefender().getUid() == msg.getFromPlayerID()){
+            attackFinished(l.getLobbyID(), true);
+        }
     }
 
     private synchronized void handleDefenderDiceCountMessage(DefenderDiceCountMessage msg) {
@@ -198,52 +209,50 @@ public class MainServer implements PlayerLostConnectionListener {
             } catch (InterruptedException e) {
                 log.severe(e.getMessage());
             }
-            attackFinished(l.getLobbyID());
+            attackFinished(l.getLobbyID(), false);
         }
     }
 
-    private synchronized void attackFinished(int lobbyId) {
+    private synchronized void attackFinished(int lobbyId, boolean accused) {
         Lobby l = ds.getLobbyByID(lobbyId);
+        Territory fromTerritory = l.getTerritoryByID(l.getCurrentAttack().getFromTerritoryID());
+        Territory toTerritory = l.getTerritoryByID(l.getCurrentAttack().getToTerritoryID());
 
         if (l.attackRunning()) {
             int armiesLostAttacker = 0;
             int armiesLostDefender = 0;
+            boolean wasCheated = l.getCurrentAttack().isCheated();
 
-            List<Integer> attackerResults = l.getCurrentAttack().getAttackerDiceResults();
-            List<Integer> defenderResults = l.getCurrentAttack().getDefenderDiceResults();
-
-            attackerResults.sort(Integer::compareTo);
-            Collections.sort(attackerResults, Collections.reverseOrder());
-            defenderResults.sort(Integer::compareTo);
-            Collections.sort(defenderResults, Collections.reverseOrder());
-
-            for (int i = 0; i < Math.min(attackerResults.size(), defenderResults.size()); i++) {
-                if (attackerResults.get(i) <= defenderResults.get(i)) {
-                    armiesLostAttacker++;
-                } else {
-                    armiesLostDefender++;
+            if(!accused) {
+                List<Integer> attackerResults = l.getCurrentAttack().getAttackerDiceResults();
+                List<Integer> defenderResults = l.getCurrentAttack().getDefenderDiceResults();
+                int[] armiesLost = DiceHelper.getArmiesLost(attackerResults, defenderResults);
+                armiesLostAttacker = armiesLost[0];
+                armiesLostDefender = armiesLost[1];
+            }
+            else{
+                if(wasCheated){
+                    armiesLostAttacker = l.getCurrentAttack().getAttackerDiceCount();
+                }else {
+                    //defender should not lose more armys then the number of armies on his territory
+                    armiesLostDefender = Math.min(toTerritory.getArmyCount(), l.getCurrentAttack().getAttackerDiceCount());
                 }
             }
-
-            Territory fromTerritory = l.getTerritoryByID(l.getCurrentAttack().getFromTerritoryID());
-            Territory toTerritory = l.getTerritoryByID(l.getCurrentAttack().getToTerritoryID());
-
             fromTerritory.setArmyCount(Math.max(0, fromTerritory.getArmyCount() - armiesLostAttacker));
             toTerritory.setArmyCount(Math.max(0, toTerritory.getArmyCount() - armiesLostDefender));
 
             boolean occupyRequired = toTerritory.getArmyCount() == 0;
             l.getCurrentAttack().setOccupyRequired(occupyRequired);
-            boolean wasCheated = l.getCurrentAttack().isCheated();
 
             if (!occupyRequired) {
                 l.setCurrentAttack(null);
             }
 
             ds.updateLobby(l);
-
-            server.broadcastMessage(new AttackResultMessage(lobbyId, l.getPlayerToAct().getUid(), armiesLostAttacker, armiesLostDefender, wasCheated, occupyRequired), l.getPlayers());
+            server.broadcastMessage(new AttackResultMessage(lobbyId, l.getPlayerToAct().getUid(), armiesLostAttacker, armiesLostDefender, wasCheated, occupyRequired, accused), l.getPlayers());
         }
     }
+
 
     private void handleAttackingPhaseFinishedMessage(AttackingPhaseFinishedMessage msg) {
         Lobby l = ds.getLobbyByID(msg.getLobbyID());
@@ -356,7 +365,7 @@ public class MainServer implements PlayerLostConnectionListener {
                 playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getToTerritoryID()).getUid())) {
             lobbyToLeave.setCurrentAttack(null);
             server.broadcastMessage(new AttackResultMessage(lobbyToLeave.getLobbyID(), lobbyToLeave.getPlayerToAct().getUid(),
-                    0, 0, false, false), lobbyToLeave.getPlayers());
+                    0, 0, false, false, false), lobbyToLeave.getPlayers());
         }
 
         boolean wasPlayersTurn = lobbyToLeave.isPlayersTurn(playerToLeave.getUid());

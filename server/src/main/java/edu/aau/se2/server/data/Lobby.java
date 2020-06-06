@@ -304,4 +304,11 @@ public class Lobby {
         }
         return territoryIDs;
     }
+
+    public Player getCurrentDefender(){
+        if(getCurrentAttack() == null){
+            return null;
+        }
+        return getPlayerByID(getTerritoryByID(getCurrentAttack().getToTerritoryID()).getOccupierPlayerID());
+    }
 }
