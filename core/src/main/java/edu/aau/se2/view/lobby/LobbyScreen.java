@@ -38,6 +38,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     private BitmapFont font;
     private int height;
     private int width;
+    private int lineHeight;
     private Stage stage;
     private Skin skin;
 
@@ -126,7 +127,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
                 font.setColor(new Color(0.8f, 0, 0, 1));
                 font.draw(batch, "!ready", (xCord + (int) ((width * 1200) / 1920)), yCord);
             }
-            yCord -= (height * 150) / 1080;
+            yCord -= (height * lineHeight) / 1080;
         }
         batch.end();
 
@@ -181,6 +182,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
         line = assetManager.get(AssetName.TEX_LOBBY_LINE);
         lobbyOverlay = assetManager.get(AssetName.TEX_LOBBY_OVERLAY);
         font = getGame().getAssetManager().get(AssetName.FONT_2);
+        adjustFontSize();
         font.setColor(new Color(0.6f, 0, 0, 1));
     }
 
@@ -195,5 +197,22 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     @Override
     public void playersChanged(List<Player> newPlayers) {
         this.users = newPlayers;
+        adjustFontSize();
+    }
+
+    private void adjustFontSize() {
+        if (font == null) {
+            font = getGame().getAssetManager().get(AssetName.FONT_2);
+        }
+        if (this.users.size() < 5) {
+            font.getData().setScale(1f);
+            lineHeight = 155;
+        } else if (this.users.size() == 5) {
+            font.getData().setScale(0.85f);
+            lineHeight = 135;
+        } else if (this.users.size() == 6) {
+            font.getData().setScale(0.75f);
+            lineHeight = 120;
+        }
     }
 }
