@@ -46,6 +46,7 @@ public class DiceStage extends AbstractStage {
     private List<Integer> attackerDiceResults;
     private boolean cheated = false;
     private boolean attackerDicingAnimationRunning = false;
+    private Random random = new Random();
 
     public DiceStage(AbstractScreen screen) {
         super(screen);
@@ -94,10 +95,9 @@ public class DiceStage extends AbstractStage {
 
     private void cheatDicingResults() {
         List<Integer> cheatedResults = new ArrayList<>();
-        Random rand = new Random();
         for (int result : attackerDiceResults) {
             // add random integer between 0 and 2 to each dicing result
-            cheatedResults.add(Math.max(1, Math.min(6, result + rand.nextInt(3))));
+            cheatedResults.add(Math.max(1, Math.min(6, result + random.nextInt(3))));
         }
         attackerDiceResults = cheatedResults;
     }
