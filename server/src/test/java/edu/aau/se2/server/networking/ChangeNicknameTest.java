@@ -67,7 +67,7 @@ public class ChangeNicknameTest extends AbstractServerTest {
         Thread.sleep(1000);
         assertEquals(NUM_CLIENTS, changeNicknameMsgCount.get());
     }
-    
+
     @After
     public void tearDown() {
         disconnectAll();

@@ -170,6 +170,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
 
 
     public synchronized void setPlayerNickname(String nickname) {
+        thisPlayer.setNickname(nickname);
         client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), nickname));
     }
 
