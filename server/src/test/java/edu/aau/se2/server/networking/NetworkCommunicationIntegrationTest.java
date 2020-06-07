@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.networking.dto.BaseMessage;
+import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.TextMessage;
 import edu.aau.se2.server.networking.kryonet.KryoNetComponent;
@@ -101,9 +102,8 @@ public class NetworkCommunicationIntegrationTest {
                         Assert.assertNotNull(((ConnectedMessage)argument).getPlayer());
                         connectionMessageReceived.set(true);
                     }
-                    else {
+                    else if (argument instanceof TextMessage) {
                         secondMessage = argument;
-                        Assert.assertTrue(argument instanceof TextMessage);
                         Assert.assertEquals(RESPONSE_TEST, ((TextMessage) argument).getText());
                         responseHandled.set(true);
                     }
@@ -118,6 +118,7 @@ public class NetworkCommunicationIntegrationTest {
         component.registerClass(TextMessage.class);
         component.registerClass(Player.class);
         component.registerClass(ConnectedMessage.class);
+        component.registerClass(ChangeNicknameMessage.class);
     }
 
     @After

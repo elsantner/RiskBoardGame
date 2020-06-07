@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import edu.aau.se2.server.data.Card;
 import edu.aau.se2.server.data.Player;
+import edu.aau.se2.server.networking.dto.game.AccuseCheaterMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
@@ -13,12 +14,15 @@ import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.game.LeftGameMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
+import edu.aau.se2.server.networking.dto.game.PlayerLostMessage;
 import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.game.VictoryMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
@@ -27,6 +31,7 @@ import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
@@ -71,5 +76,10 @@ public interface SerializationRegister {
         component.registerClass(OccupyTerritoryMessage.class);
         component.registerClass(Card[].class);
         component.registerClass(DefenderDiceCountMessage.class);
+        component.registerClass(PlayerLostMessage.class);
+        component.registerClass(LeftGameMessage.class);
+        component.registerClass(VictoryMessage.class);
+        component.registerClass(AccuseCheaterMessage.class);
+        component.registerClass(ChangeNicknameMessage.class);
     }
 }
