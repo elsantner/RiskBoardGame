@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -15,7 +14,9 @@ import edu.aau.se2.model.listener.OnAttackUpdatedListener;
 import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.server.data.Territory;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class AttackTest extends AbstractDatabaseTest {
     private static final int NUM_CLIENTS = 3;
