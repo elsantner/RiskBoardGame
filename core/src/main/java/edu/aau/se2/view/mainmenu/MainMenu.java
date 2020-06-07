@@ -47,8 +47,8 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
     private String nickNameTxt;
 
 
-    public MainMenu(RiskGame riskGame){
-        this(riskGame, false);
+    public MainMenu(RiskGame riskGame, DefaultNameProvider defaultNameProvider, PopupMessageDisplay popupMessageDisplay){
+        this(riskGame, false, defaultNameProvider, popupMessageDisplay);
     }
 
     public MainMenu(RiskGame riskGame, boolean showDisconnectedDialog, DefaultNameProvider defaultNameProvider, PopupMessageDisplay popupMessageDisplay) {

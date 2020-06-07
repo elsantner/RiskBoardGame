@@ -80,7 +80,7 @@ public class RiskGame extends Game {
 			if (wasClosed) {
 				popupMessageDisplay.showMessage("Spiel geschlossen");
 			}
-			mainMenuScreen = new MainMenu(this, defaultNameProvider, popupMessageDisplay);
+			mainMenuScreen = new MainMenu(this, !Database.getInstance().isConnected(), defaultNameProvider, popupMessageDisplay);
 			setScreen(mainMenuScreen);
 		}));
 		db.getListeners().setJoinedLobbyListener((lobbyID, host, players) -> Gdx.app.postRunnable(() -> {
@@ -112,7 +112,7 @@ public class RiskGame extends Game {
 
 	private void showMenuScreenWithConnectionLostDialog() {
 		Gdx.app.postRunnable(() -> {
-			mainMenuScreen = new MainMenu(this, true);
+			mainMenuScreen = new MainMenu(this, true, defaultNameProvider, popupMessageDisplay);
 			setScreen(mainMenuScreen);
 		});
 	}
