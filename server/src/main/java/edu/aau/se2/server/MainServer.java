@@ -299,8 +299,6 @@ public class MainServer implements PlayerLostConnectionListener {
 
     private void handleNextTurn(InLobbyMessage msg) {
         Lobby lobby = ds.getLobbyByID(msg.getLobbyID());
-        // now: at the end of turn give new random card to player
-        // todo: only give card if player has occupied new territory
         int id = msg.getFromPlayerID();
         Card c = lobby.getCardDeck().getRandomCard(id);
 
@@ -574,8 +572,6 @@ public class MainServer implements PlayerLostConnectionListener {
                 StartGameMessage sgm = new StartGameMessage(msg.getLobbyID(), SERVER_PLAYER_ID, lobby.getPlayers(),
                         lobby.getPlayers().get(0).getArmyReserveCount());
                 server.broadcastMessage(sgm, lobby.getPlayers());
-                // TODO: replace once "dice to decide starter" is implemented
-                // TODO: temporary solution to not have timing issue on client --> waiting on decision whether to implement DiceToDecideStart or not
                 broadcastInitialArmyPlacingMessage(lobby);
             }
         }
