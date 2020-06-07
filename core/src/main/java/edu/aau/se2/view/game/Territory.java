@@ -217,15 +217,15 @@ public class Territory extends Actor {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
+        // if highlighted draw white border
+        if (isHighlighted) {
+            batch.setColor(Color.WHITE);
+            batch.draw(armyCirlce, armyPosition.x - (32 * getScaleX()), armyPosition.y - (32 * getScaleX()),
+                    64*getScaleX(), 64*getScaleX());
+        }
+
         // draw army counter
         if (armyCount > 0 && armyCirlce != null) {
-
-            // if highlighted draw white border
-            if (isHighlighted) {
-                batch.setColor(Color.WHITE);
-                batch.draw(armyCirlce, armyPosition.x - (32 * getScaleX()), armyPosition.y - (32 * getScaleX()),
-                        64*getScaleX(), 64*getScaleX());
-            }
             batch.setColor(armyColor);
             batch.draw(armyCirlce, armyPosition.x - (24 * getScaleX()), armyPosition.y - (24 * getScaleX()),
                     48*getScaleX(), 48*getScaleX());

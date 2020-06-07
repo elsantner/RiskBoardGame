@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.Timer;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -79,11 +80,6 @@ public class RiskGame extends Game {
 			lobbyScreen = new LobbyScreen(this);
 			setScreen(lobbyScreen);
 		}));
-		db.getListeners().setLobbyListChangedListener(lobbyList -> Gdx.app.postRunnable(() -> {
-			lobbyListScreen = new LobbyListScreen(this, lobbyList);
-			setScreen(lobbyListScreen);
-		}));
-
 		db.getListeners().setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override
 			public void connected(Player thisPlayer) {
@@ -92,17 +88,26 @@ public class RiskGame extends Game {
 			@Override
 			public void disconnected() {
 				LoggerConfigurator.getConfiguredLogger(TAG, Level.SEVERE).log(Level.SEVERE, "Connection lost");
-				popupMessageDisplay.showMessage("Verbindung verloren");
-				System.exit(-1);
+				showMenuScreenWithConnectionLostDialog();
 			}
 		});
-		try {
-			db.connectIfNotConnected();
-		} catch (IOException e) {
-            LoggerConfigurator.getConfiguredLogger(TAG, Level.SEVERE).log(Level.SEVERE, "Connection Error: ", e);
-			popupMessageDisplay.showMessage("Verbindungsfehler");
-			System.exit(-1);
-		}
+		Timer.post(new Timer.Task() {
+			@Override
+			public void run() {
+				try {
+					db.connectIfNotConnected();
+				} catch (IOException e) {
+					LoggerConfigurator.getConfiguredLogger(TAG, Level.SEVERE).log(Level.SEVERE, "Connection Error: ", e);
+				}
+			}
+		});
+	}
+
+	private void showMenuScreenWithConnectionLostDialog() {
+		Gdx.app.postRunnable(() -> {
+			mainMenuScreen = new MainMenu(this, true);
+			setScreen(mainMenuScreen);
+		});
 	}
 
 	private void setupAssetManagerLoadingScreen() {
@@ -147,7 +152,7 @@ public class RiskGame extends Game {
 		assetManager.load(AssetName.FONT_3, BitmapFont.class, parameterFont3);
 
 		assetManager.load(AssetName.PHASE_DISPLAY_BG, Texture.class);
-		assetManager.load(AssetName.UI_SKIN_1, Skin.class);
+        assetManager.load(AssetName.UI_SKIN_1, Skin.class);
 		assetManager.load(AssetName.TEX_LOBBY_SCREEN, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBY_2, Texture.class);
 		assetManager.load(AssetName.TEX_LOBBY_LINE, Texture.class);
@@ -164,7 +169,7 @@ public class RiskGame extends Game {
 		assetManager.load(AssetName.ICON_INFANTRY, Texture.class);
 		assetManager.load(AssetName.CARDS_BUTTON, Texture.class);
 		assetManager.load(AssetName.END_TURN, Texture.class);
-		assetManager.load(AssetName.TERRITORY, Texture.class);
+		assetManager.load(AssetName.END_GAME, Texture.class);
 	}
 
 	@Override
@@ -173,14 +178,20 @@ public class RiskGame extends Game {
 		// load assets
 		if(assetManager.update() && !isDoneLoadingAssets) {
 			isDoneLoadingAssets = true;
-			assetPostProcessing();
-			mainMenuScreen = new MainMenu(this);
+			mainMenuScreen = new MainMenu(this, !Database.getInstance().isConnected());
 			setScreen(mainMenuScreen);
 		}
 	}
 
-	private void assetPostProcessing() {
-		((Skin)assetManager.get(AssetName.UI_SKIN_1)).getFont("default-font").getData().setScale(0.5f);
+	public void openLobbyListScreen() {
+		Gdx.app.postRunnable(() -> {
+			lobbyListScreen = new LobbyListScreen(this);
+			setScreen(lobbyListScreen);
+		});
+	}
+
+	public void showMessage(String msg) {
+		popupMessageDisplay.showMessage(msg);
 	}
 
 	@Override

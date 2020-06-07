@@ -9,11 +9,10 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
@@ -44,6 +43,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
     private boolean showCards;
     private Database db;
     private int armyReserve;
+    private boolean leaveDialogVisible = false;
 
     //Labels
     private Label[] currentPlayerLabels;
@@ -67,7 +67,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         setupHUD();
         this.hudInteractionListener = l;
         setupAttackDisplay();
-        attackDisplay.setVisible(true);
         setArmyReserveCount(db.getCurrentArmyReserve());
     }
 
@@ -76,18 +75,33 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
 
         ImageButton cards = new ImageButton(new TextureRegionDrawable(new TextureRegion((Texture) this.getScreen().getGame().getAssetManager().get(AssetName.CARDS_BUTTON))));
         cards.getImage().setFillParent(true);
+        cards.bottom().left();
         cards.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 showCards = !showCards;
             }
         });
-        
+
+        ImageButton endGame = new ImageButton(new TextureRegionDrawable(new TextureRegion((Texture) this.getScreen().getGame().getAssetManager().get(AssetName.END_GAME))));
+        endGame.getImage().setFillParent(true);
+        endGame.bottom().left();
+        Stage thisStage = this;
+        endGame.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                ConfirmDialog dialog = new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1),
+                        "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein",
+                        res -> {
+                            if (res) db.leaveLobby();
+                        });
+
         TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
 
-        buttonLeaveGame.addListener(event -> {
-            new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1), "Verlassen", "Spiel wirklich verlassen?", "Ja", "Nein", res -> {if (res) db.leaveLobby();}).show(this);
-            return true;
+                dialog.show(thisStage).moveBy(0, thisStage.getViewport().getWorldHeight() * 0.11f);
+                dialog.setScale(thisStage.getViewport().getWorldHeight() * 0.0027f);
+                dialog.setOrigin(Align.center);
+            }
         });
 
         Table table = new Table();
@@ -116,9 +130,9 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         table.row();
         table.add(armyReserveLabel).width(vp.getScreenWidth() / 3f).padLeft(vp.getWorldWidth() * 0.01f);
         table.row();
-        table.add(cards).height(vp.getWorldHeight() * 0.132f).width(vp.getWorldWidth() * 0.077f).expandY().left().padLeft(vp.getWorldHeight() * 0.006f).bottom().padBottom(vp.getWorldHeight() * 0.006f);
+        table.add(cards).expandY().size(vp.getWorldHeight() * 0.132f).left().padLeft(vp.getWorldWidth() * 0.01f).bottom().padBottom(vp.getWorldHeight() * 0.01f);
         table.row();
-        table.add(buttonLeaveGame).left().padLeft(vp.getWorldWidth() * 0.02f).bottom();
+        table.add(endGame).size(vp.getWorldHeight() * 0.132f).left().padLeft(vp.getWorldWidth() * 0.01f).bottom().padBottom(vp.getWorldHeight() * 0.01f);
         this.addActor(table);
     }
 
@@ -128,6 +142,23 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         } else {
             this.yourTurn = getCurrentPlayerNickname() + " ist am Zug";
         }
+    }
+
+    public void showLeaveDialog() {
+        if (leaveDialogVisible) return;
+
+        leaveDialogVisible = true;
+
+        getScreen().showDialog(new ConfirmDialog(getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_1),
+                "Verlassen",
+                "Spiel wirklich verlassen?",
+                "Ja",
+                "Nein",
+                res -> {
+                    if (res)
+                        db.leaveLobby();
+                    leaveDialogVisible = false;
+                }), this, 3);
     }
 
     public void setCurrentPlayersColorOnHud(List<Player> currentPlayers) {
@@ -193,7 +224,9 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             String defenderName = db.getLobby().getPlayerByTerritoryID(attack.getToTerritoryID()).getNickname();
             String fromTerritoryName = Territory.getByID(attack.getFromTerritoryID()).getTerritoryName();
             String toTerritoryName = Territory.getByID(attack.getToTerritoryID()).getTerritoryName();
-            updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName, attack.getAttackerDiceCount(), attack.getArmiesLostAttacker(), attack.getArmiesLostDefender());
+            updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName,
+                    attack.getAttackerDiceCount(), attack.getArmiesLostAttacker(),
+                    attack.getArmiesLostDefender(), attack.isCheated(), attack.isAccused());
             attackDisplay.setVisible(true);
         } else {
             // hide attack display 3 seconds later
@@ -219,8 +252,8 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         attackDisplay.setVisible(false);
     }
 
-    private void updateAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender) {
-        attackDisplay.updateData(attacker, defender, fromTerritory, toTerritory, armyCount, armiesLostAttacker, armiesLostDefender);
+    private void updateAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender, boolean cheated, boolean accused) {
+        attackDisplay.updateData(attacker, defender, fromTerritory, toTerritory, armyCount, armiesLostAttacker, armiesLostDefender, cheated, accused);
     }
 
     private void resetTerritoryCount() {

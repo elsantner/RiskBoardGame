@@ -10,13 +10,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 public class SelectCountDialog extends Dialog {
-    private OnResultListener listener;
+    protected OnResultListener listener;
     private int minCount;
     private int maxCount;
-    private int currentCount;
+    protected int currentCount;
     private Label lblCurrentCount;
     private String text;
-    private Skin uiSkin;
+    protected Skin uiSkin;
     private boolean abortAllowed = true;
 
     public SelectCountDialog(Skin uiSkin, String title, String text, int minCount, int maxCount, OnResultListener listener) {
@@ -38,7 +38,6 @@ public class SelectCountDialog extends Dialog {
 
     private void setupUI(Skin uiSkin, String text) {
         this.pad(Gdx.graphics.getHeight()/50f);
-        getContentTable().padTop(Gdx.graphics.getHeight()/25f);
         if (text != null) {
             getContentTable().add(new Label(text, uiSkin)).center().colspan(2).row();
         }

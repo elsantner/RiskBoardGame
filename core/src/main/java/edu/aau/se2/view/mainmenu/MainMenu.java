@@ -3,8 +3,10 @@ package edu.aau.se2.view.mainmenu;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -29,13 +31,22 @@ public class MainMenu extends AbstractScreen {
     private Button exit;
     private Texture backgroundTxt;
     private Table table;
+    private SpriteBatch batch;
+    private boolean showDisconnectedDialog;
 
 
     public MainMenu(RiskGame riskGame){
+        this(riskGame, false);
+    }
+
+    public MainMenu(RiskGame riskGame, boolean showDisconnectedDialog) {
         super(riskGame);
+        this.showDisconnectedDialog = showDisconnectedDialog;
+
         mySkin = getGame().getAssetManager().get(AssetName.UI_SKIN_2);
         gamePort = new ScreenViewport();
         stage = new Stage(gamePort);
+        batch = new SpriteBatch();
 
         backgroundTxt = getGame().getAssetManager().get(AssetName.TEX_LOBBY_SCREEN);
 
@@ -43,11 +54,26 @@ public class MainMenu extends AbstractScreen {
         table.setFillParent(true);
         table.center();
         stage.addActor(table);
+    }
 
-        setupLogo();
-        setupButtons();
-        onClickButtons();
-        Gdx.input.setInputProcessor(stage);
+    private void displayDisconnectedDialog() {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        ReconnectDialog dialog = new ReconnectDialog(uiSkin, "Keine Verbindung",
+                "Moechten Sie es erneut versuchen?", success -> {
+                    if (!success) {
+                        displayDisconnectedDialog();
+                    }
+                    else {
+                        setButtonsEnabled(true);
+                    }
+                });
+        showDialog(dialog, stage, 3);
+    }
+
+    private void setButtonsEnabled(boolean enabled) {
+        create.setTouchable(enabled ? Touchable.enabled : Touchable.disabled);
+        join.setTouchable(enabled ? Touchable.enabled : Touchable.disabled);
+        exit.setTouchable(enabled ? Touchable.enabled : Touchable.disabled);
     }
 
     public void setupButtons(){
@@ -85,7 +111,7 @@ public class MainMenu extends AbstractScreen {
         join.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Database.getInstance().triggerLobbyListUpdate();
+                getGame().openLobbyListScreen();
             }
         });
 
@@ -102,7 +128,20 @@ public class MainMenu extends AbstractScreen {
 
     @Override
     public void show() {
-        //currently unused
+        setupLogo();
+        setupButtons();
+        onClickButtons();
+
+        addInputProcessor(stage);
+        if (showDisconnectedDialog) {
+            setButtonsEnabled(false);
+            displayDisconnectedDialog();
+        }
+    }
+
+    @Override
+    public void handleBackButton() {
+        Gdx.app.exit();
     }
 
     @Override
@@ -111,9 +150,9 @@ public class MainMenu extends AbstractScreen {
         Gdx.gl.glClearColor(1,0,0,0);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        stage.getBatch().begin();
-        stage.getBatch().draw(backgroundTxt,0,0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
-        stage.getBatch().end();
+        batch.begin();
+        batch.draw(backgroundTxt,0,0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
+        batch.end();
 
         stage.act();
         stage.draw();
@@ -122,8 +161,7 @@ public class MainMenu extends AbstractScreen {
 
     @Override
     public void resize(int width, int height) {
-        gamePort.update(width, height, true);
-        stage.getViewport().update(width, height);
+        //currently unused
     }
 
     @Override
@@ -143,6 +181,7 @@ public class MainMenu extends AbstractScreen {
 
     @Override
     public void dispose() {
+        batch.dispose();
         stage.dispose();
     }
 }

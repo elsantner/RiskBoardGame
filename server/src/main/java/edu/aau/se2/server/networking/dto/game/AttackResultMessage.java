@@ -7,16 +7,18 @@ public class AttackResultMessage extends InLobbyMessage {
     private int armiesLostDefender;
     private boolean cheated;
     private boolean occupyRequired;
+    private boolean accused;
 
     public AttackResultMessage() {
     }
 
-    public AttackResultMessage(int lobbyID, int fromPlayerID, int armiesLostAttacker, int armiesLostDefender, boolean cheated, boolean occupyRequired) {
+    public AttackResultMessage(int lobbyID, int fromPlayerID, int armiesLostAttacker, int armiesLostDefender, boolean cheated, boolean occupyRequired, boolean accused) {
         super(lobbyID, fromPlayerID);
         this.armiesLostAttacker = armiesLostAttacker;
         this.armiesLostDefender = armiesLostDefender;
         this.cheated = cheated;
         this.occupyRequired = occupyRequired;
+        this.accused = accused;
     }
 
     public int getArmiesLostAttacker() {
@@ -49,5 +51,13 @@ public class AttackResultMessage extends InLobbyMessage {
 
     public void setOccupyRequired(boolean occupyRequired) {
         this.occupyRequired = occupyRequired;
+    }
+
+    public boolean isAccused() {
+        return accused;
+    }
+
+    public void setAccused(boolean accused) {
+        this.accused = accused;
     }
 }

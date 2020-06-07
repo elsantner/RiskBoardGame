@@ -38,6 +38,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     private BitmapFont font;
     private int height;
     private int width;
+    private int lineHeight;
     private Stage stage;
     private Skin skin;
 
@@ -66,9 +67,11 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
 
     @Override
     public void show() {
-        this.stage = new Stage(new StretchViewport(1920,1080));
-        stage.stageToScreenCoordinates(new Vector2(0,0));
-        Gdx.input.setInputProcessor(this.stage);
+        stage = new Stage(new StretchViewport(1920, 1080));
+        stage.stageToScreenCoordinates(new Vector2(0, 0));
+
+        addInputProcessor(stage);
+
         skin = getGame().getAssetManager().get(AssetName.UI_SKIN_2);
 
         Table outerTable = new Table();
@@ -80,8 +83,8 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
         TextButton exit = new TextButton("Verlassen", skin);
         exit.addListener(new ExitButtonListener());
 
-        outerTable.add(ready).width(stage.getViewport().getWorldWidth() *0.2f).pad(10f).row();
-        outerTable.add(exit).width(stage.getViewport().getWorldWidth() *0.2f).pad(10f);
+        outerTable.add(ready).width(stage.getViewport().getWorldWidth() * 0.2f).padBottom(stage.getViewport().getWorldHeight() * 0.01f).row();
+        outerTable.add(exit).width(stage.getViewport().getWorldWidth() * 0.2f);
         this.stage.addActor(outerTable);
     }
 
@@ -108,7 +111,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     private void renderUsers() {
 
         int xCord = (width * 55) / 1080;
-        int yCord = (height  * 760) / 1080;
+        int yCord = (height * 760) / 1080;
 
         batch.begin();
         for (Player us : users
@@ -119,12 +122,12 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
             font.draw(batch, name, xCord, yCord);
             if (ready) {
                 font.setColor(new Color(0, 0.8f, 0, 1));
-                font.draw(batch, "ready", (xCord + (int)((width * 1200)/ 1920)), yCord);
+                font.draw(batch, "ready", (xCord + (int) ((width * 1200) / 1920)), yCord);
             } else {
                 font.setColor(new Color(0.8f, 0, 0, 1));
-                font.draw(batch, "!ready", (xCord +(int)((width * 1200)/ 1920)), yCord);
+                font.draw(batch, "!ready", (xCord + (int) ((width * 1200) / 1920)), yCord);
             }
-            yCord -= (height * 150) / 1080;
+            yCord -= (height * lineHeight) / 1080;
         }
         batch.end();
 
@@ -153,20 +156,25 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     @Override
     public void dispose() {
         try {
+            batch.dispose();
             background = null;
             lobbyOverlay = null;
             line = null;
             font = null;
             lobbyText = null;
             skin = null;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             LoggerConfigurator.getConfiguredLogger(TAG, Level.WARNING).log(Level.WARNING, "Error disposing assets", ex);
         }
     }
 
+    @Override
+    public void handleBackButton() {
+        db.leaveLobby();
+    }
+
     private void assets() {
-        Gdx.app.log(TAG, "Loading assets" + Gdx.graphics.getDensity() + "  "+ height);
+        Gdx.app.log(TAG, "Loading assets" + Gdx.graphics.getDensity() + "  " + height);
         AssetManager assetManager = getGame().getAssetManager();
 
         background = assetManager.get(AssetName.TEX_LOBBY_SCREEN);
@@ -174,6 +182,7 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
         line = assetManager.get(AssetName.TEX_LOBBY_LINE);
         lobbyOverlay = assetManager.get(AssetName.TEX_LOBBY_OVERLAY);
         font = getGame().getAssetManager().get(AssetName.FONT_2);
+        adjustFontSize();
         font.setColor(new Color(0.6f, 0, 0, 1));
     }
 
@@ -188,5 +197,22 @@ public class LobbyScreen extends AbstractScreen implements OnPlayersChangedListe
     @Override
     public void playersChanged(List<Player> newPlayers) {
         this.users = newPlayers;
+        adjustFontSize();
+    }
+
+    private void adjustFontSize() {
+        if (font == null) {
+            font = getGame().getAssetManager().get(AssetName.FONT_2);
+        }
+        if (this.users.size() < 5) {
+            font.getData().setScale(1f);
+            lineHeight = 155;
+        } else if (this.users.size() == 5) {
+            font.getData().setScale(0.85f);
+            lineHeight = 135;
+        } else if (this.users.size() == 6) {
+            font.getData().setScale(0.75f);
+            lineHeight = 120;
+        }
     }
 }
