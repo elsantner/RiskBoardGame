@@ -46,6 +46,7 @@ import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkServerKryo;
@@ -125,6 +126,8 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleOccupyTerritoryMessage((OccupyTerritoryMessage) arg);
                 } else if (arg instanceof DefenderDiceCountMessage) {
                     handleDefenderDiceCountMessage((DefenderDiceCountMessage) arg);
+                } else if (arg instanceof ChangeNicknameMessage) {
+                    handleChangedNicknameMessage((ChangeNicknameMessage) arg);
                 } else if (arg instanceof AccuseCheaterMessage){
                     handleAccuseCheaterMessage((AccuseCheaterMessage) arg);
                 }
@@ -140,6 +143,14 @@ public class MainServer implements PlayerLostConnectionListener {
         //if message is from defender ...
         if(l.getCurrentAttack()!= null && l.getDefender().getUid() == msg.getFromPlayerID()){
             attackFinished(l.getLobbyID(), true);
+        }
+    }
+
+    public void handleChangedNicknameMessage(ChangeNicknameMessage msg) {
+        Player player = ds.getPlayerByID(msg.getFromPlayerID());
+        if(msg.getNickname() != null){
+            String changedName = msg.getNickname();
+            player.setNickname(changedName);
         }
     }
 

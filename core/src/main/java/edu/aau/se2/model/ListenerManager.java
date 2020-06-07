@@ -14,6 +14,7 @@ import edu.aau.se2.model.listener.OnLeftGameListener;
 import edu.aau.se2.model.listener.OnLeftLobbyListener;
 import edu.aau.se2.model.listener.OnLobbyListChangedListener;
 import edu.aau.se2.model.listener.OnNextTurnListener;
+import edu.aau.se2.model.listener.OnNicknameChangeListener;
 import edu.aau.se2.model.listener.OnPhaseChangedListener;
 import edu.aau.se2.model.listener.OnPlayerLostListener;
 import edu.aau.se2.model.listener.OnPlayersChangedListener;
@@ -37,6 +38,7 @@ public class ListenerManager {
     private OnPhaseChangedListener phaseChangedListener;
     private OnArmiesMovedListener armiesMovedListener;
     private OnAttackUpdatedListener attackUpdatedListener;
+    private OnNicknameChangeListener nicknameChangeListener;
     private OnLeftGameListener leftGameListener;
     private OnPlayerLostListener playerLostListener;
     private OnVictoryListener victoryListener;
@@ -87,6 +89,14 @@ public class ListenerManager {
 
     public void setJoinedLobbyListener(OnJoinedLobbyListener l) {
         this.joinedLobbyListener = l;
+    }
+
+    public void setNicknameListener(OnNicknameChangeListener l) { this.nicknameChangeListener = l; }
+
+    void notifyNicknameChangeListener(String nickname) {
+        if (nicknameChangeListener != null) {
+            nicknameChangeListener.nicknameChanged(nickname);
+        }
     }
 
     public void setArmyReserveChangedListener(OnArmyReserveChangedListener l) {

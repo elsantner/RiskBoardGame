@@ -31,6 +31,7 @@ import edu.aau.se2.server.networking.dto.lobby.PlayersChangedMessage;
 import edu.aau.se2.server.networking.dto.lobby.ReadyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestJoinLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
+import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
@@ -79,5 +80,6 @@ public interface SerializationRegister {
         component.registerClass(LeftGameMessage.class);
         component.registerClass(VictoryMessage.class);
         component.registerClass(AccuseCheaterMessage.class);
+        component.registerClass(ChangeNicknameMessage.class);
     }
 }

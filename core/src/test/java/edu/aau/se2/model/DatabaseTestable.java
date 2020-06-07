@@ -1,7 +1,8 @@
 package edu.aau.se2.model;
 
+import com.badlogic.gdx.Preferences;
+
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -17,8 +18,8 @@ import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 
 public class DatabaseTestable extends Database {
-    public DatabaseTestable() {
-        super();
+    public DatabaseTestable(Preferences prefs) {
+        super(prefs);
     }
 
     /**

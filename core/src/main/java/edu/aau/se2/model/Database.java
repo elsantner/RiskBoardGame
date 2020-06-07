@@ -1,5 +1,8 @@
 package edu.aau.se2.model;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
@@ -42,6 +45,7 @@ import edu.aau.se2.server.networking.dto.lobby.RequestLeaveLobby;
 import edu.aau.se2.server.networking.dto.prelobby.ConnectedMessage;
 import edu.aau.se2.server.networking.dto.prelobby.LobbyListMessage;
 import edu.aau.se2.server.networking.dto.prelobby.RequestLobbyListMessage;
+import edu.aau.se2.server.networking.dto.prelobby.ChangeNicknameMessage;
 import edu.aau.se2.server.networking.kryonet.NetworkClientKryo;
 import edu.aau.se2.server.networking.kryonet.NetworkConstants;
 import edu.aau.se2.utils.LoggerConfigurator;
@@ -74,8 +78,10 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
     private int currentArmyReserve;
     private Phase currentPhase;
     private Lobby lobby;
+    private Preferences prefs;
 
-    protected Database() {
+
+    protected Database(Preferences preferences) {
         resetLobby();
         isConnected = false;
 
@@ -85,6 +91,11 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         registerClientCallback();
         log = LoggerConfigurator.getConfiguredLogger(TAG, Level.INFO);
         this.listenerManager = new ListenerManager();
+        this.prefs = preferences;
+    }
+
+    protected Database(){
+        this(Gdx.app.getPreferences("profile"));
     }
 
     public enum Phase {
@@ -159,6 +170,8 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleDiceResultMessage((DiceResultMessage) msg);
             } else if (msg instanceof DefenderDiceCountMessage) {
                 handleDefenderDiceCountMessage((DefenderDiceCountMessage) msg);
+            } else if (msg instanceof ChangeNicknameMessage) {
+                handleChangeNicknameMessage((ChangeNicknameMessage) msg);
             } else if (msg instanceof PlayerLostMessage) {
                 handlePlayerLostMessage((PlayerLostMessage) msg);
             } else if (msg instanceof LeftGameMessage) {
@@ -167,6 +180,24 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
                 handleVictoryMessage((VictoryMessage) msg);
             }
         });
+    }
+
+
+    public synchronized void setPlayerNickname(String nickname) {
+        thisPlayer.setNickname(nickname);
+        client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), nickname));
+    }
+
+    private void handleChangeNicknameMessage(ChangeNicknameMessage msg) {
+        listenerManager.notifyNicknameChangeListener(msg.getNickname());
+        //at first start of the app -> nickname is "New Player"
+        if(prefs.getString("name") == null || prefs.getString("name").equals("")){
+            client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), "New Player"));
+            prefs.putString("name", "New Player");
+            prefs.flush();
+        } else {
+            client.sendMessage(new ChangeNicknameMessage(thisPlayer.getUid(), prefs.getString("name")));
+        }
     }
 
     public void accuseCheater(){
