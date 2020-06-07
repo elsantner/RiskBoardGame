@@ -90,6 +90,7 @@ public class RiskGame extends Game {
 		db.getListeners().setConnectionChangedListener(new OnConnectionChangedListener() {
 			@Override
 			public void connected(Player thisPlayer) {
+				// unused
 			}
 
 			@Override

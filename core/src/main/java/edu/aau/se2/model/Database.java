@@ -147,7 +147,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
             } else if (msg instanceof LeftLobbyMessage) {
                 handleLeftLobbyMessage((LeftLobbyMessage) msg);
             } else if (msg instanceof NextTurnMessage) {
-                handleNextTurnMessage((NextTurnMessage) msg);
+                handleNextTurnMessage();
             } else if (msg instanceof NewCardMessage) {
                 handleNewCardMessage((NewCardMessage) msg);
             } else if (msg instanceof NewArmiesMessage) {
@@ -337,7 +337,7 @@ public class Database implements OnBoardInteractionListener, NetworkClient.OnCon
         }
     }
 
-    private synchronized void handleNextTurnMessage(NextTurnMessage msg) {
+    private synchronized void handleNextTurnMessage() {
         lobby.setInitialArmiesPlaced();
         lobby.nextPlayersTurn();
         setCurrentPhase(Phase.PLACING);

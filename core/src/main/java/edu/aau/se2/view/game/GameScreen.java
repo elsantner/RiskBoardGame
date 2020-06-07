@@ -141,7 +141,6 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
 
     @Override
     public void territoryUpdated(int territoryID, int armyCount, int colorID) {
-        int playerColor = db.getLobby().getPlayerToAct().getColorID();
         boardStage.setArmyCount(territoryID, armyCount);
         boardStage.setArmyColor(territoryID, colorID);
         hudStage.setPlayerTerritoryCount(territoryID);
