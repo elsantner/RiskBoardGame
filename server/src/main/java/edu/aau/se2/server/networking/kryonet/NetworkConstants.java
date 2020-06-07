@@ -5,6 +5,6 @@ public abstract class NetworkConstants {
     public static final int TCP_PORT = 53216;
 
     private NetworkConstants() {
-
+        // defeat instantiation
     }
 }

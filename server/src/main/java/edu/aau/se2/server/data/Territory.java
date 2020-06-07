@@ -44,6 +44,6 @@ public class Territory {
     }
 
     public boolean isNotOccupied() {
-        return armyCount == 0;
+        return occupierPlayerID == -1;
     }
 }

@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 
+import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.view.asset.AssetName;
 
 public class AttackDisplay extends Group {
@@ -24,10 +25,26 @@ public class AttackDisplay extends Group {
     private Table tableContainer;
     private Texture attackArrow;
     private Drawable background;
+    private Label labelAttacker;
+    private Label labelDefender;
+    private Label labelTerritoryAttacker;
+    private Label labelTerritoryDefender;
+    private Label labelArmyCount;
+    private Label labelArmiesLostAttacker;
+    private Label labelArmiesLostDefender;
+    private Label cheatingMessage;
 
     public AttackDisplay(AssetManager assetManager) {
         this.assetManager = assetManager;
         getAssets();
+        setupDisplay();
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        if (tableContainer != null) {
+            tableContainer.setVisible(visible);
+        }
     }
 
     private void getAssets() {
@@ -36,32 +53,30 @@ public class AttackDisplay extends Group {
         background = new TextureRegionDrawable(new TextureRegion(assetManager.get(AssetName.BG_ATTACK_DISPLAY, Texture.class)));
     }
 
-    private void setupDisplay(String attackerName, String defenderName,
-                            String attackerTerritoryName, String defenderTerritoryName, int count, int armiesLostAttacker, int armiesLostDefender) {
-        if (tableContainer != null) {
-            tableContainer.remove();
-            tableContainer = null;
-        }
+    private void setupDisplay() {
 
-        Label labelAttacker = new Label(attackerName,
+        labelAttacker = new Label("",
                 new Label.LabelStyle(font, new Color(1, 1, 1, 1)));
-        Label labelDefender = new Label(defenderName,
+        labelDefender = new Label("",
                 new Label.LabelStyle(font, new Color(1, 1, 1, 1)));
-        Label labelTerritoryAttacker = new Label(attackerTerritoryName,
+        labelTerritoryAttacker = new Label("",
                 new Label.LabelStyle(font, new Color(1, 1, 1, 1)));
-        Label labelTerritoryDefender = new Label(defenderTerritoryName,
+        labelTerritoryDefender = new Label("",
                 new Label.LabelStyle(font, new Color(1, 1, 1, 1)));
-        Label labelArmyCount = new Label(Integer.toString(count),
-                new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
-        Label labelArmiesLostAttacker = new Label(Integer.toString(- armiesLostAttacker),
-                new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
-        Label labelArmiesLostDefender = new Label(Integer.toString(- armiesLostDefender),
-                new Label.LabelStyle(font, new Color(0.6f, 0, 0, 1)));
+        labelArmyCount = new Label("",
+                new Label.LabelStyle(font, new Color(0.8f, 0, 0, 1)));
+        labelArmiesLostAttacker = new Label("",
+                new Label.LabelStyle(font, new Color(0.8f, 0, 0, 1)));
+        labelArmiesLostDefender = new Label("",
+                new Label.LabelStyle(font, new Color(0.8f, 0, 0, 1)));
+        cheatingMessage = new Label("",
+                new Label.LabelStyle(font, new Color(0.8f, 0, 0, 1)));
 
         labelAttacker.setOrigin(Align.center);
         labelDefender.setOrigin(Align.center);
         labelTerritoryAttacker.setOrigin(Align.center);
         labelTerritoryDefender.setOrigin(Align.center);
+        cheatingMessage.setOrigin(Align.center);
         Image imgArrow = new Image(attackArrow);
 
         // do not use getWidth() --> returns 0 for whatever reason
@@ -82,12 +97,11 @@ public class AttackDisplay extends Group {
         tableContent.add(imgArrow).minWidth(imgArrow.getMinWidth()).padLeft(width / 30f).padRight(width / 30f);
         tableContent.add(labelTerritoryDefender).minHeight(font.getLineHeight());
         tableContent.row();
-        if (armiesLostAttacker != -1 && armiesLostDefender != -1) {
-            tableContent.add(labelArmiesLostAttacker).minHeight(font.getLineHeight());
-            tableContent.add().minHeight(font.getLineHeight()).expand().fill();
-            tableContent.add(labelArmiesLostDefender).minHeight(font.getLineHeight());
-            tableContent.row();
-        }
+        tableContent.add(labelArmiesLostAttacker).minHeight(font.getLineHeight());
+        tableContent.add().minHeight(font.getLineHeight()).expand().fill();
+        tableContent.add(labelArmiesLostDefender).minHeight(font.getLineHeight());
+        tableContent.row();
+        tableContent.add(cheatingMessage).minHeight(font.getLineHeight()).center().colspan(3);
 
 
         Container<Table> container = new Container<>(tableContent);
@@ -98,7 +112,25 @@ public class AttackDisplay extends Group {
         this.addActor(tableContainer);
     }
 
-    public void updateData(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender) {
-        setupDisplay(attacker, defender, fromTerritory, toTerritory, armyCount, armiesLostAttacker, armiesLostDefender);
+    public void updateData(String attacker, String defender, String fromTerritory, String toTerritory, Attack attack) {
+        labelAttacker.setText(attacker);
+        labelDefender.setText(defender);
+        labelTerritoryAttacker.setText(fromTerritory);
+        labelTerritoryDefender.setText(toTerritory);
+        labelArmyCount.setText(Integer.toString(attack.getAttackerDiceCount()));
+        labelArmiesLostAttacker.setText(Integer.toString(-attack.getArmiesLostAttacker()));
+        labelArmiesLostDefender.setText(Integer.toString(-attack.getArmiesLostDefender()));
+        labelArmiesLostAttacker.setVisible(attack.getArmiesLostAttacker() != -1 && attack.getArmiesLostDefender() != -1);
+        labelArmiesLostDefender.setVisible(attack.getArmiesLostAttacker() != -1 && attack.getArmiesLostDefender() != -1);
+        if(attack.isAccused()){
+            cheatingMessage.setVisible(true);
+            if (attack.isCheated()) {
+                cheatingMessage.setText(attacker + " wurde beim Schummeln erwischt");
+            }else{
+                cheatingMessage.setText(defender + " hat falschlicherweise beschuldigt");
+            }
+        }else {
+            cheatingMessage.setVisible(false);
+        }
     }
 }

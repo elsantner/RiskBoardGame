@@ -1,8 +1,14 @@
 package edu.aau.se2.model;
 
+import com.badlogic.gdx.Preferences;
+
+import javax.naming.ldap.PagedResultsControl;
+
 import edu.aau.se2.server.networking.MainServerTestable;
+import static org.mockito.Mockito.mock;
 
 public abstract class AbstractDatabaseTest {
+    private static Preferences prefMock = mock(Preferences.class);
     protected MainServerTestable server;
     protected DatabaseTestable[] dbs;
 
@@ -18,7 +24,7 @@ public abstract class AbstractDatabaseTest {
     private void setupClients() {
         DatabaseTestable.setServerAddress("localhost");
         for (int i=0; i<dbs.length; i++) {
-            dbs[i] = new DatabaseTestable();
+            dbs[i] = new DatabaseTestable(prefMock);
         }
     }
 

@@ -11,7 +11,7 @@ public abstract class AssetName {
     public static final String RISK_BOARD = "gameBoard/riskBoard.png";
     public static final String ARMY_DISPLAY_CIRCLE = "gameBoard/armyCircle.png";
     public static final String PHASE_DISPLAY_BG = "gameBoard/hudBackground.png";
-    public static final String UI_SKIN_1 = "skin/uiskin.json";
+    public static final String UI_SKIN_1 = "skin_shade/uiskin.json";
     public static final String UI_SKIN_2 = "skin_glassy/glassy-ui.json";
     public static final String FONT_1 = "font/CenturyGothic1.ttf";
     public static final String FONT_2 = "font/CenturyGothic2.ttf";
@@ -32,4 +32,5 @@ public abstract class AssetName {
     public static final String ICON_INFANTRY = "gameBoard/iconInfantry.png";
     public static final String CARDS_BUTTON = "cards/card_button.png";
     public static final String END_TURN = "gameBoard/end_turn.png";
+    public static final String END_GAME = "gameBoard/end_game.png";
 }
