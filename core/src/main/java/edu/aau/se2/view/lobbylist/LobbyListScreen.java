@@ -43,6 +43,7 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
     private Stage stage;
 
     private List<LobbyListMessage.LobbyData> lobbyData;
+    private boolean dataChanged = false;
 
     public LobbyListScreen(RiskGame game) {
         super(game);
@@ -63,6 +64,13 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
         batch.draw(background, 0, 0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
         batch.draw(lobbyOverlay, 0, 0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
         batch.end();
+
+        if (dataChanged){
+            dataChanged = false;
+            AssetManager assetManager = getGame().getAssetManager();
+            final Skin skin = assetManager.get(AssetName.UI_SKIN_2);
+            fillLobbyList(assetManager, skin);
+        }
 
         stage.act();
         stage.draw();
@@ -185,9 +193,7 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
     @Override
     public void lobbyListChanged(List<LobbyListMessage.LobbyData> lobbyList) {
         lobbyData = lobbyList;
-        AssetManager assetManager = getGame().getAssetManager();
-        final Skin skin = assetManager.get(AssetName.UI_SKIN_2);
-        fillLobbyList(assetManager, skin);
+        dataChanged = true;
     }
 
     @Override
