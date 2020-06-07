@@ -29,6 +29,14 @@ public class ArmyCountHelperTest {
     }
 
     @Test
+    public void testInitialCount() {
+        // no exception must be thrown
+        for (int i=2; i<7; i++) {
+            ArmyCountHelper.getStartCount(i);
+        }
+    }
+
+    @Test
     public void testCalcNewArmyCount() {
         int playerID = 1;
 

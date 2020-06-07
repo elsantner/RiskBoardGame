@@ -58,7 +58,7 @@ public abstract class TerritoryHelper {
             {ID.BRAZIL, ID.PERU},   // Argentina
             {ID.PERU, ID.ARGENTINA, ID.VENEZUELA, ID.NORTH_AFRICA},  // Brazil
             {ID.BRAZIL, ID.ARGENTINA, ID.VENEZUELA},    // Peru
-            {ID.PERU, ID.BRAZIL},   //Venezuela
+            {ID.PERU, ID.BRAZIL, ID.CENTRAL_AMERICA},   //Venezuela
             {ID.WESTERN_CANADA, ID.NORTHWEST_TERRITORY, ID.KAMCHATKA},  // Alaska
             {ID.ALASKA, ID.NORTHWEST_TERRITORY, ID.CENTRAL_CANADA, ID.WESTERN_US}, // WesternCanada
             {ID.WESTERN_US, ID.EASTERN_US, ID.VENEZUELA}, // CentralAmerica

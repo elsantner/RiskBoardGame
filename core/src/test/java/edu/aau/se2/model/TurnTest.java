@@ -79,6 +79,16 @@ public class TurnTest extends AbstractDatabaseTest {
         assertEquals(NUM_TURNS*NUM_CLIENTS, nextTurnCount.get());
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testWrongPlayer() {
+        DatabaseTestable.getDifferentClient(dbs, DatabaseTestable.getClientToAct(dbs)).finishTurn();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testArmiesNotPlaced() {
+        DatabaseTestable.getClientToAct(dbs).finishTurn();
+    }
+
     @After
     public void teardown() {
         disconnectAll();
