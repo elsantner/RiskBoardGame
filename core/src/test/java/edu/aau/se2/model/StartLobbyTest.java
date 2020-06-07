@@ -38,6 +38,9 @@ public class StartLobbyTest extends AbstractDatabaseTest {
      */
     @Test
     public void testStartLobby() throws InterruptedException {
+        dbs[0].togglePlayerReady();
+        dbs[0].togglePlayerReady();
+
         for (DatabaseTestable db : dbs) {
             db.getListeners().setGameStartListener((players, initialArmyCount) -> gameStartedCount.addAndGet(1));
             db.setPlayerReady(true);

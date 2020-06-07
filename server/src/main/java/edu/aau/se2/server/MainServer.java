@@ -17,7 +17,10 @@ import edu.aau.se2.server.data.Player;
 import edu.aau.se2.server.data.PlayerLostConnectionListener;
 import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.DiceHelper;
+import edu.aau.se2.server.logic.VictoryHelper;
 import edu.aau.se2.server.networking.SerializationRegister;
+import edu.aau.se2.server.networking.dto.game.AccuseCheaterMessage;
+import edu.aau.se2.server.networking.dto.InLobbyMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackResultMessage;
@@ -27,12 +30,14 @@ import edu.aau.se2.server.networking.dto.game.CardExchangeMessage;
 import edu.aau.se2.server.networking.dto.game.DefenderDiceCountMessage;
 import edu.aau.se2.server.networking.dto.game.DiceResultMessage;
 import edu.aau.se2.server.networking.dto.game.InitialArmyPlacingMessage;
+import edu.aau.se2.server.networking.dto.game.LeftGameMessage;
 import edu.aau.se2.server.networking.dto.game.NewArmiesMessage;
 import edu.aau.se2.server.networking.dto.game.NewCardMessage;
 import edu.aau.se2.server.networking.dto.game.NextTurnMessage;
 import edu.aau.se2.server.networking.dto.game.OccupyTerritoryMessage;
 import edu.aau.se2.server.networking.dto.game.RefreshCardsMessage;
 import edu.aau.se2.server.networking.dto.game.StartGameMessage;
+import edu.aau.se2.server.networking.dto.game.VictoryMessage;
 import edu.aau.se2.server.networking.dto.lobby.CreateLobbyMessage;
 import edu.aau.se2.server.networking.dto.lobby.ErrorMessage;
 import edu.aau.se2.server.networking.dto.lobby.JoinedLobbyMessage;
@@ -123,12 +128,22 @@ public class MainServer implements PlayerLostConnectionListener {
                     handleDefenderDiceCountMessage((DefenderDiceCountMessage) arg);
                 } else if (arg instanceof ChangeNicknameMessage) {
                     handleChangedNicknameMessage((ChangeNicknameMessage) arg);
+                } else if (arg instanceof AccuseCheaterMessage){
+                    handleAccuseCheaterMessage((AccuseCheaterMessage) arg);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 log.log(Level.SEVERE, "Exception: " + ex.getMessage(), ex);
             }
         });
+    }
+
+    private synchronized void handleAccuseCheaterMessage(AccuseCheaterMessage msg) {
+        Lobby l = ds.getLobbyByID(msg.getLobbyID());
+        //if message is from defender ...
+        if(l.getCurrentAttack()!= null && l.getDefender().getUid() == msg.getFromPlayerID()){
+            attackFinished(l.getLobbyID(), true);
+        }
     }
 
     public void handleChangedNicknameMessage(ChangeNicknameMessage msg) {
@@ -165,6 +180,13 @@ public class MainServer implements PlayerLostConnectionListener {
             ds.updateLobby(l);
 
             server.broadcastMessage(msg, l.getPlayers());
+
+            // test if a player has lost/won -> inform clients
+            InLobbyMessage victoryOrLose = VictoryHelper.handleTerritoryOccupation(l, msg.getFromPlayerID());
+            if (victoryOrLose != null) {
+                server.broadcastMessage(victoryOrLose, l.getPlayers());
+            }
+
         }
     }
 
@@ -198,52 +220,50 @@ public class MainServer implements PlayerLostConnectionListener {
             } catch (InterruptedException e) {
                 log.severe(e.getMessage());
             }
-            attackFinished(l.getLobbyID());
+            attackFinished(l.getLobbyID(), false);
         }
     }
 
-    private synchronized void attackFinished(int lobbyId) {
+    private synchronized void attackFinished(int lobbyId, boolean accused) {
         Lobby l = ds.getLobbyByID(lobbyId);
+        Territory fromTerritory = l.getTerritoryByID(l.getCurrentAttack().getFromTerritoryID());
+        Territory toTerritory = l.getTerritoryByID(l.getCurrentAttack().getToTerritoryID());
 
         if (l.attackRunning()) {
             int armiesLostAttacker = 0;
             int armiesLostDefender = 0;
+            boolean wasCheated = l.getCurrentAttack().isCheated();
 
-            List<Integer> attackerResults = l.getCurrentAttack().getAttackerDiceResults();
-            List<Integer> defenderResults = l.getCurrentAttack().getDefenderDiceResults();
-
-            attackerResults.sort(Integer::compareTo);
-            Collections.sort(attackerResults, Collections.reverseOrder());
-            defenderResults.sort(Integer::compareTo);
-            Collections.sort(defenderResults, Collections.reverseOrder());
-
-            for(int i = 0; i < Math.min(attackerResults.size(), defenderResults.size()); i++) {
-                if (attackerResults.get(i) < defenderResults.get(i)) {
-                    armiesLostAttacker++;
-                } else {
-                    armiesLostDefender++;
+            if(!accused) {
+                List<Integer> attackerResults = l.getCurrentAttack().getAttackerDiceResults();
+                List<Integer> defenderResults = l.getCurrentAttack().getDefenderDiceResults();
+                int[] armiesLost = DiceHelper.getArmiesLost(attackerResults, defenderResults);
+                armiesLostAttacker = armiesLost[0];
+                armiesLostDefender = armiesLost[1];
+            }
+            else{
+                if(wasCheated){
+                    armiesLostAttacker = l.getCurrentAttack().getAttackerDiceCount();
+                }else {
+                    //defender should not lose more armys then the number of armies on his territory
+                    armiesLostDefender = Math.min(toTerritory.getArmyCount(), l.getCurrentAttack().getAttackerDiceCount());
                 }
             }
-
-            Territory fromTerritory = l.getTerritoryByID(l.getCurrentAttack().getFromTerritoryID());
-            Territory toTerritory = l.getTerritoryByID(l.getCurrentAttack().getToTerritoryID());
-
             fromTerritory.setArmyCount(Math.max(0, fromTerritory.getArmyCount() - armiesLostAttacker));
             toTerritory.setArmyCount(Math.max(0, toTerritory.getArmyCount() - armiesLostDefender));
 
             boolean occupyRequired = toTerritory.getArmyCount() == 0;
             l.getCurrentAttack().setOccupyRequired(occupyRequired);
-            boolean wasCheated = l.getCurrentAttack().isCheated();
 
             if (!occupyRequired) {
                 l.setCurrentAttack(null);
             }
 
             ds.updateLobby(l);
-
-            server.broadcastMessage(new AttackResultMessage(lobbyId, l.getPlayerToAct().getUid(), armiesLostAttacker, armiesLostDefender, wasCheated, occupyRequired), l.getPlayers());
+            server.broadcastMessage(new AttackResultMessage(lobbyId, l.getPlayerToAct().getUid(), armiesLostAttacker, armiesLostDefender, wasCheated, occupyRequired, accused), l.getPlayers());
         }
     }
+
 
     private void handleAttackingPhaseFinishedMessage(AttackingPhaseFinishedMessage msg) {
         Lobby l = ds.getLobbyByID(msg.getLobbyID());
@@ -264,39 +284,121 @@ public class MainServer implements PlayerLostConnectionListener {
             Territory toTerritory = lobby.getTerritoryByID(msg.getToTerritoryID());
             // if player occupies both territories and there are more armies than being moved (at least 1 needs to remain)
             if (fromTerritory.getOccupierPlayerID() == player.getUid() &&
-                    toTerritory.getOccupierPlayerID() == player.getUid() &&
+                    (toTerritory.getOccupierPlayerID() == player.getUid() || toTerritory.isNotOccupied()) &&
                     fromTerritory.getArmyCount() > msg.getArmyCountMoved()) {
 
                 fromTerritory.subFromArmyCount(msg.getArmyCountMoved());
                 toTerritory.addToArmyCount(msg.getArmyCountMoved());
-                lobby.nextPlayersTurn();
-                ds.updateLobby(lobby);
+                toTerritory.setOccupierPlayerID(msg.getFromPlayerID());
 
                 // broadcast message to all players & start next turn
                 server.broadcastMessage(msg, lobby.getPlayers());
-                server.broadcastMessage(new NextTurnMessage(lobby.getLobbyID(), SERVER_PLAYER_ID,
-                        lobby.getPlayerToAct().getUid()), lobby.getPlayers());
+                handleNextTurn(msg);
             }
         }
+    }
+
+    private void handleNextTurn(InLobbyMessage msg) {
+        Lobby lobby = ds.getLobbyByID(msg.getLobbyID());
+        // now: at the end of turn give new random card to player
+        // todo: only give card if player has occupied new territory
+        int id = msg.getFromPlayerID();
+        Card c = lobby.getCardDeck().getRandomCard(id);
+
+        // test if there is a set for trading in (if yes -> ask player for trade at start of next turn)
+        lobby.getPlayerToAct().setTradableSet(lobby.getCardDeck().getCardSet(id));
+        boolean b = false;
+        if (lobby.getPlayerToAct().getTradableSet().length == 3) {
+            b = true;
+        }
+
+        if (c != null) { // if c is null, there are no cards left
+            // send name of new Card to player of last turn
+            server.broadcastMessage(new NewCardMessage(lobby.getLobbyID(), id, c.getCardName(), b), lobby.getPlayerToAct());
+        }
+
+        lobby.nextPlayersTurn();
+        ds.updateLobby(lobby);
+
+        server.broadcastMessage(new NextTurnMessage(lobby.getLobbyID(), SERVER_PLAYER_ID,
+                lobby.getPlayerToAct().getUid()), lobby.getPlayers());
     }
 
     private synchronized void handleRequestLeaveLobby(RequestLeaveLobby msg) {
         Lobby lobbyToLeave = ds.getLobbyByID(msg.getLobbyID());
         Player playerToLeave = ds.getPlayerByID(msg.getFromPlayerID());
-        try {
+        playerLeaves(lobbyToLeave, playerToLeave);
+    }
+
+    private void playerLeaves(Lobby lobbyToLeave, Player playerToLeave) {
+
+        if (!lobbyToLeave.isStarted()) {
             lobbyToLeave.leave(playerToLeave);
             playerToLeave.reset();
             ds.updateLobby(lobbyToLeave);
+            if (lobbyToLeave.getPlayers().size() == 0) {
+                ds.removeLobby(lobbyToLeave.getLobbyID());
+            }
             // if player could successfully leave the lobby, inform him and all remaining players
             server.broadcastMessage(new LeftLobbyMessage(), playerToLeave);
             server.broadcastMessage(new PlayersChangedMessage(lobbyToLeave.getLobbyID(),
                     SERVER_PLAYER_ID, lobbyToLeave.getPlayers()), lobbyToLeave.getPlayers());
-        } catch (IllegalArgumentException ex) {
-            // if player could not leave the lobby (host, game already started), close lobby and inform all players
+
+        } else if (!lobbyToLeave.areInitialArmiesPlaced()) {
+            // if player disconnects/leaves in initial army placement already, end game for everyone
+            server.broadcastMessage(new LeftLobbyMessage(true), lobbyToLeave.getPlayers());
             ds.removeLobby(lobbyToLeave.getLobbyID());
             lobbyToLeave.resetPlayers();
-            server.broadcastMessage(new LeftLobbyMessage(true), lobbyToLeave.getPlayers());
+
+        } else if (playerToLeave.isHasLost() || lobbyToLeave.getTurnOrder().size() == 1) {
+            // if player has already lost he can be safely removed from game
+            // if player has already won he can return to main menu
+            server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid(), true), lobbyToLeave.getPlayers());
+            lobbyToLeave.leave(playerToLeave);
+            playerToLeave.reset();
+            ds.updateLobby(lobbyToLeave);
+
+        } else if (lobbyToLeave.getTurnOrder().size() >= 2) {
+            // player has not won or lost the game, thus he has to be removed carefully
+            playerLeavesAdvanced(lobbyToLeave, playerToLeave);
+
         }
+        // make sure Lobby is removed if after above steps all players are gone
+        if (lobbyToLeave.getPlayers().size() == 0 && ds.getLobbyByID(lobbyToLeave.getLobbyID()) != null) {
+            ds.removeLobby(lobbyToLeave.getLobbyID());
+        }
+    }
+
+    private void playerLeavesAdvanced(Lobby lobbyToLeave, Player playerToLeave) {
+
+        // end attacking phase if player is attacker or defender
+        if (lobbyToLeave.getCurrentAttack() != null && (playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getFromTerritoryID()).getUid() ||
+                playerToLeave.getUid() == lobbyToLeave.getPlayerByTerritoryID(lobbyToLeave.getCurrentAttack().getToTerritoryID()).getUid())) {
+            lobbyToLeave.setCurrentAttack(null);
+            server.broadcastMessage(new AttackResultMessage(lobbyToLeave.getLobbyID(), lobbyToLeave.getPlayerToAct().getUid(),
+                    0, 0, false, false, false), lobbyToLeave.getPlayers());
+        }
+
+        boolean wasPlayersTurn = lobbyToLeave.isPlayersTurn(playerToLeave.getUid());
+        // if more then 2 players are left remove that player (in lobby his territories will be set unoccupied)
+        VictoryHelper.removePlayerFromTurnOrder(lobbyToLeave, playerToLeave.getUid());
+        lobbyToLeave.clearTerritoriesOfPlayer(playerToLeave.getUid());
+        server.broadcastMessage(new LeftGameMessage(lobbyToLeave.getLobbyID(), playerToLeave.getUid()), lobbyToLeave.getPlayers());
+        lobbyToLeave.leave(playerToLeave);
+        ds.updateLobby(lobbyToLeave);
+
+        // if only one player is left he has won the game, inform everyone
+        if (lobbyToLeave.getTurnOrder().size() == 1 && !(lobbyToLeave.getPlayerByID(lobbyToLeave.getTurnOrder().get(0)).isHasLost())) {
+            server.broadcastMessage(new VictoryMessage(lobbyToLeave.getLobbyID(), lobbyToLeave.getPlayerToAct().getUid()), lobbyToLeave.getPlayers());
+        }
+
+        if (wasPlayersTurn) {
+            lobbyToLeave.nextPlayersTurn();
+            server.broadcastMessage(new NextTurnMessage(lobbyToLeave.getLobbyID(), SERVER_PLAYER_ID,
+                    lobbyToLeave.getPlayerToAct().getUid()), lobbyToLeave.getPlayers());
+        }
+        playerToLeave.reset();
+        ds.updateLobby(lobbyToLeave);
     }
 
     private synchronized void handleRequestJoinLobbyMessage(RequestJoinLobbyMessage msg) {
@@ -344,29 +446,7 @@ public class MainServer implements PlayerLostConnectionListener {
         if (lobby.getPlayerToAct().getUid() == msg.getFromPlayerID() &&
                 lobby.hasCurrentPlayerToActPlacedNewArmies()) {
 
-            // now: at the end of turn give new random card to player
-            // todo: only give card if player has occupied new territory
-            int id = msg.getFromPlayerID();
-            Card c = lobby.getCardDeck().getRandomCard(id);
-
-            // test if there is a set for trading in (if yes -> ask player for trade at start of next turn)
-            lobby.getPlayerToAct().setTradableSet(lobby.getCardDeck().getCardSet(id));
-            boolean b = false;
-            if (lobby.getPlayerToAct().getTradableSet().length == 3  ) {
-                b = true;
-            }
-
-
-            if (c != null) { // if c is null, there are no cards left
-                // send name of new Card to player of last turn
-                server.broadcastMessage(new NewCardMessage(lobby.getLobbyID(), id, c.getCardName(), b), lobby.getPlayerToAct());
-            }
-
-            lobby.nextPlayersTurn();
-            ds.updateLobby(lobby);
-
-            server.broadcastMessage(new NextTurnMessage(lobby.getLobbyID(), SERVER_PLAYER_ID,
-                    lobby.getPlayerToAct().getUid()), lobby.getPlayers());
+            handleNextTurn(msg);
         }
     }
 
@@ -385,7 +465,7 @@ public class MainServer implements PlayerLostConnectionListener {
                 p.setArmyReserveCount(p.getArmyReserveCount() + lobby.getCardDeck().tradeInSet(p.getTradableSet()));
                 territoryIdForBonusArmies = lobby.getCardDeck().getTerritoryIDForBonusArmies(p.getTradableSet(), lobby.getTerritoriesOccupiedByPlayer(p.getUid()));
 
-                if(territoryIdForBonusArmies != -1) {
+                if (territoryIdForBonusArmies != -1) {
                     Territory t = lobby.getTerritoryByID(territoryIdForBonusArmies);
                     t.addToArmyCount(2);
                 }
@@ -428,6 +508,7 @@ public class MainServer implements PlayerLostConnectionListener {
 
     /**
      * Handles army placed during a normal turn
+     *
      * @param msg ArmyPlacedMessage
      */
     private synchronized void handleTurnArmyPlaced(ArmyPlacedMessage msg) {
@@ -449,6 +530,7 @@ public class MainServer implements PlayerLostConnectionListener {
 
     /**
      * Handles army placed during initial army placing phase
+     *
      * @param msg ArmyPlacedMessage
      */
     private synchronized void handleInitialArmyPlaced(ArmyPlacedMessage msg) {
@@ -508,20 +590,6 @@ public class MainServer implements PlayerLostConnectionListener {
 
     @Override
     public void playerLostConnection(Player player, Lobby playerLobby) {
-        try {
-            if (playerLobby != null) {
-                playerLobby.leave(player);
-                player.reset();
-                ds.updateLobby(playerLobby);
-                // if player could successfully leave the lobby, inform all remaining players
-                server.broadcastMessage(new PlayersChangedMessage(playerLobby.getLobbyID(),
-                        SERVER_PLAYER_ID, playerLobby.getPlayers()), playerLobby.getPlayers());
-            }
-        } catch (IllegalArgumentException ex) {
-            // if player could not leave the lobby (host, game already started), close lobby and inform all remaining players
-            ds.removeLobby(playerLobby.getLobbyID());
-            playerLobby.resetPlayers();
-            server.broadcastMessage(new LeftLobbyMessage(true), playerLobby.getPlayers());
-        }
+        playerLeaves(playerLobby, player);
     }
 }

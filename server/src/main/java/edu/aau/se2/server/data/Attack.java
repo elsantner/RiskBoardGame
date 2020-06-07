@@ -10,6 +10,7 @@ public class Attack {
     private List<Integer> attackerDiceResults;
     private List<Integer> defenderDiceResults;
     private boolean cheated;
+    private boolean accused;
     private boolean occupyRequired;
     private int armiesLostAttacker = -1;
     private int armiesLostDefender = -1;
@@ -94,5 +95,12 @@ public class Attack {
 
     public void setArmiesLostDefender(int armiesLostDefender) {
         this.armiesLostDefender = armiesLostDefender;
+    }
+
+    public boolean isAccused() {
+        return accused;
+    }
+    public void setAccused(boolean accused) {
+        this.accused = accused;
     }
 }

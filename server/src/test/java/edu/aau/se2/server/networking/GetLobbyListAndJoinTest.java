@@ -97,18 +97,18 @@ public class GetLobbyListAndJoinTest extends AbstractServerTest {
         Thread.sleep(1000);
 
         // check that host received correct message
-        assertTrue(leftLobbyMessageHost.isWasClosed());
-        // check that lobby was closed after host left regularly
-        assertEquals(NUM_HOSTS-1, listMessage.getLobbies().size());
-        assertEquals(NUM_HOSTS-1, server.getDataStore().getJoinableLobbyList().size());
+        assertFalse(leftLobbyMessageHost.isWasClosed());
+        // check that lobby was not closed after host left
+        assertEquals(NUM_HOSTS, listMessage.getLobbies().size());
+        assertEquals(NUM_HOSTS, server.getDataStore().getJoinableLobbyList().size());
 
         leaveLobbyHostDisconnect();
         Thread.sleep(1000);
         requestList();
         Thread.sleep(1000);
 
-        assertEquals(NUM_HOSTS-2, listMessage.getLobbies().size());
-        assertEquals(NUM_HOSTS-2, server.getDataStore().getJoinableLobbyList().size());
+        assertEquals(NUM_HOSTS - 1, listMessage.getLobbies().size());
+        assertEquals(NUM_HOSTS - 1, server.getDataStore().getJoinableLobbyList().size());
     }
 
     private void leaveLobbyHostDisconnect() {
@@ -118,7 +118,7 @@ public class GetLobbyListAndJoinTest extends AbstractServerTest {
     private void requestList() {
         joiner.registerCallback(argument -> {
             if (argument instanceof LobbyListMessage) {
-                listMessage = ((LobbyListMessage)argument);
+                listMessage = ((LobbyListMessage) argument);
             }
         });
         joiner.sendMessage(new RequestLobbyListMessage(listRequestPlayer.getUid()));
@@ -127,7 +127,7 @@ public class GetLobbyListAndJoinTest extends AbstractServerTest {
     private void leaveLobbyHostRegularly() {
         clients[0].registerCallback(argument -> {
             if (argument instanceof LeftLobbyMessage) {
-                leftLobbyMessageHost = (LeftLobbyMessage)argument;
+                leftLobbyMessageHost = (LeftLobbyMessage) argument;
             }
         });
         clients[0].sendMessage(new RequestLeaveLobby(lobbyIDs[0], hostPlayers[0].getUid()));
@@ -140,7 +140,7 @@ public class GetLobbyListAndJoinTest extends AbstractServerTest {
     private void leaveLobbyRegularly() {
         joiner.registerCallback(argument -> {
             if (argument instanceof LeftLobbyMessage) {
-                leftLobbyMessageClient = (LeftLobbyMessage)argument;
+                leftLobbyMessageClient = (LeftLobbyMessage) argument;
                 joiner.disconnect();
             }
         });
@@ -150,31 +150,28 @@ public class GetLobbyListAndJoinTest extends AbstractServerTest {
     private void requestListAndJoin() throws IOException {
         joiner.registerCallback(argument -> {
             if (argument instanceof ConnectedMessage) {
-                listRequestPlayer = ((ConnectedMessage)argument).getPlayer();
+                listRequestPlayer = ((ConnectedMessage) argument).getPlayer();
                 joiner.sendMessage(new RequestLobbyListMessage(listRequestPlayer.getUid()));
-            }
-            else if (argument instanceof LobbyListMessage) {
-                listMessage = ((LobbyListMessage)argument);
+            } else if (argument instanceof LobbyListMessage) {
+                listMessage = ((LobbyListMessage) argument);
                 joiner.sendMessage(new RequestJoinLobbyMessage(
                         listMessage.getLobbies().get(0).getLobbyID(), listRequestPlayer.getUid()));
-            }
-            else if (argument instanceof JoinedLobbyMessage) {
-                joinedMessage = ((JoinedLobbyMessage)argument);
+            } else if (argument instanceof JoinedLobbyMessage) {
+                joinedMessage = ((JoinedLobbyMessage) argument);
             }
         });
         joiner.connect("localhost");
     }
 
     private void startClients() throws IOException {
-        for (int i=0; i<NUM_HOSTS; i++) {
+        for (int i = 0; i < NUM_HOSTS; i++) {
             int finalI = i;
             clients[i].registerCallback(argument -> {
                 if (argument instanceof ConnectedMessage) {
-                    handleConnectedMessage((ConnectedMessage)argument, finalI);
+                    handleConnectedMessage((ConnectedMessage) argument, finalI);
                     clients[finalI].sendMessage(new CreateLobbyMessage(hostPlayers[finalI].getUid()));
-                }
-                else if (argument instanceof JoinedLobbyMessage) {
-                    lobbyIDs[finalI] = ((JoinedLobbyMessage)argument).getLobbyID();
+                } else if (argument instanceof JoinedLobbyMessage) {
+                    lobbyIDs[finalI] = ((JoinedLobbyMessage) argument).getLobbyID();
                 }
             });
             clients[i].connect("localhost");

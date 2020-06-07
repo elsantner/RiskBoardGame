@@ -5,8 +5,10 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -34,6 +36,8 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
     private Button exit;
     private Texture backgroundTxt;
     private Table table;
+    private SpriteBatch batch;
+    private boolean showDisconnectedDialog;
     private Button settings;
     private DefaultNameProvider defaultNameProvider;
     private String nickname;
@@ -43,12 +47,18 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
     private String nickNameTxt;
 
 
-    public MainMenu(RiskGame riskGame, DefaultNameProvider defaultNameProvider, PopupMessageDisplay popupMessageDisplay){
+    public MainMenu(RiskGame riskGame){
+        this(riskGame, false);
+    }
+
+    public MainMenu(RiskGame riskGame, boolean showDisconnectedDialog, DefaultNameProvider defaultNameProvider, PopupMessageDisplay popupMessageDisplay) {
         super(riskGame);
+        this.showDisconnectedDialog = showDisconnectedDialog;
 
         mySkin = getGame().getAssetManager().get(AssetName.UI_SKIN_2);
         gamePort = new ScreenViewport();
         stage = new Stage(gamePort);
+        batch = new SpriteBatch();
         this.defaultNameProvider = defaultNameProvider;
         this.popupMessageDisplay = popupMessageDisplay;
         this.nickNameTxt = "Nickname";
@@ -59,20 +69,15 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         table.setFillParent(true);
         table.center();
         stage.addActor(table);
-
         showChangeNameUI = false;
 
-        setupLogo();
-        setupButtons();
-        onClickButtons();
-
-        if(prefs.getString("name").equals("New Player")){
+        if (prefs.getString("name").equals("New Player")) {
             prefs.remove("name");
             Gdx.input.getTextInput(new Input.TextInputListener() {
 
                 @Override
                 public void input(String text) {
-                    if(text.length() > 0) {
+                    if (text.length() > 0) {
                         Database.getInstance().setPlayerNickname(text);
                         prefs.putString("name", text);
                         popupMessageDisplay.showMessage(nickNameTxt + " : " + text);
@@ -87,15 +92,35 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
                 @Override
                 public void canceled() {
                     Database.getInstance().setPlayerNickname(defaultNameProvider.getDeviceName());
-                    prefs.putString("name",  defaultNameProvider.getDeviceName());
+                    prefs.putString("name", defaultNameProvider.getDeviceName());
                     prefs.flush();
                     popupMessageDisplay.showMessage(nickNameTxt + " : " + defaultNameProvider.getDeviceName());
                 }
-            },"Nickname eingeben", defaultNameProvider.getDeviceName(), "");
+            }, "Nickname eingeben", defaultNameProvider.getDeviceName(), "");
 
         }
 
         Gdx.input.setInputProcessor(stage);
+    }
+
+    private void displayDisconnectedDialog() {
+        Skin uiSkin = getGame().getAssetManager().get(AssetName.UI_SKIN_1);
+        ReconnectDialog dialog = new ReconnectDialog(uiSkin, "Keine Verbindung",
+                "Moechten Sie es erneut versuchen?", success -> {
+                    if (!success) {
+                        displayDisconnectedDialog();
+                    }
+                    else {
+                        setButtonsEnabled(true);
+                    }
+                });
+        showDialog(dialog, stage, 3);
+    }
+
+    private void setButtonsEnabled(boolean enabled) {
+        create.setTouchable(enabled ? Touchable.enabled : Touchable.disabled);
+        join.setTouchable(enabled ? Touchable.enabled : Touchable.disabled);
+        exit.setTouchable(enabled ? Touchable.enabled : Touchable.disabled);
     }
 
     public void setupButtons(){
@@ -136,7 +161,7 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         join.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Database.getInstance().triggerLobbyListUpdate();
+                getGame().openLobbyListScreen();
             }
         });
 
@@ -192,7 +217,20 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
 
     @Override
     public void show() {
-        // this method is not used currently
+        setupLogo();
+        setupButtons();
+        onClickButtons();
+
+        addInputProcessor(stage);
+        if (showDisconnectedDialog) {
+            setButtonsEnabled(false);
+            displayDisconnectedDialog();
+        }
+    }
+
+    @Override
+    public void handleBackButton() {
+        Gdx.app.exit();
     }
 
     @Override
@@ -201,9 +239,9 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
         Gdx.gl.glClearColor(1, 0, 0, 0);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        stage.getBatch().begin();
-        stage.getBatch().draw(backgroundTxt, 0, 0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
-        stage.getBatch().end();
+        batch.begin();
+        batch.draw(backgroundTxt,0,0, stage.getViewport().getScreenWidth(), stage.getViewport().getScreenHeight());
+        batch.end();
 
         stage.act();
         stage.draw();
@@ -212,8 +250,7 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
 
     @Override
     public void resize(int width, int height) {
-        gamePort.update(width, height, true);
-        stage.getViewport().update(width, height);
+        //currently unused
     }
 
     @Override
@@ -233,6 +270,7 @@ public class MainMenu extends AbstractScreen implements OnNicknameChangeListener
 
     @Override
     public void dispose() {
+        batch.dispose();
         stage.dispose();
     }
 

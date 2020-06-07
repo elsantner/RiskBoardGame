@@ -11,6 +11,7 @@ public class Player implements Serializable {
     private Card[] tradableSet;
     private boolean askForCardExchange;
     private boolean exchangeCards;
+    private boolean hasLost;
 
     public Player() {
     }
@@ -43,6 +44,7 @@ public class Player implements Serializable {
 
     /**
      * Sets the player color.
+     *
      * @param colorID ID of the color to set. Must be between 0 and 5.
      */
     public void setColorID(int colorID) {
@@ -78,6 +80,7 @@ public class Player implements Serializable {
         this.colorID = -1;
         this.askForCardExchange = false;
         this.exchangeCards = false;
+        this.hasLost = false;
     }
 
     public Card[] getTradableSet() {
@@ -102,6 +105,14 @@ public class Player implements Serializable {
 
     public void setExchangeCards(boolean exchangeCards) {
         this.exchangeCards = exchangeCards;
+    }
+
+    public boolean isHasLost() {
+        return hasLost;
+    }
+
+    public void setHasLost(boolean hasLost) {
+        this.hasLost = hasLost;
     }
 
 }
