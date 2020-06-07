@@ -2,7 +2,6 @@ package edu.aau.se2.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -19,8 +18,8 @@ import edu.aau.se2.server.data.Territory;
 import edu.aau.se2.server.logic.DiceHelper;
 import edu.aau.se2.server.logic.VictoryHelper;
 import edu.aau.se2.server.networking.SerializationRegister;
-import edu.aau.se2.server.networking.dto.game.AccuseCheaterMessage;
 import edu.aau.se2.server.networking.dto.InLobbyMessage;
+import edu.aau.se2.server.networking.dto.game.AccuseCheaterMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyMovedMessage;
 import edu.aau.se2.server.networking.dto.game.ArmyPlacedMessage;
 import edu.aau.se2.server.networking.dto.game.AttackResultMessage;

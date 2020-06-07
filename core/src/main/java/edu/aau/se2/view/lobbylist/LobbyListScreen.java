@@ -198,11 +198,15 @@ public class LobbyListScreen extends AbstractScreen implements OnLobbyListChange
 
     @Override
     public void onError(int errorCode) {
-        String errorMessage =
-                errorCode == ErrorMessage.JOIN_LOBBY_ALREADY_JOINED ? "Already joined."
-                        : errorCode == ErrorMessage.JOIN_LOBBY_CLOSED ? "Lobby closed"
-                        : errorCode == ErrorMessage.JOIN_LOBBY_FULL ? "Lobby full"
-                        : "Unknown error while joining";
+        String errorMessage;
+        if (errorCode == ErrorMessage.JOIN_LOBBY_ALREADY_JOINED)
+            errorMessage = "Already joined";
+        else if (errorCode == ErrorMessage.JOIN_LOBBY_CLOSED)
+            errorMessage = "Lobby closed";
+        else if (errorCode == ErrorMessage.JOIN_LOBBY_FULL)
+            errorMessage = "Lobby full";
+        else
+            errorMessage = "Unknown error while joining";
 
         getGame().showMessage(errorMessage);
         Database.getInstance().triggerLobbyListUpdate();

@@ -98,8 +98,6 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
                             if (res) db.leaveLobby();
                         });
 
-        TextButton buttonLeaveGame = new TextButton("Spiel verlassen", (Skin) getScreen().getGame().getAssetManager().get(AssetName.UI_SKIN_2));
-
                 dialog.show(thisStage).moveBy(0, thisStage.getViewport().getWorldHeight() * 0.11f);
                 dialog.setScale(thisStage.getViewport().getWorldHeight() * 0.0027f);
                 dialog.setOrigin(Align.center);
@@ -226,9 +224,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
             String defenderName = db.getLobby().getPlayerByTerritoryID(attack.getToTerritoryID()).getNickname();
             String fromTerritoryName = Territory.getByID(attack.getFromTerritoryID()).getTerritoryName();
             String toTerritoryName = Territory.getByID(attack.getToTerritoryID()).getTerritoryName();
-            updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName,
-                    attack.getAttackerDiceCount(), attack.getArmiesLostAttacker(),
-                    attack.getArmiesLostDefender(), attack.isCheated(), attack.isAccused());
+            updateAttackDisplay(attackerName, defenderName, fromTerritoryName, toTerritoryName, attack);
             attackDisplay.setVisible(true);
         } else {
             // hide attack display 3 seconds later
@@ -254,8 +250,8 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         attackDisplay.setVisible(false);
     }
 
-    private void updateAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender, boolean cheated, boolean accused) {
-        attackDisplay.updateData(attacker, defender, fromTerritory, toTerritory, armyCount, armiesLostAttacker, armiesLostDefender, cheated, accused);
+    private void updateAttackDisplay(String attacker, String defender, String fromTerritory, String toTerritory, Attack attack) {
+        attackDisplay.updateData(attacker, defender, fromTerritory, toTerritory, attack);
     }
 
     private void resetTerritoryCount() {
@@ -264,7 +260,7 @@ public class HudStage extends AbstractStage implements OnNextTurnListener {
         }
     }
 
-    public void setPlayerTerritoryCount(int territoryID, int playerColor) {
+    public void setPlayerTerritoryCount(int territoryID) {
         this.arrayT[territoryID] = Territory.getByID(territoryID).getArmyColor();
         resetTerritoryCount();
 

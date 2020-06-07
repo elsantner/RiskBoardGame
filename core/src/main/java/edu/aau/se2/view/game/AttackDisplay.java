@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 
+import edu.aau.se2.server.data.Attack;
 import edu.aau.se2.view.asset.AssetName;
 
 public class AttackDisplay extends Group {
@@ -111,19 +112,19 @@ public class AttackDisplay extends Group {
         this.addActor(tableContainer);
     }
 
-    public void updateData(String attacker, String defender, String fromTerritory, String toTerritory, int armyCount, int armiesLostAttacker, int armiesLostDefender, boolean cheated, boolean accused) {
+    public void updateData(String attacker, String defender, String fromTerritory, String toTerritory, Attack attack) {
         labelAttacker.setText(attacker);
         labelDefender.setText(defender);
         labelTerritoryAttacker.setText(fromTerritory);
         labelTerritoryDefender.setText(toTerritory);
-        labelArmyCount.setText(Integer.toString(armyCount));
-        labelArmiesLostAttacker.setText(Integer.toString(-armiesLostAttacker));
-        labelArmiesLostDefender.setText(Integer.toString(-armiesLostDefender));
-        labelArmiesLostAttacker.setVisible(armiesLostAttacker != -1 && armiesLostDefender != -1);
-        labelArmiesLostDefender.setVisible(armiesLostAttacker != -1 && armiesLostDefender != -1);
-        if(accused){
+        labelArmyCount.setText(Integer.toString(attack.getAttackerDiceCount()));
+        labelArmiesLostAttacker.setText(Integer.toString(-attack.getArmiesLostAttacker()));
+        labelArmiesLostDefender.setText(Integer.toString(-attack.getArmiesLostDefender()));
+        labelArmiesLostAttacker.setVisible(attack.getArmiesLostAttacker() != -1 && attack.getArmiesLostDefender() != -1);
+        labelArmiesLostDefender.setVisible(attack.getArmiesLostAttacker() != -1 && attack.getArmiesLostDefender() != -1);
+        if(attack.isAccused()){
             cheatingMessage.setVisible(true);
-            if (cheated) {
+            if (attack.isCheated()) {
                 cheatingMessage.setText(attacker + " wurde beim Schummeln erwischt");
             }else{
                 cheatingMessage.setText(defender + " hat falschlicherweise beschuldigt");

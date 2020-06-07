@@ -219,9 +219,9 @@ public class Lobby {
     }
 
     public void leave(Player p) {
-        Territory[] territories = getTerritoriesOccupiedByPlayer(p.getUid());
-        for (int i = 0; i < territories.length; i++) {
-            territories[i] = new Territory(territories[i].getId());
+        Territory[] territoriesOfPlayer = getTerritoriesOccupiedByPlayer(p.getUid());
+        for (int i = 0; i < territoriesOfPlayer.length; i++) {
+            territoriesOfPlayer[i] = new Territory(territoriesOfPlayer[i].getId());
         }
         players.remove(p.getUid());
     }
