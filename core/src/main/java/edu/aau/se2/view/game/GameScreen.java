@@ -398,9 +398,11 @@ public class GameScreen extends AbstractScreen implements OnTerritoryUpdateListe
             hudStage.setCurrentAttack(a);
 
             // defenders armies were eliminated & territory needs to be occupied
-            if (a != null && a.isOccupyRequired() && db.isThisPlayersTurn()) {
-                diceStage.hide();
-                showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
+            if (a != null && a.isOccupyRequired()) {
+                if (db.isThisPlayersTurn()) {
+                    diceStage.hide();
+                    showOccupyTerritoryDialog(a.getFromTerritoryID(), a.getToTerritoryID());
+                }
             }
             // received attacker dice results
             else if (a != null && a.getDefenderDiceCount() != -1 && a.getDefenderDiceResults() == null && db.isThisPlayerDefender()) {
