@@ -103,7 +103,9 @@ public class DiceStage extends AbstractStage {
     }
 
     public void playAttackerDiceAnimation(int diceCount, boolean isThisPlayerAttacker) {
-        attackerDicingAnimationRunning = true;
+        if (isThisPlayerAttacker) {
+            attackerDicingAnimationRunning = true;
+        }
         // generate initial results (can be changed by cheating)
         attackerDiceResults = rollDice(diceCount);
 

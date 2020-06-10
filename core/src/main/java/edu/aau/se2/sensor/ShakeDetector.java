@@ -39,7 +39,7 @@ public class ShakeDetector {
     //the method is checking if the vibrator is supported, and if yes, the phone is going to vibrate
     public static void vibrate(){
         if(availableV){
-            Gdx.input.vibrate(2000);
+            Gdx.input.vibrate(1000);
         }else {
             throw new UnsupportedOperationException("The Vibration is not available on your device");
         }
