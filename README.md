@@ -10,6 +10,10 @@ For further information on the project, please visit our (german) wiki: https://
         java -cp server-<version>.jar edu.aau.se2.server.MainServer
         
 4. Install the Risiko_\<version>.apk on the android device of your choice. (You might have to allow apps from unknown sources since this apk is not signed.)
+<br/>**PLEASE NOTE**: If you installed the server on a domain different to "se2-demo.aau.at" you have to change the server address in    the following class and recompile the .apk:
+
+        edu.aau.se2.server.networking.kryonet.NetworkConstants
+
 5. The connection between client and server should now work and you can start playing.
 
 ---
