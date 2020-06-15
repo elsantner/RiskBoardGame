@@ -40,10 +40,7 @@ public class ShakeDetector {
     public static void vibrate(){
         if(availableV){
             Gdx.input.vibrate(1000);
-        }else {
-            throw new UnsupportedOperationException("The Vibration is not available on your device");
         }
     }
-
 }
 

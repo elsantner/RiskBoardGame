@@ -16,15 +16,15 @@ public abstract class ArmyCountHelper {
     public static int getStartCount(int playerCount) {
         switch (playerCount) {
             case 2:
-                return 40;
+                return 3;
             case 3:
-                return 35;
+                return 3;
             case 4:
-                return 30;
+                return 3;
             case 5:
-                return 25;
+                return 3;
             case 6:
-                return 20;
+                return 3;
             default:
                 throw new IllegalArgumentException("initial army count is only defined for 2-6 players");
         }
